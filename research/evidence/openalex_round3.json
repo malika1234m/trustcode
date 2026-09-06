@@ -1,0 +1,147 @@
+[
+  {
+    "candidate": "When Help Hurts: Verification Load and Fatigue with AI Coding Assistants",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Trust-Calibrated Code Review: A Participatory Design Study of Review Workflows for LLM-Generated Multi-File Changes",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Evaluating the Impact of Explainable AI on Trust in AI-Assisted Code Review",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "From Generic to Personalized: Exploring Persona-Aware Code Review Explanations",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Towards an Appropriate Level of Reliance on AI: A Preliminary Reliance-Control Framework for AI in Software Engineering",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "TARS: A Theory-of-Mind Agent for Personalized In-IDE Code Comprehension",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Trust Calibration in IDEs: Paving the Way for Widespread Adoption of AI Refactoring",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Fostering Appropriate Reliance on Large Language Models: The Role of Explanations, Sources, and Inconsistencies",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "To Rely or Not to Rely? Evaluating Interventions for Appropriate Reliance on Large Language Models",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Predicting Developer Acceptance of AI-Generated Code Suggestions",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Closing the Gap: A User Study on the Real-world Usefulness of AI-powered Vulnerability Detection & Repair in the IDE",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Developer Needs and Feasible Features for AI Assistants in IDEs",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Humans are Missing from AI Coding Agent Research",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Mapping the Trust Terrain: LLMs in Software Engineering -- Insights and Perspectives",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "How Developers Interact with AI: A Taxonomy of Human-AI Collaboration in Software Engineering",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Understanding user mental models in AI-driven code completion tools: Insights from an elicitation study",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "The Impact of LLM-Assistants on Software Developer Productivity: A Systematic Review and Mapping Study",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Evaluating LLM-Generated Code: A Benchmark and Developer Study",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "My Code Is Less Secure with Gen AI: Surveying Developers' Perceptions of the Impact of Code Generation Tools on Security",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "From Preventive to Reactive: How AI Coding Assistants Transform Developers' Security Awareness",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "How AI Impacts Skill Formation",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Comparing Developer and LLM Biases in Code Evaluation",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "To Trust or to Think: Cognitive Forcing Functions Can Reduce Overreliance on AI in AI-assisted Decision-making",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Why don't software developers use static analysis tools to find bugs?",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Calibrating Trust in AI-Generated Code",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "The Impact of AI Coding Assistants on Software Engineering: A Longitudinal Study",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Code Gradients: Towards Automated Traceability of LLM-Generated Code",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Constructing a theory of trust in AI code generation developers grounded",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "candidate": "Measures for explainable AI: Explanation goodness, user satisfaction, mental models, curiosity, trust, and human-AI performance",
+    "status": "ERROR",
+    "error": "HTTP Error 429: Too Many Requests"
+  }
+]

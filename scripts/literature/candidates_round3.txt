@@ -1,0 +1,29 @@
+When Help Hurts: Verification Load and Fatigue with AI Coding Assistants
+Trust-Calibrated Code Review: A Participatory Design Study of Review Workflows for LLM-Generated Multi-File Changes
+Evaluating the Impact of Explainable AI on Trust in AI-Assisted Code Review
+From Generic to Personalized: Exploring Persona-Aware Code Review Explanations
+Towards an Appropriate Level of Reliance on AI: A Preliminary Reliance-Control Framework for AI in Software Engineering
+TARS: A Theory-of-Mind Agent for Personalized In-IDE Code Comprehension
+Trust Calibration in IDEs: Paving the Way for Widespread Adoption of AI Refactoring
+Fostering Appropriate Reliance on Large Language Models: The Role of Explanations, Sources, and Inconsistencies
+To Rely or Not to Rely? Evaluating Interventions for Appropriate Reliance on Large Language Models
+Predicting Developer Acceptance of AI-Generated Code Suggestions
+Closing the Gap: A User Study on the Real-world Usefulness of AI-powered Vulnerability Detection & Repair in the IDE
+Developer Needs and Feasible Features for AI Assistants in IDEs
+Humans are Missing from AI Coding Agent Research
+Mapping the Trust Terrain: LLMs in Software Engineering -- Insights and Perspectives
+How Developers Interact with AI: A Taxonomy of Human-AI Collaboration in Software Engineering
+Understanding user mental models in AI-driven code completion tools: Insights from an elicitation study
+The Impact of LLM-Assistants on Software Developer Productivity: A Systematic Review and Mapping Study
+Evaluating LLM-Generated Code: A Benchmark and Developer Study
+My Code Is Less Secure with Gen AI: Surveying Developers' Perceptions of the Impact of Code Generation Tools on Security
+From Preventive to Reactive: How AI Coding Assistants Transform Developers' Security Awareness
+How AI Impacts Skill Formation
+Comparing Developer and LLM Biases in Code Evaluation
+To Trust or to Think: Cognitive Forcing Functions Can Reduce Overreliance on AI in AI-assisted Decision-making
+Why don't software developers use static analysis tools to find bugs?
+Calibrating Trust in AI-Generated Code
+The Impact of AI Coding Assistants on Software Engineering: A Longitudinal Study
+Code Gradients: Towards Automated Traceability of LLM-Generated Code
+Constructing a theory of trust in AI code generation developers grounded
+Measures for explainable AI: Explanation goodness, user satisfaction, mental models, curiosity, trust, and human-AI performance

@@ -1,0 +1,779 @@
+{
+  "trust calibration AI-generated code developers": [
+    {
+      "title": "How Developers Experience Debugging Unfamiliar Codebases with Code Tours Generated and Evaluated by Local LLMs",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2607.26987",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "The Importance of an Ethical Framework for Trust Calibration in AI",
+      "year": 2023,
+      "doi": "https://doi.org/10.1109/mis.2023.3320443",
+      "venue": "IEEE Intelligent Systems",
+      "cited_by": 10
+    },
+    {
+      "title": "Predicting Developer Acceptance of AI-Generated Code Suggestions",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2601.21379",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Investigating and Designing for Trust in AI-powered Code Generation Tools",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3630106.3658984",
+      "venue": "ACM Conference on Fairness, Accountability, and Transparency (FAccT)",
+      "cited_by": 87
+    },
+    {
+      "title": "Trust-Calibrated Code Review: A Participatory Design Study of Review Workflows for LLM-Generated Multi-File Changes",
+      "year": 2026,
+      "doi": "https://doi.org/10.4230/lipics.esem.2026.89",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Replication Package of How Developers Experience Debugging Unfamiliar Codebases with Code Tours Generated and Evaluated by Local LLMs",
+      "year": 2026,
+      "doi": "https://doi.org/10.5281/zenodo.21628412",
+      "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+      "cited_by": 0
+    },
+    {
+      "title": "Trust Calibration in IDEs: Paving the Way for Widespread Adoption of AI Refactoring",
+      "year": 2024,
+      "doi": "https://doi.org/10.48550/arxiv.2412.15948",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Copilot Impact Studies: Measuring Productivity, Trust, and Skill Evolution in Enterprise Developer Teams",
+      "year": 2025,
+      "doi": "https://doi.org/10.22399/ijcesen.4217",
+      "venue": "International Journal of Computational and Experimental Science and Engineering",
+      "cited_by": 2
+    },
+    {
+      "title": "“It would work for me too”: How Online Communities Shape Software Developers’ Trust in AI-Powered Code Generation Tools",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3651990",
+      "venue": "ACM Transactions on Interactive Intelligent Systems",
+      "cited_by": 47
+    },
+    {
+      "title": "The Trust Calibration Maturity Model for Characterizing and Communicating Trustworthiness of AI Systems",
+      "year": 2025,
+      "doi": "https://doi.org/10.48550/arxiv.2503.15511",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 1
+    },
+    {
+      "title": "Voice Modality, Engagement, and Trust Calibration in Human-AI Co-Creation",
+      "year": 2026,
+      "doi": null,
+      "venue": "Journal of the Association for Information Systems",
+      "cited_by": 0
+    },
+    {
+      "title": "Cognitive transparency and trust calibration in explainable AI systems: a psychological model of human-AI decision reliance",
+      "year": 2026,
+      "doi": "https://doi.org/10.3389/fpsyg.2026.1924913",
+      "venue": "Frontiers in Psychology",
+      "cited_by": 0
+    }
+  ],
+  "overreliance AI code generation verification user study": [
+    {
+      "title": "Explanations Can Reduce Overreliance on AI Systems During Decision-Making",
+      "year": 2023,
+      "doi": "https://doi.org/10.1145/3579605",
+      "venue": "Proceedings of the ACM on Human-Computer Interaction",
+      "cited_by": 402
+    },
+    {
+      "title": "Investigating and Designing for Trust in AI-powered Code Generation Tools",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3630106.3658984",
+      "venue": "ACM Conference on Fairness, Accountability, and Transparency (FAccT)",
+      "cited_by": 87
+    },
+    {
+      "title": "Disadvantages of AI-Assisted Code Generation in Software Development",
+      "year": 2026,
+      "doi": "https://doi.org/10.9790/0661-2803022228",
+      "venue": "IOSR Journal of Computer Engineering",
+      "cited_by": 0
+    },
+    {
+      "title": "CS1 with a Side of AI: Teaching Software Verification for Secure Code in the Era of Generative AI",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3626252.3630817",
+      "venue": "ACM Technical Symposium on Computer Science Education (SIGCSE)",
+      "cited_by": 26
+    },
+    {
+      "title": "Is AI Code Generation Undermining Developers’ Problem‑Solving Skills?",
+      "year": 2026,
+      "doi": "https://doi.org/10.62762/jse.2025.847963",
+      "venue": "ICCK Journal of Software Engineering",
+      "cited_by": 0
+    },
+    {
+      "title": "The Complementarity Paradox: Human-AI Collaboration, Overreliance, and Skill Decline in Entrepreneurial Contexts",
+      "year": 2026,
+      "doi": "https://doi.org/10.1007/s10796-026-10804-5",
+      "venue": "Information Systems Frontiers",
+      "cited_by": 1
+    },
+    {
+      "title": "From Support to Substitution: A Systematic Review of Students' Overreliance on Generative AI in Education",
+      "year": 2026,
+      "doi": "https://doi.org/10.2139/ssrn.7574738",
+      "venue": "SSRN Electronic Journal",
+      "cited_by": 0
+    },
+    {
+      "title": "A Responsive Present, a Shared Past, a Social Other: Teens' Overreliance on Companion AI Chatbots",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2609.14843",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Evaluating Generative AI's Applicability in Software Testing : User study and quality evaluation of unit test generation",
+      "year": 2025,
+      "doi": null,
+      "venue": "DiVA (Linkoping University)",
+      "cited_by": 0
+    },
+    {
+      "title": "My Code Is Less Secure with Gen AI: Surveying Developers' Perceptions of the Impact of Code Generation Tools on Security",
+      "year": 2025,
+      "doi": "https://doi.org/10.1145/3672608.3707778",
+      "venue": "ACM Symposium on Applied Computing",
+      "cited_by": 9
+    },
+    {
+      "title": "Understanding user mental models in AI-driven code completion tools: Insights from an elicitation study",
+      "year": 2025,
+      "doi": "https://doi.org/10.1016/j.ijhcs.2025.103648",
+      "venue": "International Journal of Human-Computer Studies",
+      "cited_by": 7
+    },
+    {
+      "title": "Reading Between the Lines: Modeling User Behavior and Costs in AI-Assisted Programming",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3613904.3641936",
+      "venue": "CHI Conference on Human Factors in Computing Systems",
+      "cited_by": 114
+    }
+  ],
+  "developers verify LLM-generated code": [
+    {
+      "title": "Code Gradients: Towards Automated Traceability of LLM-Generated Code",
+      "year": 2024,
+      "doi": "https://doi.org/10.1109/re59067.2024.00038",
+      "venue": "IEEE International Requirements Engineering Conference (RE)",
+      "cited_by": 17
+    },
+    {
+      "title": "Verified Code Transpilation with LLMs",
+      "year": 2024,
+      "doi": "https://doi.org/10.52202/079017-1310",
+      "venue": "neural information processing systems",
+      "cited_by": 12
+    },
+    {
+      "title": "Correct-ish by Design: From Upfront Verification to Continuous Monitoring of LLM Generated Code",
+      "year": 2025,
+      "doi": "https://doi.org/10.1007/978-3-032-01377-4_1",
+      "venue": "Lecture notes in computer science",
+      "cited_by": 0
+    },
+    {
+      "title": "A Performance Study of LLM-Generated Code on Leetcode",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3661167.3661221",
+      "venue": "International Conference on Evaluation and Assessment in Software Engineering (EASE)",
+      "cited_by": 86
+    },
+    {
+      "title": "Evaluating LLM-Generated Code: A Benchmark and Developer Study",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2605.09059",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "CodeHalu: Investigating Code Hallucinations in LLMs via Execution-based Verification",
+      "year": 2025,
+      "doi": "https://doi.org/10.1609/aaai.v39i24.34717",
+      "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+      "cited_by": 25
+    },
+    {
+      "title": "Bridging LLM-Generated Code and Requirements: Reverse Generation technique and SBC Metric for Developer Insights",
+      "year": 2025,
+      "doi": "https://doi.org/10.48550/arxiv.2502.07835",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 2
+    },
+    {
+      "title": "Human-in-the-Loop Governance for LLM-Generated Code: An Engineering Control, Accountability, and Verification Model in AI-Augmented Software Development",
+      "year": 2026,
+      "doi": "https://doi.org/10.59324/ejsmt.2026.2(3).12",
+      "venue": "EJSMT",
+      "cited_by": 0
+    },
+    {
+      "title": "Chain of Targeted Verification Questions to Improve the Reliability of Code Generated by LLMs",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3664646.3664772",
+      "venue": "ACM International Conference on AI-Powered Software (AIware)",
+      "cited_by": 6
+    },
+    {
+      "title": "Test-Driven Development and LLM-based Code Generation",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3691620.3695527",
+      "venue": "IEEE/ACM International Conference on Automated Software Engineering (ASE)",
+      "cited_by": 33
+    },
+    {
+      "title": "Deploy, but verify: Analysing LLM Generated Code Safety",
+      "year": 2025,
+      "doi": "https://doi.org/10.1109/pdp66500.2025.00011",
+      "venue": "Euromicro International Conference on Parallel, Distributed and Network-Based Processing (PDP)",
+      "cited_by": 0
+    },
+    {
+      "title": "Beyond Functional Correctness: Exploring Hallucinations in LLM-Generated Code",
+      "year": 2024,
+      "doi": "https://doi.org/10.48550/arxiv.2404.00971",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 42
+    }
+  ],
+  "explanation AI code suggestions user study trust": [
+    {
+      "title": "Measures for explainable AI: Explanation goodness, user satisfaction, mental models, curiosity, trust, and human-AI performance",
+      "year": 2023,
+      "doi": "https://doi.org/10.3389/fcomp.2023.1096257",
+      "venue": "Frontiers in Computer Science",
+      "cited_by": 272
+    },
+    {
+      "title": "Meaningful Explanation Effect on User’s Trust in an AI Medical System: Designing Explanations for Non-Expert Users",
+      "year": 2023,
+      "doi": "https://doi.org/10.1145/3631614",
+      "venue": "ACM Transactions on Interactive Intelligent Systems",
+      "cited_by": 21
+    },
+    {
+      "title": "Investigating and Designing for Trust in AI-powered Code Generation Tools",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3630106.3658984",
+      "venue": "ACM Conference on Fairness, Accountability, and Transparency (FAccT)",
+      "cited_by": 87
+    },
+    {
+      "title": "Impact of Human-AI Interaction on User Trust and Reliance in AI-Assisted Qualitative Coding",
+      "year": 2023,
+      "doi": "https://doi.org/10.48550/arxiv.2309.13858",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 1
+    },
+    {
+      "title": "Closing the Gap: A User Study on the Real-world Usefulness of AI-powered Vulnerability Detection & Repair in the IDE",
+      "year": 2024,
+      "doi": "https://doi.org/10.48550/arxiv.2412.14306",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Trust in Generative AI among Students: An exploratory study",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3626252.3630842",
+      "venue": "ACM Technical Symposium on Computer Science Education (SIGCSE)",
+      "cited_by": 144
+    },
+    {
+      "title": "Trust in AI: progress, challenges, and future directions",
+      "year": 2024,
+      "doi": "https://doi.org/10.1057/s41599-024-04044-8",
+      "venue": "Humanities and Social Sciences Communications",
+      "cited_by": 526
+    },
+    {
+      "title": "The Impact of Explainable AI on Teachers’ Trust and Acceptance of AI EdTech Recommendations: The Power of Domain-specific Explanations",
+      "year": 2025,
+      "doi": "https://doi.org/10.1007/s40593-025-00486-6",
+      "venue": "International Journal of Artificial Intelligence in Education",
+      "cited_by": 78
+    },
+    {
+      "title": "Evaluating the Impact of Explainable AI on Trust in AI-Assisted Code Review",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3832184",
+      "venue": "Proceedings of the ACM on software engineering.",
+      "cited_by": 0
+    },
+    {
+      "title": "Who Should I Trust: AI or Myself? Leveraging Human and AI Correctness Likelihood to Promote Appropriate Trust in AI-Assisted Decision-Making",
+      "year": 2023,
+      "doi": "https://doi.org/10.1145/3544548.3581058",
+      "venue": "CHI Conference on Human Factors in Computing Systems",
+      "cited_by": 143
+    },
+    {
+      "title": "Closing the Gap: A User Study on the Real-world Usefulness of AI-powered Vulnerability Detection & Repair in the IDE",
+      "year": 2025,
+      "doi": "https://doi.org/10.1109/icse55347.2025.00126",
+      "venue": "ACM/IEEE International Conference on Software Engineering: Companion Proceedings (ICSE-Companion)",
+      "cited_by": 8
+    },
+    {
+      "title": "From Generic to Personalized: Exploring Persona-Aware Code Review Explanations",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2607.08990",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    }
+  ],
+  "static analysis warnings LLM generated code developer interface": [
+    {
+      "title": "Leveraging Static Analysis for Feedback-Driven Security Patching in LLM-Generated Code",
+      "year": 2025,
+      "doi": "https://doi.org/10.3390/jcp5040110",
+      "venue": "Journal of Cybersecurity and Privacy",
+      "cited_by": 4
+    },
+    {
+      "title": "Security of LLM-generated Code: A Comparative Analysis",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2605.23091",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Do code LLMs do static analysis?",
+      "year": 2026,
+      "doi": "https://doi.org/10.1007/s10664-026-10853-z",
+      "venue": "Empirical Software Engineering",
+      "cited_by": 3
+    },
+    {
+      "title": "LLM-Powered Static Binary Taint Analysis",
+      "year": 2025,
+      "doi": "https://doi.org/10.1145/3711816",
+      "venue": "ACM Transactions on Software Engineering and Methodology",
+      "cited_by": 42
+    },
+    {
+      "title": "Beyond Functional Correctness: Static Code Quality Profiling of LLM-Generated Code",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2610.19167",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Comparing Developer and LLM Biases in Code Evaluation",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2603.24586",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "How Readable Is LLM-Generated Code Snippets? A Comparison of ChatGPT, DeepSeek, and Gemini",
+      "year": 2025,
+      "doi": "https://doi.org/10.5753/vem.2025.14275",
+      "venue": null,
+      "cited_by": 0
+    },
+    {
+      "title": "Automatically Inspecting Thousands of Static Bug Warnings with Large Language Model: How Far Are We?",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3653718",
+      "venue": "ACM Transactions on Knowledge Discovery from Data",
+      "cited_by": 66
+    },
+    {
+      "title": "The Patchwork Problem in LLM-Generated Code",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2607.08981",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Can Developers rely on LLMs for Secure IaC Development?",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2602.03648",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "On the correlation between architectural smells and static analysis warnings",
+      "year": 2025,
+      "doi": "https://doi.org/10.1007/s11219-025-09730-7",
+      "venue": "Software Quality Journal",
+      "cited_by": 6
+    },
+    {
+      "title": "LLM-Based Repair of Static Nullability Errors",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3832114",
+      "venue": "Proceedings of the ACM on software engineering.",
+      "cited_by": 0
+    }
+  ],
+  "adaptive explanation developer expertise programming assistant": [
+    {
+      "title": "How far are AI-powered programming assistants from meeting developers' needs?",
+      "year": 2024,
+      "doi": "https://doi.org/10.48550/arxiv.2404.12000",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "A Large-Scale Survey on the Usability of AI Programming Assistants: Successes and Challenges",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3597503.3608128",
+      "venue": "ACM/IEEE International Conference on Software Engineering: Companion Proceedings (ICSE-Companion)",
+      "cited_by": 204
+    },
+    {
+      "title": "The Impact of LLM-Assistants on Software Developer Productivity: A Systematic Review and Mapping Study",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3809494",
+      "venue": "ACM Transactions on Software Engineering and Methodology",
+      "cited_by": 11
+    },
+    {
+      "title": "Analysis of Factors Influencing the Adoption of Artificial Intelligence Assistants among Software Developers",
+      "year": 2024,
+      "doi": "https://doi.org/10.33022/ijcs.v13i4.4239",
+      "venue": "Indonesian Journal of Computer Science",
+      "cited_by": 4
+    },
+    {
+      "title": "Role of GenAI-Powered Code Assistants in Accelerating Developer Onboarding & Training in IT Firms",
+      "year": 2025,
+      "doi": "https://doi.org/10.52783/eel.v15i4.4015",
+      "venue": "European Economic Letters (EEL)",
+      "cited_by": 0
+    },
+    {
+      "title": "From Preventive to Reactive: How AI Coding Assistants Transform Developers' Security Awareness",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2605.23130",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Need Help? Designing Proactive AI Assistants for Programming",
+      "year": 2025,
+      "doi": "https://doi.org/10.1145/3706598.3714002",
+      "venue": "CHI Conference on Human Factors in Computing Systems",
+      "cited_by": 29
+    },
+    {
+      "title": "Voice App Developer Experiences with Alexa and Google Assistant: Juggling Risks, Liability, and Security",
+      "year": 2023,
+      "doi": "https://doi.org/10.48550/arxiv.2311.08879",
+      "venue": "Hope's Institutional Research Archive (Liverpool Hope University)",
+      "cited_by": 1
+    },
+    {
+      "title": "Curriculum Gap Revisited: LLMs, Adaptive Expertise and PBL for IS",
+      "year": 2026,
+      "doi": "https://doi.org/10.34190/ecel.25.1.5577",
+      "venue": "European Conference on e-Learning",
+      "cited_by": 0
+    },
+    {
+      "title": "Hybrid Reasoning Developer Assistants Leveraging LLMs for Enterprise Grade Java and Node Financial Systems",
+      "year": 2025,
+      "doi": "https://doi.org/10.64091/atiml.2025.000164",
+      "venue": "AVE Trends in Intelligent Management Letters",
+      "cited_by": 0
+    },
+    {
+      "title": "GitHub Copilot Developer Experience: A Study Comparing Novice and Experienced Developers' Perspectives",
+      "year": 2025,
+      "doi": null,
+      "venue": "Tampere University Institutional Repository (Tampere University)",
+      "cited_by": 0
+    },
+    {
+      "title": "TARS: A Theory-of-Mind Agent for Personalized In-IDE Code Comprehension",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2607.15948",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    }
+  ],
+  "appropriate reliance code generation tools": [
+    {
+      "title": "Investigating and Designing for Trust in AI-powered Code Generation Tools",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3630106.3658984",
+      "venue": "ACM Conference on Fairness, Accountability, and Transparency (FAccT)",
+      "cited_by": 87
+    },
+    {
+      "title": "Investigating the Impact of Code Generation Tools (ChatGPT & Github CoPilot) on Programming Education",
+      "year": 2024,
+      "doi": "https://doi.org/10.5220/0012628000003693",
+      "venue": "International Conference on Computer Supported Education",
+      "cited_by": 17
+    },
+    {
+      "title": "Toward Inclusive AI-Driven Development: Exploring Gender Differences in Code Generation Tool Interactions",
+      "year": 2025,
+      "doi": "https://doi.org/10.17605/osf.io/tcfjr",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Instructor Perceptions of AI Code Generation Tools - A Multi-Institutional Interview Study",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3626252.3630880",
+      "venue": "ACM Technical Symposium on Computer Science Education (SIGCSE)",
+      "cited_by": 55
+    },
+    {
+      "title": "A DSL-Based Approach for Developing Dialogflow Chatbots: Modeling and Code Generation Templates",
+      "year": 2025,
+      "doi": "https://doi.org/10.1109/niss66502.2025.00029",
+      "venue": "International Conference on Networking, Information Systems & Security (NISS)",
+      "cited_by": 0
+    },
+    {
+      "title": "Towards an Appropriate Level of Reliance on AI: A Preliminary Reliance-Control Framework for AI in Software Engineering",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2604.10530",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "A Comparative Analysis Of Chatgpt Vs Gemini As Code Generation Tools",
+      "year": 2025,
+      "doi": "https://doi.org/10.58325/ijisct.004.02.00112",
+      "venue": "International Journal of Information Systems and Computer Technologies",
+      "cited_by": 1
+    },
+    {
+      "title": "Fostering Appropriate Reliance on Large Language Models: The Role of Explanations, Sources, and Inconsistencies",
+      "year": 2025,
+      "doi": "https://doi.org/10.1145/3706598.3714020",
+      "venue": "CHI Conference on Human Factors in Computing Systems",
+      "cited_by": 61
+    },
+    {
+      "title": "To Rely or Not to Rely? Evaluating Interventions for Appropriate Reliance on Large Language Models",
+      "year": 2025,
+      "doi": "https://doi.org/10.1145/3706598.3714097",
+      "venue": "CHI Conference on Human Factors in Computing Systems",
+      "cited_by": 36
+    },
+    {
+      "title": "“It would work for me too”: How Online Communities Shape Software Developers’ Trust in AI-Powered Code Generation Tools",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3651990",
+      "venue": "ACM Transactions on Interactive Intelligent Systems",
+      "cited_by": 47
+    },
+    {
+      "title": "Enhancing Code LLMs with Reinforcement Learning in Code Generation: A Survey",
+      "year": 2024,
+      "doi": "https://doi.org/10.48550/arxiv.2412.20367",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 2
+    },
+    {
+      "title": "SE Perspective on LLMs: Biases in Code Generation, Code Interpretability, and Code Security Risks",
+      "year": 2025,
+      "doi": "https://doi.org/10.1145/3774324",
+      "venue": "ACM Computing Surveys",
+      "cited_by": 7
+    }
+  ],
+  "automation bias software developers AI assistant": [
+    {
+      "title": "AI Safety and Automation Bias",
+      "year": 2024,
+      "doi": "https://doi.org/10.51593/20230057",
+      "venue": null,
+      "cited_by": 11
+    },
+    {
+      "title": "AI-Powered Automation in Everyday Software Systems: Opportunities, Challenges, and Ethical Considerations",
+      "year": 2026,
+      "doi": "https://doi.org/10.55041/isjem06818",
+      "venue": "International Scientific Journal of Engineering and Management",
+      "cited_by": 0
+    },
+    {
+      "title": "Developer Needs and Feasible Features for AI Assistants in IDEs",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3786583.3786883",
+      "venue": "IEEE/ACM International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP)",
+      "cited_by": 3
+    },
+    {
+      "title": "Explainable AI In Software Engineering: Enhancing Developer-AI Collaboration",
+      "year": 2024,
+      "doi": "https://doi.org/10.37547/tajet/volume06issue07-11",
+      "venue": "The American Journal of Engineering And Technology",
+      "cited_by": 12
+    },
+    {
+      "title": "Improvements of AI-Based Code Assistants and Automation Tools",
+      "year": 2026,
+      "doi": null,
+      "venue": "Brno University of Technology Digital Library (Brno University of Technology)",
+      "cited_by": 0
+    },
+    {
+      "title": "How Developers Interact with AI: A Taxonomy of Human-AI Collaboration in Software Engineering",
+      "year": 2025,
+      "doi": "https://doi.org/10.1109/forge66646.2025.00033",
+      "venue": "IEEE/ACM International Conference on AI Foundation Models and Software Engineering (FORGE)",
+      "cited_by": 28
+    },
+    {
+      "title": "Using AI Assistants in Software Development: A Qualitative Study on Security Practices and Concerns",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3658644.3690283",
+      "venue": "ACM SIGSAC Conference on Computer and Communications Security (CCS)",
+      "cited_by": 41
+    },
+    {
+      "title": "The Potential of AI-Driven Assistants in Scaled Agile Software Development",
+      "year": 2023,
+      "doi": "https://doi.org/10.3390/app14010319",
+      "venue": "Applied Sciences",
+      "cited_by": 42
+    },
+    {
+      "title": "Exploring Ethical Awareness and Practices in Software Development : Study of AI Coding Assistant Tools Usage Among Developers",
+      "year": 2025,
+      "doi": null,
+      "venue": "Tampere University Institutional Repository (Tampere University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Do Users Write More Insecure Code with AI Assistants?",
+      "year": 2023,
+      "doi": "https://doi.org/10.1145/3576915.3623157",
+      "venue": "ACM SIGSAC Conference on Computer and Communications Security (CCS)",
+      "cited_by": 259
+    },
+    {
+      "title": "AI-assisted software development: Techniques, impact, challenges, and future directions",
+      "year": 2026,
+      "doi": "https://doi.org/10.5281/zenodo.21124816",
+      "venue": "Zenodo (CERN European Organization for Nuclear Research)",
+      "cited_by": 0
+    },
+    {
+      "title": "The Impact of LLM-Assistants on Software Developer Productivity: A Systematic Review and Mapping Study",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3809494",
+      "venue": "ACM Transactions on Software Engineering and Methodology",
+      "cited_by": 11
+    }
+  ],
+  "uncertainty communication code LLM developers": [
+    {
+      "title": "\"To LLM, or Not to LLM?\": How Designers and Developers Navigate LLMs as Tools or Teammates",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3772363.3798953",
+      "venue": "CHI Conference Extended Abstracts on Human Factors in Computing Systems (CHI EA)",
+      "cited_by": 0
+    },
+    {
+      "title": "Exploring the Capabilities of LLMs for Code-Change-Related Tasks",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3709358",
+      "venue": "ACM Transactions on Software Engineering and Methodology",
+      "cited_by": 41
+    },
+    {
+      "title": "AdaDec: A Uncertainty-Guided Lookahead Decoding Framework for LLM-Based Code Generation",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3808142",
+      "venue": "Proceedings of the ACM on software engineering.",
+      "cited_by": 0
+    },
+    {
+      "title": "The Impact of LLM-Assistants on Software Developer Productivity: A Systematic Review and Mapping Study",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3809494",
+      "venue": "ACM Transactions on Software Engineering and Methodology",
+      "cited_by": 11
+    },
+    {
+      "title": "AI Transparency in the Age of LLMs: A Human-Centered Research Roadmap",
+      "year": 2024,
+      "doi": "https://doi.org/10.1162/99608f92.8036d03b",
+      "venue": "Harvard Data Science Review",
+      "cited_by": 210
+    },
+    {
+      "title": "Who Validates the Validators? Aligning LLM-Assisted Evaluation of LLM Outputs with Human Preferences",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3654777.3676450",
+      "venue": "ACM Symposium on User Interface Software and Technology (UIST)",
+      "cited_by": 156
+    },
+    {
+      "title": "Unsupervised Evaluation of Code LLMs with Round-Trip Correctness",
+      "year": 2024,
+      "doi": "https://doi.org/10.48550/arxiv.2402.08699",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 1
+    },
+    {
+      "title": "Engineering Sustainable Agents: A Systematic Comparison of Agentic LLMs for Developer Workflows",
+      "year": 2026,
+      "doi": "https://doi.org/10.48550/arxiv.2610.03010",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 0
+    },
+    {
+      "title": "Developer and LLM Pair Programming: An Empirical Study of Role Dynamics and Prompt-Based Collaboration",
+      "year": 2025,
+      "doi": "https://doi.org/10.48175/ijarsct-26358",
+      "venue": "International Journal of Advanced Research in Science Communication and Technology",
+      "cited_by": 1
+    },
+    {
+      "title": "Communication Policy Evolution for Proactive LLM Agents",
+      "year": 2026,
+      "doi": "https://doi.org/10.18653/2026.emnlp-main.2038",
+      "venue": "Conference on Empirical Methods in Natural Language Processing (EMNLP)",
+      "cited_by": 0
+    },
+    {
+      "title": "ASG-LLM: An LLM-based pipeline for automated scraping code generation in security-sensitive environments",
+      "year": 2026,
+      "doi": "https://doi.org/10.1016/j.array.2026.101135",
+      "venue": "Array",
+      "cited_by": 0
+    },
+    {
+      "title": "Towards More Trustworthy and Interpretable LLMs for Code through Syntax-Grounded Explanations",
+      "year": 2024,
+      "doi": "https://doi.org/10.48550/arxiv.2407.08983",
+      "venue": "arXiv (Cornell University)",
+      "cited_by": 3
+    }
+  ],
+  "human-AI collaboration software engineering trust": [],
+  "cognitive load AI programming assistant": [],
+  "security warnings AI coding assistant user study": []
+}

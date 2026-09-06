@@ -1,0 +1,900 @@
+[
+  {
+    "candidate": "Grounded Copilot: How Programmers Interact with Code-Generating Models",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Grounded Copilot: How Programmers Interact with Code-Generating Models",
+    "year": 2023,
+    "doi": "https://doi.org/10.1145/3586030",
+    "venue": "Proceedings of the ACM on Programming Languages",
+    "type": "article",
+    "authors": [
+      "Shraddha Barke",
+      "Michael B. James",
+      "Nadia Polikarpova"
+    ],
+    "cited_by": 436,
+    "openalex_id": "https://openalex.org/W4362659486",
+    "abstract": "Powered by recent advances in code-generating models, AI assistants like Github Copilot promise to change the face of programming forever. But what is this new face of programming? We present the first grounded theory analysis of how programmers interact with Copilot, based on observing 20 participants—with a range of prior experience using the assistant—as they solve diverse programming tasks across four languages. Our main finding is that interactions with programming assistants are bimodal : in acceleration mode , the programmer knows what to do next and uses Copilot to get there faster; in exploration mode , the programmer is unsure how to proceed and uses Copilot to explore their options. Based on our theory, we provide recommendations for improving the usability of future AI programming assistants."
+  },
+  {
+    "candidate": "A Large-Scale Survey on the Usability of AI Programming Assistants: Successes and Challenges",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "A Large-Scale Survey on the Usability of AI Programming Assistants: Successes and Challenges",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3597503.3608128",
+    "venue": "ACM/IEEE International Conference on Software Engineering: Companion Proceedings (ICSE-Companion)",
+    "type": "conference-paper",
+    "authors": [
+      "Jenny T. Liang",
+      "Chenyang Yang",
+      "Brad A. Myers"
+    ],
+    "cited_by": 204,
+    "openalex_id": "https://openalex.org/W4391558520",
+    "abstract": "The software engineering community recently has witnessed widespread deployment of AI programming assistants, such as GitHub Copilot. However, in practice, developers do not accept AI programming assistants' initial suggestions at a high frequency. This leaves a number of open questions related to the usability of these tools. To understand developers' practices while using these tools and the important usability challenges they face, we administered a survey to a large population of developers and received responses from a diverse set of 410 developers. Through a mix of qualitative and quantitative analyses, we found that developers are most motivated to use AI programming assistants because they help developers reduce key-strokes, finish programming tasks quickly, and recall syntax, but resonate less with using them to help brainstorm potential solutions. We also found the most important reasons why developers do not use these tools are because these tools do not output code that addresses certain functional or non-functional requirements and because developers have trouble controlling the tool to generate the desired output. Our findings have implications for both creators and users of AI programming assistants, such as designing minimal cognitive effort interactions with these tools to reduce distractions for users while they are programming."
+  },
+  {
+    "candidate": "Lost at C: A User Study on the Security Implications of Large Language Model Code Assistants",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Lost at C: A User Study on the Security Implications of Large Language Model Code Assistants",
+    "year": 2022,
+    "doi": "https://doi.org/10.48550/arxiv.2208.09727",
+    "venue": "arXiv (Cornell University)",
+    "type": "preprint",
+    "authors": [
+      "Gustavo Sandoval",
+      "Hammond A. Pearce",
+      "Teo Nys",
+      "Ramesh Karri",
+      "Siddharth Garg",
+      "Brendan Dolan-Gavitt"
+    ],
+    "cited_by": 52,
+    "openalex_id": "https://openalex.org/W4292956935",
+    "abstract": "Large Language Models (LLMs) such as OpenAI Codex are increasingly being used as AI-based coding assistants. Understanding the impact of these tools on developers' code is paramount, especially as recent work showed that LLMs may suggest cybersecurity vulnerabilities. We conduct a security-driven user study (N=58) to assess code written by student programmers when assisted by LLMs. Given the potential severity of low-level bugs as well as their relative frequency in real-world projects, we tasked participants with implementing a singly-linked 'shopping list' structure in C. Our results indicate that the security impact in this setting (low-level C with pointer and array manipulations) is small: AI-assisted users produce critical security bugs at a rate no greater than 10% more than the control, indicating the use of LLMs does not introduce new security risks."
+  },
+  {
+    "candidate": "Generation Probabilities Are Not Enough: Uncertainty Highlighting in AI Code Completions",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Generation Probabilities Are Not Enough: Uncertainty Highlighting in AI Code Completions",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3702320",
+    "venue": "ACM Transactions on Computer-Human Interaction",
+    "type": "article",
+    "authors": [
+      "Helena Vasconcelos",
+      "Gagan Bansal",
+      "Adam Fourney",
+      "Q. Vera Liao",
+      "Jennifer Wortman Vaughan"
+    ],
+    "cited_by": 23,
+    "openalex_id": "https://openalex.org/W4403860276",
+    "abstract": "Large-scale generative models have enabled the development of AI-powered code completion tools to assist programmers in writing code. Like all AI-powered tools, these code completion tools are not always accurate and can introduce bugs or even security vulnerabilities into code if not properly detected and corrected by a human programmer. One technique that has been proposed and implemented to help programmers locate potential errors is to highlight uncertain tokens. However, little is known about the effectiveness of this technique. Through a mixed-methods study with 30 programmers, we compare three conditions: providing the AI system's code completion alone, highlighting tokens with the lowest likelihood of being generated by the underlying generative model, and highlighting tokens with the highest predicted likelihood of being edited by a programmer. We find that highlighting tokens with the highest predicted likelihood of being edited leads to faster task completion and more targeted edits, and is subjectively preferred by study participants. In contrast, highlighting tokens according to their probability of being generated does not provide any benefit over the baseline with no highlighting. We further explore the design space of how to convey uncertainty in AI-powered code completion tools and find that programmers prefer highlights that are granular, informative, interpretable, and not overwhelming. This work contributes to building an understanding of what uncertainty means for generative models and how to convey it effectively."
+  },
+  {
+    "candidate": "Investigating Explainability of Generative AI for Code through Scenario-based Design",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Investigating Explainability of Generative AI for Code through Scenario-based Design",
+    "year": 2022,
+    "doi": "https://doi.org/10.1145/3490099.3511119",
+    "venue": "ACM International Conference on Intelligent User Interfaces (IUI)",
+    "type": "conference-paper",
+    "authors": [
+      "Jiao Sun",
+      "Q. Vera Liao",
+      "Michael J. Muller",
+      "Mayank Agarwal",
+      "Stephanie Houde",
+      "Kartik Talamadupula",
+      "Justin D. Weisz"
+    ],
+    "cited_by": 219,
+    "openalex_id": "https://openalex.org/W4220962633",
+    "abstract": "What does it mean for a generative AI model to be explainable? The emergent discipline of explainable AI (XAI) has made great strides in helping people understand discriminative models. Less attention has been paid to generative models that produce artifacts, rather than decisions, as output. Meanwhile, generative AI (GenAI) technologies are maturing and being applied to application domains such as software engineering. Using scenario-based design and question-driven XAI design approaches, we explore users’ explainability needs for GenAI in three software engineering use cases: natural language to code, code translation, and code auto-completion. We conducted 9 workshops with 43 software engineers in which real examples from state-of-the-art generative AI models were used to elicit users’ explainability needs. Drawing from prior work, we also propose 4 types of XAI features for GenAI for code and gathered additional design ideas from participants. Our work explores explainability needs for GenAI for code and demonstrates how human-centered approaches can drive the technical development of XAI in novel domains."
+  },
+  {
+    "candidate": "To Trust or to Think: Cognitive Forcing Functions Can Reduce Overreliance on AI in AI-assisted Decision-making",
+    "status": "UNVERIFIED",
+    "similarity": 0.637,
+    "title": "Explanations Can Reduce Overreliance on AI Systems During Decision-Making",
+    "year": 2023,
+    "doi": "https://doi.org/10.1145/3579605",
+    "venue": "Proceedings of the ACM on Human-Computer Interaction",
+    "type": "article",
+    "authors": [
+      "Helena Vasconcelos",
+      "Matthew Jörke",
+      "Madeleine Grunde-McLaughlin",
+      "Tobias Gerstenberg",
+      "Michael S. Bernstein",
+      "Ranjay Krishna"
+    ],
+    "cited_by": 402,
+    "openalex_id": "https://openalex.org/W4366003124",
+    "abstract": "Prior work has identified a resilient phenomenon that threatens the performance of human-AI decision-making teams: overreliance, when people agree with an AI, even when it is incorrect. Surprisingly, overreliance does not reduce when the AI produces explanations for its predictions, compared to only providing predictions. Some have argued that overreliance results from cognitive biases or uncalibrated trust, attributing overreliance to an inevitability of human cognition. By contrast, our paper argues that people strategically choose whether or not to engage with an AI explanation, demonstrating empirically that there are scenarios where AI explanations reduce overreliance. To achieve this, we formalize this strategic choice in a cost-benefit framework, where the costs and benefits of engaging with the task are weighed against the costs and benefits of relying on the AI. We manipulate the costs and benefits in a maze task, where participants collaborate with a simulated AI to find the exit of a maze. Through 5 studies (N = 731), we find that costs such as task difficulty (Study 1), explanation difficulty (Study 2, 3), and benefits such as monetary compensation (Study 4) affect overreliance. Finally, Study 5 adapts the Cognitive Effort Discounting paradigm to quantify the utility of different explanations, providing further support for our framework. Our results suggest that some of the null effects found in literature could be due in part to the explanation not sufficiently reducing the costs of verifying the AI's prediction."
+  },
+  {
+    "candidate": "Explanations Can Reduce Overreliance on AI Systems During Decision-Making",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Explanations Can Reduce Overreliance on AI Systems During Decision-Making",
+    "year": 2023,
+    "doi": "https://doi.org/10.1145/3579605",
+    "venue": "Proceedings of the ACM on Human-Computer Interaction",
+    "type": "article",
+    "authors": [
+      "Helena Vasconcelos",
+      "Matthew Jörke",
+      "Madeleine Grunde-McLaughlin",
+      "Tobias Gerstenberg",
+      "Michael S. Bernstein",
+      "Ranjay Krishna"
+    ],
+    "cited_by": 402,
+    "openalex_id": "https://openalex.org/W4366003124",
+    "abstract": "Prior work has identified a resilient phenomenon that threatens the performance of human-AI decision-making teams: overreliance, when people agree with an AI, even when it is incorrect. Surprisingly, overreliance does not reduce when the AI produces explanations for its predictions, compared to only providing predictions. Some have argued that overreliance results from cognitive biases or uncalibrated trust, attributing overreliance to an inevitability of human cognition. By contrast, our paper argues that people strategically choose whether or not to engage with an AI explanation, demonstrating empirically that there are scenarios where AI explanations reduce overreliance. To achieve this, we formalize this strategic choice in a cost-benefit framework, where the costs and benefits of engaging with the task are weighed against the costs and benefits of relying on the AI. We manipulate the costs and benefits in a maze task, where participants collaborate with a simulated AI to find the exit of a maze. Through 5 studies (N = 731), we find that costs such as task difficulty (Study 1), explanation difficulty (Study 2, 3), and benefits such as monetary compensation (Study 4) affect overreliance. Finally, Study 5 adapts the Cognitive Effort Discounting paradigm to quantify the utility of different explanations, providing further support for our framework. Our results suggest that some of the null effects found in literature could be due in part to the explanation not sufficiently reducing the costs of verifying the AI's prediction."
+  },
+  {
+    "candidate": "Is Stack Overflow Obsolete? An Empirical Study of the Characteristics of ChatGPT Answers to Stack Overflow Questions",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Is Stack Overflow Obsolete? An Empirical Study of the Characteristics of ChatGPT Answers to Stack Overflow Questions",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3613904.3642596",
+    "venue": "CHI Conference on Human Factors in Computing Systems",
+    "type": "conference-paper",
+    "authors": [
+      "Samia Kabir",
+      "David N. Udo-Imeh",
+      "Bonan Kou",
+      "Tianyi Zhang"
+    ],
+    "cited_by": 156,
+    "openalex_id": "https://openalex.org/W4396832043",
+    "abstract": "Q&A platforms have been crucial for the online help-seeking behavior of programmers. However, the recent popularity of ChatGPT is altering this trend. Despite this popularity, no comprehensive study has been conducted to evaluate the characteristics of ChatGPT’s answers to programming questions. To bridge the gap, we conducted the first in-depth analysis of ChatGPT answers to 517 programming questions on Stack Overflow and examined the correctness, consistency, comprehensiveness, and conciseness of ChatGPT answers. Furthermore, we conducted a large-scale linguistic analysis, as well as a user study, to understand the characteristics of ChatGPT answers from linguistic and human aspects. Our analysis shows that 52% of ChatGPT answers contain incorrect information and 77% are verbose. Nonetheless, our user study participants still preferred ChatGPT answers 35% of the time due to their comprehensiveness and well-articulated language style. However, they also overlooked the misinformation in the ChatGPT answers 39% of the time. This implies the need to counter misinformation in ChatGPT answers to programming questions and raise awareness of the risks associated with seemingly correct answers."
+  },
+  {
+    "candidate": "Exploring and Evaluating Hallucinations in LLM-Powered Code Generation",
+    "status": "UNVERIFIED",
+    "similarity": 0.556,
+    "title": "Beyond Functional Correctness: Exploring Hallucinations in LLM-Generated Code",
+    "year": 2024,
+    "doi": "https://doi.org/10.48550/arxiv.2404.00971",
+    "venue": "arXiv (Cornell University)",
+    "type": "preprint",
+    "authors": [
+      "Liu, Fang",
+      "Yang Liu",
+      "Lin Shi",
+      "Yang, Zhen",
+      "Li Zhang",
+      "Xiaoli Lian",
+      "Zhongqi Li",
+      "Yuchi Ma"
+    ],
+    "cited_by": 42,
+    "openalex_id": "https://openalex.org/W4393730225",
+    "abstract": "The rise of Large Language Models (LLMs) has significantly advanced various applications on software engineering tasks, particularly in code generation. Despite the promising performance, LLMs are prone to generate hallucinations, which means LLMs might produce outputs that deviate from users' intent, exhibit internal inconsistencies, or misaligned with the real-world knowledge, making the deployment of LLMs potentially risky in a wide range of applications. Existing work mainly focuses on investigating the hallucination in the domain of Natural Language Generation (NLG), leaving a gap in comprehensively understanding the types, causes, and impacts of hallucinations in the context of code generation. To bridge the gap, we conducted a thematic analysis of the LLM-generated code to summarize and categorize the hallucinations, as well as their causes and impacts. Our study established a comprehensive taxonomy of code hallucinations, encompassing 3 primary categories and 12 specific categories. Furthermore, we systematically analyzed the distribution of hallucinations, exploring variations among different LLMs and benchmarks. Moreover, we perform an in-depth analysis on the causes and impacts of various hallucinations, aiming to provide valuable insights into hallucination mitigation. Finally, to enhance the correctness and reliability of LLM-generated code in a lightweight manner, we explore training-free hallucination mitigation approaches by prompt enhancing techniques. We believe our findings will shed light on future research about code hallucination evaluation and mitigation, ultimately paving the way for building more effective and reliable code LLMs in the future. The replication package is available at https://github.com/Lorien1128/code_hallucination"
+  },
+  {
+    "candidate": "A Study on Developer Behaviors for Validating and Repairing LLM-Generated Code Using Eye Tracking and IDE Actions",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "A Study on Developer Behaviors for Validating and Repairing LLM-Generated Code Using Eye Tracking and IDE Actions",
+    "year": 2024,
+    "doi": "https://doi.org/10.48550/arxiv.2405.16081",
+    "venue": "arXiv (Cornell University)",
+    "type": "preprint",
+    "authors": [
+      "Ningzhi Tang",
+      "Meng Chen",
+      "Ning, Zheng",
+      "Aakash Bansal",
+      "Yu Huang",
+      "Collin McMillan",
+      "Toby Jia-Jun Li"
+    ],
+    "cited_by": 4,
+    "openalex_id": "https://openalex.org/W4399115301",
+    "abstract": "The increasing use of large language model (LLM)-powered code generation tools, such as GitHub Copilot, is transforming software engineering practices. This paper investigates how developers validate and repair code generated by Copilot and examines the impact of code provenance awareness during these processes. We conducted a lab study with 28 participants, who were tasked with validating and repairing Copilot-generated code in three software projects. Participants were randomly divided into two groups: one informed about the provenance of LLM-generated code and the other not. We collected data on IDE interactions, eye-tracking, cognitive workload assessments, and conducted semi-structured interviews. Our results indicate that, without explicit information, developers often fail to identify the LLM origin of the code. Developers generally employ similar validation and repair strategies for LLM-generated code, but exhibit behaviors such as frequent switching between code and comments, different attentional focus, and a tendency to delete and rewrite code. Being aware of the code's provenance led to improved performance, increased search efforts, more frequent Copilot usage, and higher cognitive workload. These findings enhance our understanding of how developers interact with LLM-generated code and carry implications for designing tools that facilitate effective human-LLM collaboration in software development."
+  },
+  {
+    "candidate": "Studying the effect of AI Code Generators on Supporting Novice Learners in Introductory Programming",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Studying the effect of AI Code Generators on Supporting Novice Learners in Introductory Programming",
+    "year": 2023,
+    "doi": "https://doi.org/10.1145/3544548.3580919",
+    "venue": "CHI Conference on Human Factors in Computing Systems",
+    "type": "conference-paper",
+    "authors": [
+      "Majeed Kazemitabaar",
+      "Justin Chow",
+      "Carl Ka To",
+      "Barbara Jane Ericson",
+      "David Weintrop",
+      "Tovi Grossman"
+    ],
+    "cited_by": 366,
+    "openalex_id": "https://openalex.org/W4321162272",
+    "abstract": "AI code generators like OpenAI Codex have the potential to assist novice programmers by generating code from natural language descriptions, however, over-reliance might negatively impact learning and retention. To explore the implications that AI code generators have on introductory programming, we conducted a controlled experiment with 69 novices (ages 10-17). Learners worked on 45 Python code-authoring tasks, for which half of the learners had access to Codex, each followed by a code-modification task. Our results show that using Codex significantly increased code-authoring performance (1.15x increased completion rate and 1.8x higher scores) while not decreasing performance on manual code-modification tasks. Additionally, learners with access to Codex during the training phase performed slightly better on the evaluation post-tests conducted one week later, although this difference did not reach statistical significance. Of interest, learners with higher Scratch pre-test scores performed significantly better on retention post-tests, if they had prior access to Codex."
+  },
+  {
+    "candidate": "Perfection Not Required? Human-AI Partnerships in Code Translation",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Perfection Not Required? Human-AI Partnerships in Code Translation",
+    "year": 2021,
+    "doi": "https://doi.org/10.1145/3397481.3450656",
+    "venue": "ACM International Conference on Intelligent User Interfaces (IUI)",
+    "type": "conference-paper",
+    "authors": [
+      "Justin D. Weisz",
+      "Michael J. Muller",
+      "Stephanie Houde",
+      "John Richards",
+      "Steven I. Ross",
+      "Fernando Martinez",
+      "Mayank Agarwal",
+      "Kartik Talamadupula"
+    ],
+    "cited_by": 128,
+    "openalex_id": "https://openalex.org/W3148399464",
+    "abstract": "Generative models have become adept at producing artifacts such as images, videos, and prose at human-like levels of proficiency. New generative techniques, such as unsupervised neural machine translation (NMT), have recently been applied to the task of generating source code, translating it from one programming language to another. The artifacts produced in this way may contain imperfections, such as compilation or logical errors. We examine the extent to which software engineers would tolerate such imperfections and explore ways to aid the detection and correction of those errors. Using a design scenario approach, we interviewed 11 software engineers to understand their reactions to the use of an NMT model in the context of application modernization, focusing on the task of translating source code from one language to another. Our three-stage scenario sparked discussions about the utility and desirability of working with an imperfect AI system, how acceptance of that system’s outputs would be established, and future opportunities for generative AI in application modernization. Our study highlights how UI features such as confidence highlighting and alternate translations help software engineers work with and better understand generative NMT models."
+  },
+  {
+    "candidate": "What is it like to program with artificial intelligence?",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "What is it like to program with artificial intelligence?",
+    "year": 2022,
+    "doi": "https://doi.org/10.48550/arxiv.2208.06213",
+    "venue": "arXiv (Cornell University)",
+    "type": "preprint",
+    "authors": [
+      "Advait Sarkar",
+      "Andrew D. Gordon",
+      "Carina Negreanu",
+      "Christian Poelitz",
+      "Sruti Srinivasa Ragavan",
+      "Ben Zorn"
+    ],
+    "cited_by": 47,
+    "openalex_id": "https://openalex.org/W4302797994",
+    "abstract": "Large language models, such as OpenAI's codex and Deepmind's AlphaCode, can generate code to solve a variety of problems expressed in natural language. This technology has already been commercialised in at least one widely-used programming editor extension: GitHub Copilot. In this paper, we explore how programming with large language models (LLM-assisted programming) is similar to, and differs from, prior conceptualisations of programmer assistance. We draw upon publicly available experience reports of LLM-assisted programming, as well as prior usability and design studies. We find that while LLM-assisted programming shares some properties of compilation, pair programming, and programming via search and reuse, there are fundamental differences both in the technical possibilities as well as the practical experience. Thus, LLM-assisted programming ought to be viewed as a new way of programming with its own distinct properties and challenges. Finally, we draw upon observations from a user study in which non-expert end user programmers use LLM-assisted tools for solving data tasks in spreadsheets. We discuss the issues that might arise, and open research challenges, in applying large language models to end-user programming, particularly with users who have little or no programming expertise."
+  },
+  {
+    "candidate": "Using AI Assistants in Software Development: A Qualitative Study on Security Practices and Concerns",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Using AI Assistants in Software Development: A Qualitative Study on Security Practices and Concerns",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3658644.3690283",
+    "venue": "ACM SIGSAC Conference on Computer and Communications Security (CCS)",
+    "type": "conference-paper",
+    "authors": [
+      "Jan H. Klemmer",
+      "Stefan Albert Horstmann",
+      "Nikhil Patnaik",
+      "Cordelia Ludden",
+      "Cordell Burton",
+      "Carson Powers",
+      "Fabio Massacci",
+      "Akond Rahman",
+      "Daniel Votipka",
+      "Heather Richter Lipford",
+      "Awais Rashid",
+      "Alena Naiakshina",
+      "Sascha Fahl"
+    ],
+    "cited_by": 41,
+    "openalex_id": "https://openalex.org/W4396882206",
+    "abstract": "Following the recent release of AI assistants, such as OpenAI's ChatGPT and GitHub Copilot, the software industry quickly utilized these tools for software development tasks, e.g., generating code or consulting AI for advice. While recent research has demonstrated that AI-generated code can contain security issues, how software professionals balance AI assistant usage and security remains unclear. This paper investigates how software professionals use AI assistants in secure software development, what security implications and considerations arise, and what impact they foresee on secure software development. We conducted 27 semi-structured interviews with software professionals, including software engineers, team leads, and security testers. We also reviewed 190 relevant Reddit posts and comments to gain insights into the current discourse surrounding AI assistants for software development. Our analysis of the interviews and Reddit posts finds that despite many security and quality concerns, participants widely use AI assistants for security-critical tasks, e.g., code generation, threat modeling, and vulnerability detection. Their overall mistrust leads to checking AI suggestions in similar ways to human code, although they expect improvements and, therefore, a heavier use for security tasks in the future. We conclude with recommendations for software professionals to critically check AI suggestions, AI creators to improve suggestion security and capabilities for ethical security tasks, and academic researchers to consider general-purpose AI in software development."
+  },
+  {
+    "candidate": "Make Your Tools Sparkle with Trust: The PICSE Framework for Trust in Software Tools",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Make Your Tools Sparkle with Trust: The PICSE Framework for Trust in Software Tools",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/icse-seip58684.2023.00043",
+    "venue": "IEEE/ACM International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP)",
+    "type": "conference-paper",
+    "authors": [
+      "Brittany Johnson",
+      "Christian Bird",
+      "Denae Ford",
+      "Nicole Forsgren",
+      "Thomas Zimmermann"
+    ],
+    "cited_by": 27,
+    "openalex_id": "https://openalex.org/W4383898396",
+    "abstract": "The day to day of a software engineer involves a variety of tasks. While many of these tasks are collaborative and completed as such, it is not always possible or feasible to engage with other engineers for task completion. Software tools, such as code generators and static analysis tools, aim to fill this gap by providing additional support for developers to effectively complete their tasks. With a steady stream of new tools that emerging to support software engineers, including a new breed of tools that rely on artificial intelligence, there are important questions we should aim to answer regarding the trust engineers can, and should, put into their software tools and what it means to build a trustworthy tool. In this paper, we present findings from an industry interview study conducted with 18 engineers across and external to the Microsoft organization. Based on these interviews, we introduce the PICSE (pronounced \"pixie\") framework for trust in software tools to provide preliminary insights into factors that influence engineer trust in their software tools. We also discuss how the PICSE framework can be considered and applied in practice for designing and developing trustworthy software tools."
+  },
+  {
+    "candidate": "What large language models know and what people think they know",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "What large language models know and what people think they know",
+    "year": 2025,
+    "doi": "https://doi.org/10.1038/s42256-024-00976-7",
+    "venue": "Nature Machine Intelligence",
+    "type": "article",
+    "authors": [
+      "Mark Steyvers",
+      "Heliodoro Tejeda",
+      "Aakriti Kumar",
+      "Catarina Belém",
+      "Sheer Karny",
+      "Xinyue Hu",
+      "Lukas William Mayer",
+      "Padhraic Smyth"
+    ],
+    "cited_by": 211,
+    "openalex_id": "https://openalex.org/W4406679533",
+    "abstract": "Abstract As artificial intelligence systems, particularly large language models (LLMs), become increasingly integrated into decision-making processes, the ability to trust their outputs is crucial. To earn human trust, LLMs must be well calibrated such that they can accurately assess and communicate the likelihood of their predictions being correct. Whereas recent work has focused on LLMs’ internal confidence, less is understood about how effectively they convey uncertainty to users. Here we explore the calibration gap, which refers to the difference between human confidence in LLM-generated answers and the models’ actual confidence, and the discrimination gap, which reflects how well humans and models can distinguish between correct and incorrect answers. Our experiments with multiple-choice and short-answer questions reveal that users tend to overestimate the accuracy of LLM responses when provided with default explanations. Moreover, longer explanations increased user confidence, even when the extra length did not improve answer accuracy. By adjusting LLM explanations to better reflect the models’ internal confidence, both the calibration gap and the discrimination gap narrowed, significantly improving user perception of LLM accuracy. These findings underscore the importance of accurate uncertainty communication and highlight the effect of explanation length in influencing user trust in artificial-intelligence-assisted decision-making environments."
+  },
+  {
+    "candidate": "Examining the Impact of Large Language Models' Uncertainty Expression on User Reliance and Trust",
+    "status": "VERIFIED",
+    "similarity": 0.922,
+    "title": "\"I'm Not Sure, But...\": Examining the Impact of Large Language Models' Uncertainty Expression on User Reliance and Trust",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3630106.3658941",
+    "venue": "ACM Conference on Fairness, Accountability, and Transparency (FAccT)",
+    "type": "conference-paper",
+    "authors": [
+      "Sunnie S. Y. Kim",
+      "Q. Vera Liao",
+      "Mihaela Vorvoreanu",
+      "Stephanie A. Ballard",
+      "Jennifer Wortman Vaughan"
+    ],
+    "cited_by": 147,
+    "openalex_id": "https://openalex.org/W4396802056",
+    "abstract": "Widely deployed large language models (LLMs) can produce convincing yet incorrect outputs, potentially misleading users who may rely on them as if they were correct. To reduce such overreliance, there have been calls for LLMs to communicate their uncertainty to end users. However, there has been little empirical work examining how users perceive and act upon LLMs’ expressions of uncertainty. We explore this question through a large-scale, pre-registered, human-subject experiment (N=404) in which participants answer medical questions with or without access to responses from a fictional LLM-infused search engine. Using both behavioral and self-reported measures, we examine how different natural language expressions of uncertainty impact participants’ reliance, trust, and overall task performance. We find that first-person expressions (e.g., “I’m not sure, but...”) decrease participants’ confidence in the system and tendency to agree with the system’s answers, while increasing participants’ accuracy. An exploratory analysis suggests that this increase can be attributed to reduced (but not fully eliminated) overreliance on incorrect answers. While we observe similar effects for uncertainty expressed from a general perspective (e.g., “It’s not clear, but...”), these effects are weaker and not statistically significant. Our findings suggest that using natural language expressions of uncertainty may be an effective approach for reducing overreliance on LLMs, but that the precise language used matters. This highlights the importance of user testing before deploying LLMs at scale."
+  },
+  {
+    "candidate": "Using an LLM to Help With Code Understanding",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Using an LLM to Help With Code Understanding",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3597503.3639187",
+    "venue": "ACM/IEEE International Conference on Software Engineering: Companion Proceedings (ICSE-Companion)",
+    "type": "conference-paper",
+    "authors": [
+      "Daye Nam",
+      "Andrew Macvean",
+      "Vincent Josua Hellendoorn",
+      "Bogdan Vasilescu",
+      "Brad A. Myers"
+    ],
+    "cited_by": 370,
+    "openalex_id": "https://openalex.org/W4394745423",
+    "abstract": "Understanding code is challenging, especially when working in new and complex development environments. Code comments and documentation can help, but are typically scarce or hard to navigate. Large language models (LLMs) are revolutionizing the process of writing code. Can they do the same for helping understand it? In this study, we provide a first investigation of an LLM-based conversational UI built directly in the IDE that is geared towards code understanding. Our IDE plugin queries OpenAI's GPT-3.5-turbo model with four high-level requests without the user having to write explicit prompts: to explain a highlighted section of code, provide details of API calls used in the code, explain key domain-specific terms, and provide usage examples for an API. The plugin also allows for open-ended prompts, which are automatically contextualized to the LLM with the program being edited. We evaluate this system in a user study with 32 participants, which confirms that using our plugin can aid task completion more than web search. We additionally provide a thorough analysis of the ways developers use, and perceive the usefulness of, our system, among others finding that the usage and benefits differ between students and professionals. We conclude that in-IDE prompt-less interaction with LLMs is a promising future direction for tool builders."
+  },
+  {
+    "candidate": "Development of NASA-TLX (Task Load Index): Results of Empirical and Theoretical Research",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Development of NASA-TLX (Task Load Index): Results of Empirical and Theoretical Research",
+    "year": 1988,
+    "doi": "https://doi.org/10.1016/s0166-4115(08)62386-9",
+    "venue": "Advances in psychology",
+    "type": "book-chapter",
+    "authors": [
+      "Sandra G. Hart",
+      "Lowell E. Staveland"
+    ],
+    "cited_by": 15093,
+    "openalex_id": "https://openalex.org/W2157289187",
+    "abstract": null
+  },
+  {
+    "candidate": "Taking Flight with Copilot",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Taking Flight with Copilot",
+    "year": 2022,
+    "doi": "https://doi.org/10.1145/3582083",
+    "venue": "Queue",
+    "type": "article",
+    "authors": [
+      "Christian Bird",
+      "Denae Ford",
+      "Thomas Zimmermann",
+      "Nicole Forsgren",
+      "Eirini Kalliamvakou",
+      "Travis Lowdermilk",
+      "Idan Gazit"
+    ],
+    "cited_by": 159,
+    "openalex_id": "https://openalex.org/W4318159335",
+    "abstract": "Over the next five years, AI-powered tools likely will be helping developers in many diverse tasks. For example, such models may be used to improve code review, directing reviewers to parts of a change where review is most needed or even directly providing feedback on changes. Models such as Codex may suggest fixes for defects in code, build failures, or failing tests. These models are able to write tests automatically, helping to improve code quality and downstream reliability of distributed systems. This study of Copilot shows that developers spend more time reviewing code than actually writing code. As AI-powered tools are integrated into more software development tasks, developer roles will shift so that more time is spent assessing suggestions related to the task than doing the task itself."
+  },
+  {
+    "candidate": "Explainable AI for SE: Challenges and Future Directions",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Explainable AI for SE: Challenges and Future Directions",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/ms.2023.3246686",
+    "venue": "IEEE Software",
+    "type": "article",
+    "authors": [
+      "Chakkrit Kla Tantithamthavorn",
+      "Jürgen Cito",
+      "Hadi Hemmati",
+      "Satish Chandra"
+    ],
+    "cited_by": 23,
+    "openalex_id": "https://openalex.org/W4367059627",
+    "abstract": "In recent years, artificial intelligence/machine learning (AI/ML) have been widely used in software engineering (SE) to improve developer productivity, software quality, and decision making. This includes well-known tools for code completion (for example, GitHub’s Copilot) but also code search; automated task recommendation; automated developer recommendation; automated defect/vulnerability/malware prediction, detection, localization, and repair; and many other purposes."
+  },
+  {
+    "candidate": "Trust in Generative AI among Students: An exploratory study",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Trust in Generative AI among Students: An exploratory study",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3626252.3630842",
+    "venue": "ACM Technical Symposium on Computer Science Education (SIGCSE)",
+    "type": "conference-paper",
+    "authors": [
+      "Matin Amoozadeh",
+      "David Daniels",
+      "Daye Nam",
+      "Aayush Kumar",
+      "Stella Chen",
+      "Michael L. Hilton",
+      "Sruti Srinivasa Ragavan",
+      "Mohammad Amin Alipour"
+    ],
+    "cited_by": 144,
+    "openalex_id": "https://openalex.org/W4392542324",
+    "abstract": "Generative Artificial Intelligence (GenAI) systems have experienced exponential growth in the last couple of years. These systems offer exciting capabilities for CS Education (CSEd), such as generating programs, that students can well utilize for their learning. Among the many dimensions that might affect the effective adoption of GenAI for CSEd, in this paper, we investigate students' trust. Trust in GenAI influences the extent to which students adopt GenAI, in turn affecting their learning. In this paper, we present results from a survey of 253 students at two large universities to understand how much they trust GenAI tools and their feedback on how GenAI impacts their performance in CS courses. Our results show that students have different levels of trust in GenAI. We also observe different levels of confidence and motivation, highlighting the need for further understanding of factors impacting trust."
+  },
+  {
+    "candidate": "CodeHalu: Investigating Code Hallucinations in LLMs via Execution-based Verification",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "CodeHalu: Investigating Code Hallucinations in LLMs via Execution-based Verification",
+    "year": 2025,
+    "doi": "https://doi.org/10.1609/aaai.v39i24.34717",
+    "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+    "type": "conference-paper",
+    "authors": [
+      "Yuchen Tian",
+      "Weixiang Yan",
+      "Qian Yang",
+      "Xuandong Zhao",
+      "Qian Chen",
+      "Wen Wang",
+      "Ziyang Luo",
+      "Lei Ma",
+      "Dawn Xiaodong Song"
+    ],
+    "cited_by": 25,
+    "openalex_id": "https://openalex.org/W4409362569",
+    "abstract": "Large Language Models (LLMs) have made significant progress in code generation, offering developers groundbreaking automated programming support. However, LLMs often generate code that is syntactically correct and even semantically plausible, but may not execute as expected or fulfill specified requirements. This phenomenon of hallucinations in the code domain has not been systematically explored. To advance the community's understanding and research on this issue, we introduce the concept of code hallucinations and propose a classification method for code hallucination based on execution verification. We categorize code hallucinations into four main types: mapping, naming, resource, and logic hallucinations, with each category further divided into different subcategories to understand and address the unique challenges faced by LLMs in code generation with finer granularity. Additionally, we present a dynamic detection algorithm called CodeHalu designed to detect and quantify code hallucinations. We also introduce the CodeHaluEval benchmark, which includes 8,883 samples from 699 tasks, to systematically and quantitatively evaluate code hallucinations. By evaluating 17 popular LLMs using this benchmark, we reveal significant differences in their accuracy and reliability in code generation, offering detailed insights for further improving the code generation capabilities of LLMs."
+  },
+  {
+    "candidate": "LLM Hallucinations in Practical Code Generation: Phenomena, Mechanism, and Mitigation",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "LLM Hallucinations in Practical Code Generation: Phenomena, Mechanism, and Mitigation",
+    "year": 2025,
+    "doi": "https://doi.org/10.1145/3728894",
+    "venue": "Proceedings of the ACM on software engineering.",
+    "type": "article",
+    "authors": [
+      "Ziyao Zhang",
+      "Chong Wang",
+      "Yanlin Wang",
+      "Ensheng Shi",
+      "Yuchi Ma",
+      "Wanjun Zhong",
+      "Jiachi Chen",
+      "Mingzhi Mao",
+      "Zibin Zheng"
+    ],
+    "cited_by": 111,
+    "openalex_id": "https://openalex.org/W4411523078",
+    "abstract": "Code generation aims to automatically generate code from input requirements, significantly enhancing development efficiency. Recent large language models (LLMs) based approaches have shown promising results and revolutionized code generation task. Despite the promising performance, LLMs often generate contents with hallucinations, especially for the code generation scenario requiring the handling of complex contextual dependencies in practical development process. Although previous study has analyzed hallucinations in LLM-powered code generation, the study is limited to standalone function generation. In this paper, we conduct an empirical study to study the phenomena, mechanism, and mitigation of LLM hallucinations within more practical and complex development contexts in repository-level generation scenario. First, we manually examine the code generation results from six mainstream LLMs to establish a hallucination taxonomy of LLMgenerated code. Next, we elaborate on the phenomenon of hallucinations, analyze their distribution across different models. We then analyze causes of hallucinations and identify four potential factors contributing to hallucinations. Finally, we propose an RAG-based mitigation method, which demonstrates consistent effectiveness in all studied LLMs."
+  },
+  {
+    "candidate": "Large Language Models and Simple, Stupid Bugs",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Large Language Models and Simple, Stupid Bugs",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/msr59073.2023.00082",
+    "venue": "International Conference on Mining Software Repositories (MSR)",
+    "type": "conference-paper",
+    "authors": [
+      "Kevin Jesse",
+      "Toufique Ahmed",
+      "Prémkumar Dévanbu",
+      "Emily Morgan"
+    ],
+    "cited_by": 65,
+    "openalex_id": "https://openalex.org/W4384026634",
+    "abstract": "With the advent of powerful neural language models, AI-based systems to assist developers in coding tasks are becoming widely available; Copilot is one such system. Copilot uses Codex, a large language model (LLM), to complete code conditioned on a preceding \"prompt\". Codex, however, is trained on public GitHub repositories, viz., on code that may include bugs and vulnerabilities. Previous studies [1], [2] show Codex reproduces vulnerabilities seen in training. In this study, we examine how prone Codex is to generate an interesting bug category, single statement bugs, commonly referred to as simple, stupid bugs or SStuBs in the MSR community. We find that Codex and similar LLMs do help avoid some SStuBs, but do produce known, verbatim SStuBs as much as 2x as likely than known, verbatim correct code. We explore the consequences of the Codex generated SStuBs and propose avoidance strategies that suggest the possibility of reducing the production of known, verbatim SStubs, and increase the possibility of producing known, verbatim fixes."
+  },
+  {
+    "candidate": "An Empirical Evaluation of Using Large Language Models for Automated Unit Test Generation",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "An Empirical Evaluation of Using Large Language Models for Automated Unit Test Generation",
+    "year": 2023,
+    "doi": "https://doi.org/10.1109/tse.2023.3334955",
+    "venue": "IEEE Transactions on Software Engineering",
+    "type": "article",
+    "authors": [
+      "Max Schäfer",
+      "Sarah Nadi",
+      "Aryaz Eghbali",
+      "Frank Tip"
+    ],
+    "cited_by": 433,
+    "openalex_id": "https://openalex.org/W4389104713",
+    "abstract": "Unit tests play a key role in ensuring the correctness of software. However, manually creating unit tests is a laborious task, motivating the need for automation. Large Language Models (LLMs) have recently been applied to various aspects of software development, including their suggested use for automated generation of unit tests, but while requiring additional training or few-shot learning on examples of existing tests. This paper presents a large-scale empirical evaluation on the effectiveness of LLMs for automated unit test generation without requiring additional training or manual effort. Concretely, we consider an approach where the LLM is provided with prompts that include the signature and implementation of a function under test, along with usage examples extracted from documentation. Furthermore, if a generated test fails, our approach attempts to generate a new test that fixes the problem by re-prompting the model with the failing test and error message. We implement our approach inTestPilot, an adaptive LLM-based test generation tool for JavaScript that automatically generates unit tests for the methods in a given project's API. We evaluateTestPilotusing OpenAI'sgpt3.5-turboLLM on 25 npm packages with a total of 1,684 API functions. The generated tests achieve a median statement coverage of 70.2% and branch coverage of 52.8%. In contrast, the state-of-the feedback-directed JavaScript test generation technique, Nessie, achieves only 51.3% statement coverage and 25.6% branch coverage. Furthermore, experiments with excluding parts of the information included in the prompts show that all components contribute towards the generation of effective test suites. We also find that 92.8% ofTestPilot's generated tests have$\\leq$50% similarity with existing tests (as measured by normalized edit distance), with none of them being exact copies. Finally, we runTestPilotwith two additional LLMs, OpenAI's oldercode-cushman-002LLM andStarCoder, an LLM for which the training process is publicly documented. Overall, we observed similar results with the former (68.2% median statement coverage), and somewhat worse results with the latter (54.0% median statement coverage), suggesting that the effectiveness of the approach is influenced by the size and training set of the LLM, but does not fundamentally depend on the specific model."
+  },
+  {
+    "candidate": "Constructing a Theory of Trust in AI-Powered Code Generation Tools",
+    "status": "UNVERIFIED",
+    "similarity": 0.788,
+    "title": "Investigating and Designing for Trust in AI-powered Code Generation Tools",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3630106.3658984",
+    "venue": "ACM Conference on Fairness, Accountability, and Transparency (FAccT)",
+    "type": "conference-paper",
+    "authors": [
+      "Ruotong Wang",
+      "Ruijia Cheng",
+      "Denae Ford",
+      "Thomas Zimmermann"
+    ],
+    "cited_by": 87,
+    "openalex_id": "https://openalex.org/W4399361983",
+    "abstract": "Trust is a crucial factor for the adoption and responsible usage of generative AI tools in complex tasks such as software engineering. However, we have a limited understanding of how software developers evaluate the trustworthiness of AI-powered code generation tools in real-world settings. To address this gap, we conducted Study 1, an interview study with 17 developers who use AI-powered code generation tools in professional or personal settings. We found that developers’ trust is rooted in the AI tool’s perceived ability, integrity, and benevolence, and is situational, varying according to the context of usage. Existing AI code generation tools lack the affordances for developers to efficiently and effectively evaluate the trustworthiness of AI-powered code generation tools. To explore designs that can augment the existing interface of AI-powered code generation tools, we explored three sets of design concepts (suggestion quality indicators, usage stats, and control mechanisms) that derived from Study 1 findings. In Study 2, a design probe study with 12 developers, we investigated the potential of these design concepts to help developers make effective trust judgments. We discuss the implication of our findings on the design of AI-powered code generation tools and future research on trust in AI."
+  },
+  {
+    "candidate": "Trust Calibration in AI-assisted programming",
+    "status": "UNVERIFIED",
+    "similarity": 0.636,
+    "title": "Algorithmic Trust and Human Authorship in AI-Assisted Programming",
+    "year": 2026,
+    "doi": "https://doi.org/10.2139/ssrn.7499798",
+    "venue": "SSRN Electronic Journal",
+    "type": "preprint",
+    "authors": [
+      "Reenoa Yap"
+    ],
+    "cited_by": 0,
+    "openalex_id": "https://openalex.org/W7214003585",
+    "abstract": null
+  },
+  {
+    "candidate": "Towards Trustworthy AI Software Development Assistance",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Towards Trustworthy AI Software Development Assistance",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3639476.3639770",
+    "venue": "IEEE/ACM International Conference on Software Engineering: New Ideas and Emerging Results (ICSE-NIER)",
+    "type": "conference-paper",
+    "authors": [
+      "Daniel Maninger",
+      "Krishna Narasimhan",
+      "Mira Mezini"
+    ],
+    "cited_by": 4,
+    "openalex_id": "https://openalex.org/W4398785908",
+    "abstract": "It is expected that in the near future, AI software development assistants will play an important role in the software industry. However, current software development assistants tend to be unreliable, often producing incorrect, unsafe, or low-quality code. We seek to resolve these issues by introducing a holistic architecture for constructing, training, and using trustworthy AI software development assistants. In the center of the architecture, there is a foundational LLM trained on datasets representative of real-world coding scenarios and complex software architectures, and fine-tuned on code quality criteria beyond correctness. The LLM will make use of graph-based code representations for advanced semantic comprehension. We envision a knowledge graph integrated into the system to provide up-to-date background knowledge and to enable the assistant to provide appropriate explanations. Finally, a modular framework for constrained decoding will ensure that certain guarantees (e.g., for correctness and security) hold for the generated code."
+  },
+  {
+    "candidate": "How Do Analysts Understand and Verify AI-Assisted Data Analyses?",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "How Do Analysts Understand and Verify AI-Assisted Data Analyses?",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3613904.3642497",
+    "venue": "CHI Conference on Human Factors in Computing Systems",
+    "type": "conference-paper",
+    "authors": [
+      "Ken Gu",
+      "Ruoxi Shang",
+      "Tim Althoff",
+      "Chenglong Wang",
+      "Steven M. Drucker"
+    ],
+    "cited_by": 40,
+    "openalex_id": "https://openalex.org/W4396832076",
+    "abstract": "Data analysis is challenging as it requires synthesizing domain knowledge, statistical expertise, and programming skills. Assistants powered by large language models (LLMs), such as ChatGPT, can assist analysts by translating natural language instructions into code. However, AI-assistant responses and analysis code can be misaligned with the analyst’s intent or be seemingly correct but lead to incorrect conclusions. Therefore, validating AI assistance is crucial and challenging. Here, we explore how analysts understand and verify the correctness of AI-generated analyses. To observe analysts in diverse verification approaches, we develop a design probe equipped with natural language explanations, code, visualizations, and interactive data tables with common data operations. Through a qualitative user study (n=22) using this probe, we uncover common behaviors within verification workflows and how analysts’ programming, analysis, and tool backgrounds reflect these behaviors. Additionally, we provide recommendations for analysts and highlight opportunities for designers to improve future AI-assistant experiences."
+  },
+  {
+    "candidate": "Improving Steering and Verification in AI-Assisted Data Analysis with Interactive Task Decomposition",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Improving Steering and Verification in AI-Assisted Data Analysis with Interactive Task Decomposition",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3654777.3676345",
+    "venue": "ACM Symposium on User Interface Software and Technology (UIST)",
+    "type": "conference-paper",
+    "authors": [
+      "Majeed Kazemitabaar",
+      "Jack Williams",
+      "Ian Drosos",
+      "Tovi Grossman",
+      "Austin Zachary Henley",
+      "Carina Negreanu",
+      "Advait Sarkar"
+    ],
+    "cited_by": 51,
+    "openalex_id": "https://openalex.org/W4400375663",
+    "abstract": "LLM-powered tools like ChatGPT Data Analysis, have the potential to help users tackle the challenging task of data analysis programming, which requires expertise in data processing, programming, and statistics. However, our formative study (n=15) uncovered serious challenges in verifying AI-generated results and steering the AI (i.e., guiding the AI system to produce the desired output). We developed two contrasting approaches to address these challenges. The first (Stepwise) decomposes the problem into step-by-step subgoals with pairs of editable assumptions and code until task completion, while the second (Phasewise) decomposes the entire problem into three editable, logical phases: structured input/output assumptions, execution plan, and code. A controlled, within-subjects experiment (n=18) compared these systems against a conversational baseline. Users reported significantly greater control with the Stepwise and Phasewise systems, and found intervention, correction, and verification easier, compared to the baseline. The results suggest design guidelines and trade-offs for AI-assisted data analysis tools."
+  },
+  {
+    "candidate": "Why Johnny Can't Prompt: How Non-AI Experts Try (and Fail) to Design LLM Prompts",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Why Johnny Can’t Prompt: How Non-AI Experts Try (and Fail) to Design LLM Prompts",
+    "year": 2023,
+    "doi": "https://doi.org/10.1145/3544548.3581388",
+    "venue": "CHI Conference on Human Factors in Computing Systems",
+    "type": "conference-paper",
+    "authors": [
+      "J.D. Zamfirescu-Pereira",
+      "Richmond Y. Wong",
+      "Björn Hartmann",
+      "Qian Yang"
+    ],
+    "cited_by": 946,
+    "openalex_id": "https://openalex.org/W4366548330",
+    "abstract": "Pre-trained large language models (“LLMs”) like GPT-3 can engage in fluent, multi-turn instruction-taking out-of-the-box, making them attractive materials for designing natural language interactions. Using natural language to steer LLM outputs (“prompting”) has emerged as an important design technique potentially accessible to non-AI-experts. Crafting effective prompts can be challenging, however, and prompt-based interactions are brittle. Here, we explore whether non-AI-experts can successfully engage in “end-user prompt engineering” using a design probe—a prototype LLM-based chatbot design tool supporting development and systematic evaluation of prompting strategies. Ultimately, our probe participants explored prompt designs opportunistically, not systematically, and struggled in ways echoing end-user programming systems and interactive machine learning systems. Expectations stemming from human-to-human instructional experiences, and a tendency to overgeneralize, were barriers to effective prompt design. These findings have implications for non-AI-expert-facing LLM-based tool design and for improving LLM-and-prompt literacy among programmers and the public, and present opportunities for further research."
+  },
+  {
+    "candidate": "Explainable AI for Software Engineering",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Explainable AI for Software Engineering",
+    "year": 2021,
+    "doi": "https://doi.org/10.1109/ase51524.2021.9678580",
+    "venue": "IEEE/ACM International Conference on Automated Software Engineering (ASE)",
+    "type": "conference-paper",
+    "authors": [
+      "Chakkrit Kla Tantithamthavorn",
+      "Jirayus Jiarpakdee"
+    ],
+    "cited_by": 80,
+    "openalex_id": "https://openalex.org/W4205601502",
+    "abstract": "The success of software engineering projects largely depends on complex decision-making. For example, which tasks should a developer do first, who should perform this task, is the software of high quality, is a software system reliable and resilient enough to deploy, etc. However, erroneous decision-making for these complex questions is costly in terms of money and reputation. Thus, Artificial Intelligence/Machine Learning (AI/ML) techniques have been widely used in software engineering for developing software analytics tools and techniques to improve decision-making, developer productivity, and software quality. However, the predictions of such AI/ML models for software engineering are still not practical (i.e., coarse-grained), not explainable, and not actionable. These concerns often hinder the adoption of AI/ML models in software engineering practices. In addition, many recent studies still focus on improving the accuracy, while a few of them focus on improving explainability. Are we moving in the right direction? How can we better improve the SE community (both research and education)?In this tutorial, we first provide a concise yet essential introduction to the most important aspects of Explainable AI and a hands-on tutorial of Explainable AI tools and techniques. Then, we introduce the fundamental knowledge of defect prediction (an example application of AI for Software Engineering). Finally, we demonstrate three successful case studies on how Explainable AI techniques can be used to address the aforementioned challenges by making the predictions of software defect prediction models more practical, explainable, and actionable. The materials are available at https://xai4se.github.io."
+  },
+  {
+    "candidate": "The Effects of Generative AI on High-Skilled Work: Evidence from Three Field Experiments with Software Developers",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "The Effects of Generative AI on High-Skilled Work: Evidence from Three Field Experiments with Software Developers",
+    "year": 2026,
+    "doi": "https://doi.org/10.1287/mnsc.2025.00535",
+    "venue": "Management Science",
+    "type": "article",
+    "authors": [
+      "Kevin Zheyuan Cui",
+      "Mert Demirer",
+      "Sonia Jaffe",
+      "Leon Musolff",
+      "Sida Peng",
+      "Tobias Salz"
+    ],
+    "cited_by": 28,
+    "openalex_id": "https://openalex.org/W7131867455",
+    "abstract": "This study evaluates the effect of generative artificial intelligence (AI) on software developer productivity via randomized controlled trials at Microsoft, Accenture, and an anonymous Fortune 100 company. These field experiments, run by the companies as part of their ordinary course of business, provided a random subset of developers with access to an AI-based coding assistant suggesting intelligent code completions. Although each experiment is noisy and results vary across experiments, when data are combined across three experiments and 4,867 developers, our analysis reveals a 26.08% increase (standard error: 10.3%) in completed tasks among developers using the AI tool. Notably, less experienced developers had higher adoption rates and greater productivity gains. This paper was accepted by Jean-Pierre Dube, marketing. Funding: M. Demirer and T. Salz thank the MIT GenAI Initiative for funding. Supplemental Material: The online appendices and data files are available at https://doi.org/10.1287/mnsc.2025.00535 ."
+  },
+  {
+    "candidate": "Overreliance on AI-Generated Code",
+    "status": "UNVERIFIED",
+    "similarity": 0.471,
+    "title": "Modeling AI Overreliance as a Complex Adaptive System",
+    "year": 2026,
+    "doi": "https://doi.org/10.48550/arxiv.2608.19616",
+    "venue": "arXiv (Cornell University)",
+    "type": "preprint",
+    "authors": [
+      "Ahana Biswas"
+    ],
+    "cited_by": 0,
+    "openalex_id": "https://openalex.org/W7203898141",
+    "abstract": "Whether AI assistance helps or harms a population depends less on the model's accuracy than on whether people rely on it appropriately trusting it when it is right and checking it when it is not. Yet reliance is usually studied one user at a time. We model it as a population process: agents repeatedly solve a task alone, accept an AI answer, or verify it, updating a Bayesian belief about AI quality and, when networked, learning from peers. Four results form one story. The environment sets the baseline: task difficulty and AI quality fix both overreliance and calibration regret. Social learning creates consensus, not overreliance: a mean-preservation theorem, confirmed by a 2*2 topology*tagging design, shows connectivity moves the aggregate only when influence transmits beliefs. Social proof turns reliance into a feedback cascade: visible unverified use suppresses verification and tips the population into collective overreliance. Feedback design can prevent collapse: making verification visible or dampening social proof reverses it. Together, the results frame AI reliance as a computational social dynamics problem, where individual learning, peer observation, and feedback exposure jointly shape whether a population remains calibrated."
+  },
+  {
+    "candidate": "Determinants of LLM-assisted Decision-Making",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Determinants of LLM-assisted Decision-Making",
+    "year": 2024,
+    "doi": "https://doi.org/10.48550/arxiv.2402.17385",
+    "venue": "arXiv (Cornell University)",
+    "type": "preprint",
+    "authors": [
+      "Eva Eigner",
+      "Händler, Thorsten"
+    ],
+    "cited_by": 46,
+    "openalex_id": "https://openalex.org/W4392271152",
+    "abstract": "Decision-making is a fundamental capability in everyday life. Large Language Models (LLMs) provide multifaceted support in enhancing human decision-making processes. However, understanding the influencing factors of LLM-assisted decision-making is crucial for enabling individuals to utilize LLM-provided advantages and minimize associated risks in order to make more informed and better decisions. This study presents the results of a comprehensive literature analysis, providing a structural overview and detailed analysis of determinants impacting decision-making with LLM support. In particular, we explore the effects of technological aspects of LLMs, including transparency and prompt engineering, psychological factors such as emotions and decision-making styles, as well as decision-specific determinants such as task difficulty and accountability. In addition, the impact of the determinants on the decision-making process is illustrated via multiple application scenarios. Drawing from our analysis, we develop a dependency framework that systematizes possible interactions in terms of reciprocal interdependencies between these determinants. Our research reveals that, due to the multifaceted interactions with various determinants, factors such as trust in or reliance on LLMs, the user's mental model, and the characteristics of information processing are identified as significant aspects influencing LLM-assisted decision-making processes. Our findings can be seen as crucial for improving decision quality in human-AI collaboration, empowering both users and organizations, and designing more effective LLM interfaces. Additionally, our work provides a foundation for future empirical investigations on the determinants of decision-making assisted by LLMs."
+  },
+  {
+    "candidate": "A Meta-Analysis of the Utility of Explainable Artificial Intelligence in Human-AI Decision-Making",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "A Meta-Analysis of the Utility of Explainable Artificial Intelligence in Human-AI Decision-Making",
+    "year": 2022,
+    "doi": "https://doi.org/10.1145/3514094.3534128",
+    "venue": "Proceedings of the AAAI/ACM Conference on AI Ethics and Society",
+    "type": "review",
+    "authors": [
+      "Max Schemmer",
+      "Patrick Hemmer",
+      "Maximilian Nitsche",
+      "Niklas Kühl",
+      "Michael Vössing"
+    ],
+    "cited_by": 95,
+    "openalex_id": "https://openalex.org/W4280639483",
+    "abstract": "Research in artificial intelligence (AI)-assisted decision-making is experiencing tremendous growth with a constantly rising number of studies evaluating the effect of AI with and without techniques from the field of explainable AI (XAI) on human decision-making performance. However, as tasks and experimental setups vary due to different objectives, some studies report improved user decision-making performance through XAI, while others report only negligible effects. Therefore, in this article, we present an initial synthesis of existing research on XAI studies using a statistical meta-analysis to derive implications across existing research. We observe a statistically positive impact of XAI on users' performance. Additionally, the first results indicate that human-AI decision-making tends to yield better task performance on text data. However, we find no effect of explanations on users' performance compared to sole AI predictions. Our initial synthesis gives rise to future research investigating the underlying causes and contributes to further developing algorithms that effectively benefit human decision-makers by providing meaningful explanations."
+  },
+  {
+    "candidate": "Explainable AI for novices and experts: personalized explanations",
+    "status": "UNVERIFIED",
+    "similarity": 0.51,
+    "title": "Adaptive Explainable AI: Personalizing Machine Explanations Based on User Expertise Levels",
+    "year": 2025,
+    "doi": "https://doi.org/10.63332/joph.v5i7.2793",
+    "venue": "Journal of Posthumanism",
+    "type": "article",
+    "authors": [
+      "Asma Ahmed A. Mohammed"
+    ],
+    "cited_by": 6,
+    "openalex_id": "https://openalex.org/W4411960344",
+    "abstract": "Explainable Artificial Intelligence (XAI) is critical for bridging the gap between opaque machine decision-making and human comprehension. Despite advances, most XAI systems deliver static explanations that fail to account for users' diverse expertise levels. This study proposes an adaptive XAI framework that personalizes explanations according to individual user expertise. Grounded in cognitive load theory and trust calibration principles, the system dynamically adjusts explanation complexity, depth, and modality. Through a mixed-methods experimental design involving 150 participants classified as novices, intermediates, and experts, results show that adaptive explanations significantly enhance understanding (+27%), trust calibration (+19%), and decision-making accuracy (+22%) compared to static explanations. The findings provide strong empirical support for user-centered XAI models and offer actionable design guidelines for adaptive explainability in critical sectors such as healthcare, finance, and education."
+  },
+  {
+    "candidate": "Are Explanations Helpful? A Comparative Study of the Effects of Explanations in AI-Assisted Decision-Making",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Are Explanations Helpful? A Comparative Study of the Effects of Explanations in AI-Assisted Decision-Making",
+    "year": 2021,
+    "doi": "https://doi.org/10.1145/3397481.3450650",
+    "venue": "ACM International Conference on Intelligent User Interfaces (IUI)",
+    "type": "conference-paper",
+    "authors": [
+      "Xinru Wang",
+      "Ming Yin"
+    ],
+    "cited_by": 320,
+    "openalex_id": "https://openalex.org/W3156106752",
+    "abstract": "This paper contributes to the growing literature in empirical evaluation of explainable AI (XAI) methods by presenting a comparison on the effects of a set of established XAI methods in AI-assisted decision making. Specifically, based on our review of previous literature, we highlight three desirable properties that ideal AI explanations should satisfy—improve people’s understanding of the AI model, help people recognize the model uncertainty, and support people’s calibrated trust in the model. Through randomized controlled experiments, we evaluate whether four types of common model-agnostic explainable AI methods satisfy these properties on two types of decision making tasks where people perceive themselves as having different levels of domain expertise in (i.e., recidivism prediction and forest cover prediction). Our results show that the effects of AI explanations are largely different on decision making tasks where people have varying levels of domain expertise in, and many AI explanations do not satisfy any of the desirable properties for tasks that people have little domain expertise in. Further, for decision making tasks that people are more knowledgeable, feature contribution explanation is shown to satisfy more desiderata of AI explanations, while the explanation that is considered to resemble how human explain decisions (i.e., counterfactual explanation) does not seem to improve calibrated trust. We conclude by discussing the implications of our study for improving the design of XAI methods to better support human decision making."
+  },
+  {
+    "candidate": "Developer Experiences with a Contextualized AI Coding Assistant: Usability, Expectations, and Outcomes",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Developer Experiences with a Contextualized AI Coding Assistant: Usability, Expectations, and Outcomes",
+    "year": 2024,
+    "doi": "https://doi.org/10.1145/3644815.3644949",
+    "venue": "IEEE/ACM International Conference on AI Engineering – Software Engineering for AI (CAIN)",
+    "type": "conference-paper",
+    "authors": [
+      "Gustavo Pinto",
+      "Cleidson R. B. de Souza",
+      "Thayssa A. da Rocha",
+      "Igor Steinmacher",
+      "Alberto Souza",
+      "Edward Monteiro"
+    ],
+    "cited_by": 17,
+    "openalex_id": "https://openalex.org/W4399531058",
+    "abstract": "In the rapidly advancing field of artificial intelligence, software development has emerged as a key area of innovation. Despite the plethora of general-purpose AI assistants available, their effectiveness diminishes in complex, domain-specific scenarios. Noting this limitation, both the academic community and industry players are relying on contextualized coding AI assistants. These assistants surpass general-purpose AI tools by integrating proprietary, domain-specific knowledge, offering precise and relevant solutions. Our study focuses on the initial experiences of 62 participants who used a contextualized coding AI assistant --- named StackSpot AI--- in a controlled setting. According to the participants, the assistants' use resulted in significant time savings, easier access to documentation, and the generation of accurate codes for internal APIs. However, challenges associated with the knowledge sources necessary to make the coding assistant access more contextual information as well as variable responses and limitations in handling complex codes were observed. The study's findings, detailing both the benefits and challenges of contextualized AI assistants, underscore their potential to revolutionize software development practices, while also highlighting areas for further refinement."
+  },
+  {
+    "candidate": "Static analysis warnings developers ignore: Why don't software developers use static analysis tools to find bugs",
+    "status": "UNVERIFIED",
+    "similarity": 0.465,
+    "title": "Simple and effective static analysis to find bugs",
+    "year": 2005,
+    "doi": null,
+    "venue": "University Libraries (University of Maryland)",
+    "type": "dissertation",
+    "authors": [
+      "David Hovemeyer",
+      "William Pugh"
+    ],
+    "cited_by": 15,
+    "openalex_id": "https://openalex.org/W1558425096",
+    "abstract": "Much research in recent years has focused on using static analysis to find bugs in software. Many new approaches employing sophisticated program analysis techniques---inter-procedural, context-sensitive, or path-sensitive---have been developed. However, comparatively little work has been done on determining what bugs can be found using simple analysis techniques. We have found that simple static analysis techniques are effective at finding hundreds or thousands of serious software defects in several large commercial software applications. In our research, we have attempted to characterize the bugs that can be found in production software using simple analysis techniques. Examples of simple analysis techniques include inspection of class hierarchies and method signatures, sequential scanning of program instructions using a state machine recognizer, intra-procedural dataflow analysis, and flow-insensitive whole program analysis. To determine what bugs may be found using these techniques, we performed bug-driven research. Starting from examples of real bugs, we tried to develop simple analysis techniques to find similar bugs. Using this approach, we found a large number of serious bugs in production applications and libraries with a relatively low percentage of false positives. The types of bugs our analysis uncovered in production code include null pointer dereferences, infinite recursive loops, data races, deadlocks, and missed thread notifications. One product of this work is a static analysis tool called FindBugs, which analyzes Java programs at the bytecode level. We have distributed FindBugs under an open-source license, and it has been widely adopted by commercial organizations and open-source projects. FindBugs has been downloaded more than 110,000 times since its initial release. Our work makes several contributions to the field. First, we have cataloged many commonly-occurring bug patterns, described effective ways of finding occurrences of those patterns automatically, and classified common reasons why these bugs occur. Second, we have measured the accuracy of our bug detectors on production software and student programming projects, validating the effectiveness of the underlying static analysis techniques. Finally, we have described techniques for determining when static analysis warnings are added or removed as software evolves."
+  },
+  {
+    "candidate": "Lessons from Building Static Analysis Tools at Google",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Lessons from building static analysis tools at Google",
+    "year": 2018,
+    "doi": "https://doi.org/10.1145/3188720",
+    "venue": "Communications of the ACM",
+    "type": "article",
+    "authors": [
+      "Caitlin Sadowski",
+      "Edward E. Aftandilian",
+      "Alex Eagle",
+      "Liam Miller-Cushon",
+      "Ciera N. C. Jaspan"
+    ],
+    "cited_by": 242,
+    "openalex_id": "https://openalex.org/W2784876765",
+    "abstract": "For a static analysis project to succeed, developers must feel they benefit from and enjoy using it."
+  },
+  {
+    "candidate": "Explaining Static Analysis With Rule Graphs",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "Explaining Static Analysis With Rule Graphs",
+    "year": 2020,
+    "doi": "https://doi.org/10.1109/tse.2020.2999534",
+    "venue": "IEEE Transactions on Software Engineering",
+    "type": "article",
+    "authors": [
+      "Lisa Nguyen Quang",
+      "Eric Bodden"
+    ],
+    "cited_by": 15,
+    "openalex_id": "https://openalex.org/W3033893897",
+    "abstract": "As static data-flow analysis becomes able to report increasingly complex bugs, using an evergrowing set of complex internal rules encoded into flow functions, the analysis tools themselves grow more and more complex. In result, for users to be able to effectively use those tools on specific codebases, they require special configurations—a task which in industry is typically performed by individual developers or dedicated teams. To efficiently use and configure static analysis tools, developers need to build a certain understanding of the analysis’ rules, i.e., how the underlying analyses interpret the analyzed code and their reasoning for reporting certain warnings. In this article, we explore how to assist developers in understanding the analysis’ warnings, and finding weaknesses in the analysis’ rules. To this end, we introduce the concept ofrule graphsthat expose to the developer selected information about the internal rules of data-flow analyses. We have implemented rule graphs on top of a taint analysis, and show how the graphs can support the abovementioned tasks. Our user study and empirical evaluation show that using rule graphs helps developers understand analysis warnings more accurately than using simple warning traces, and that rule graphs can help developers identify causes for false positives in analysis rules."
+  },
+  {
+    "candidate": "Security Code Smells / LLM security vulnerabilities static analysis Semgrep CodeQL generated code",
+    "status": "UNVERIFIED",
+    "similarity": 0.573,
+    "title": "Obfuscating Code Vulnerabilities against Static Analysis in JavaScript Code",
+    "year": 2026,
+    "doi": "https://doi.org/10.48550/arxiv.2604.01131",
+    "venue": "arXiv (Cornell University)",
+    "type": "preprint",
+    "authors": [
+      "Francesco Pagano",
+      "Lorenzo Pisu",
+      "Leonardo Regano",
+      "Davide Maiorca",
+      "Alessio Merlo",
+      "Giorgio Giacinto"
+    ],
+    "cited_by": 0,
+    "openalex_id": "https://openalex.org/W7148439052",
+    "abstract": "Code obfuscation is widely adopted in modern software development to protect intellectual property and hinder reverse engineering, but it also provides attackers with a powerful means to conceal malicious logic inside otherwise legitimate JavaScript code. In a software supply chain where a single compromised package can affect thousands of applications, this raises a critical question: how robust are the Static Application Security Testing (SAST) tools that CI/CD pipelines rely on as automated security gatekeepers? This paper answers that question by empirically quantifying the impact of JavaScript obfuscation on state-of-practice SAST. We define a realistic supply-chain threat model in which an adversary injects vulnerable code and iteratively obfuscates it until the pipeline reports a clean scan. To measure the resulting degradation, we introduce the Vulnerability Detection Loss (VDL) metric and conduct a two-phase study. First, we analyze 16 vulnerable-by-design Node.js web applications from the OWASP directory; second, we extend the analysis to 260 in-the-wild JavaScript/Node.js projects from GitHub. Across both datasets, we apply eight semantics-preserving obfuscation techniques and their combinations and evaluate two representative SAST tools, Njsscan and Bearer. Even a single obfuscation technique typically suppresses most baseline findings, including high-severity issues, while stacking techniques yield near-total evasion, with VDL often approaching 100%. Our results show that current JavaScript SAST is fundamentally not robust against commonplace obfuscations and that \"clean\" reports on obfuscated code may offer only a false sense of security. Finally, we discuss practical mitigation guidelines and directions for obfuscation-aware analysis."
+  },
+  {
+    "candidate": "The System Usability Scale: Past, Present, and Future",
+    "status": "VERIFIED",
+    "similarity": 1.0,
+    "title": "The System Usability Scale: Past, Present, and Future",
+    "year": 2018,
+    "doi": "https://doi.org/10.1080/10447318.2018.1455307",
+    "venue": "International Journal of Human-Computer Interaction",
+    "type": "article",
+    "authors": [
+      "James R. Lewis"
+    ],
+    "cited_by": 1958,
+    "openalex_id": "https://openalex.org/W2795274753",
+    "abstract": "The System Usability Scale (SUS) is the most widely used standardized questionnaire for the assessment of perceived usability. This review of the SUS covers its early history from inception in the 1980s through recent research and its future prospects. From relatively inauspicious beginnings, when its originator described it as a “quick and dirty usability scale,” it has proven to be quick but not “dirty.” It is likely that the SUS will continue to be a popular measurement of perceived usability for the foreseeable future. When researchers and practitioners need a measure of perceived usability, they should strongly consider using the SUS."
+  }
+]

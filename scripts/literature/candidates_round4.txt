@@ -1,0 +1,7 @@
+On the Need to Rethink Trust in AI Assistants for Software Development: A Critical Review
+Identifying the Factors That Influence Trust in AI Code Completion
+What Needs Attention? Prioritizing Drivers of Developers' Trust and Adoption of Generative AI
+The Illusion of Safety: Multi-Tier Verification of AI vs. Human C++ Code
+A Survey of Bugs in AI-Generated Code
+Poisoned ChatGPT Finds Work for Idle Hands: Exploring Developers' Coding Practices with Insecure Suggestions from Poisoned AI Models
+Factors Influencing the Quality of AI-Generated Code: A Synthesis of Empirical Evidence

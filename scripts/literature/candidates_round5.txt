@@ -1,0 +1,3 @@
+Foundations for an Empirically Determined Scale of Trust in Automated Systems
+Verification of forecasts expressed in terms of probability
+Trust in Automation: Integrating Empirical Evidence on Factors That Influence Trust

@@ -1,0 +1,45 @@
+Grounded Copilot: How Programmers Interact with Code-Generating Models
+A Large-Scale Survey on the Usability of AI Programming Assistants: Successes and Challenges
+Lost at C: A User Study on the Security Implications of Large Language Model Code Assistants
+Generation Probabilities Are Not Enough: Uncertainty Highlighting in AI Code Completions
+Investigating Explainability of Generative AI for Code through Scenario-based Design
+To Trust or to Think: Cognitive Forcing Functions Can Reduce Overreliance on AI in AI-assisted Decision-making
+Explanations Can Reduce Overreliance on AI Systems During Decision-Making
+Is Stack Overflow Obsolete? An Empirical Study of the Characteristics of ChatGPT Answers to Stack Overflow Questions
+Exploring and Evaluating Hallucinations in LLM-Powered Code Generation
+A Study on Developer Behaviors for Validating and Repairing LLM-Generated Code Using Eye Tracking and IDE Actions
+Studying the effect of AI Code Generators on Supporting Novice Learners in Introductory Programming
+Perfection Not Required? Human-AI Partnerships in Code Translation
+What is it like to program with artificial intelligence?
+Using AI Assistants in Software Development: A Qualitative Study on Security Practices and Concerns
+Make Your Tools Sparkle with Trust: The PICSE Framework for Trust in Software Tools
+What large language models know and what people think they know
+Examining the Impact of Large Language Models' Uncertainty Expression on User Reliance and Trust
+Using an LLM to Help With Code Understanding
+Development of NASA-TLX (Task Load Index): Results of Empirical and Theoretical Research
+Taking Flight with Copilot
+Explainable AI for SE: Challenges and Future Directions
+Trust in Generative AI among Students: An exploratory study
+CodeHalu: Investigating Code Hallucinations in LLMs via Execution-based Verification
+LLM Hallucinations in Practical Code Generation: Phenomena, Mechanism, and Mitigation
+Large Language Models and Simple, Stupid Bugs
+An Empirical Evaluation of Using Large Language Models for Automated Unit Test Generation
+Constructing a Theory of Trust in AI-Powered Code Generation Tools
+Trust Calibration in AI-assisted programming
+Towards Trustworthy AI Software Development Assistance
+How Do Analysts Understand and Verify AI-Assisted Data Analyses?
+Improving Steering and Verification in AI-Assisted Data Analysis with Interactive Task Decomposition
+Why Johnny Can't Prompt: How Non-AI Experts Try (and Fail) to Design LLM Prompts
+Explainable AI for Software Engineering
+The Effects of Generative AI on High-Skilled Work: Evidence from Three Field Experiments with Software Developers
+Overreliance on AI-Generated Code
+Determinants of LLM-assisted Decision-Making
+A Meta-Analysis of the Utility of Explainable Artificial Intelligence in Human-AI Decision-Making
+Explainable AI for novices and experts: personalized explanations
+Are Explanations Helpful? A Comparative Study of the Effects of Explanations in AI-Assisted Decision-Making
+Developer Experiences with a Contextualized AI Coding Assistant: Usability, Expectations, and Outcomes
+Static analysis warnings developers ignore: Why don't software developers use static analysis tools to find bugs
+Lessons from Building Static Analysis Tools at Google
+Explaining Static Analysis With Rule Graphs
+Security Code Smells / LLM security vulnerabilities static analysis Semgrep CodeQL generated code
+The System Usability Scale: Past, Present, and Future

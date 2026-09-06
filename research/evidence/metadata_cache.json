@@ -1,0 +1,1641 @@
+{
+  "10.1145/3613904.3642495": {
+    "title": "Validating AI-Generated Code with Live Programming",
+    "year": 2024,
+    "authors": [
+      "Kasra Ferdowsi",
+      "Ruanqianqian (Lisa) Huang",
+      "Michael B. James",
+      "Nadia Polikarpova",
+      "Sorin Lerner"
+    ],
+    "venue": "Proceedings of the CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3613904.3642495",
+    "url": "https://doi.org/10.1145/3613904.3642495",
+    "volume": null,
+    "issue": null,
+    "pages": "1-8",
+    "source": "crossref"
+  },
+  "10.1145/3702320": {
+    "title": "Generation Probabilities Are Not Enough: Uncertainty Highlighting in AI Code Completions",
+    "year": 2024,
+    "authors": [
+      "Helena Vasconcelos",
+      "Gagan Bansal",
+      "Adam Fourney",
+      "Q. Vera Liao",
+      "Jennifer Wortman Vaughan"
+    ],
+    "venue": "ACM Transactions on Computer-Human Interaction",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3702320",
+    "url": "https://doi.org/10.1145/3702320",
+    "volume": null,
+    "issue": null,
+    "pages": null,
+    "source": "crossref"
+  },
+  "arxiv:2606.01969": {
+    "title": "Trust-Calibrated Code Review: A Participatory Design Study of Review Workflows for LLM-Generated Multi-File Changes",
+    "year": 2026,
+    "authors": [
+      "Lo Gullstrand Heander",
+      "Agnia Sergeyuk",
+      "Ilya Zakharov",
+      "Emma Söderberg",
+      "Nikita Mukhortov"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2606.01969",
+    "url": "https://arxiv.org/abs/2606.01969",
+    "source": "arxiv"
+  },
+  "10.1145/3832184": {
+    "title": "Evaluating the Impact of Explainable AI on Trust in AI-Assisted Code Review",
+    "year": 2026,
+    "authors": [
+      "Zhenhan Gao",
+      "Marvin Muñoz Barón",
+      "Umm-e Habiba",
+      "Daniel Graziotin",
+      "Stefan Wagner"
+    ],
+    "venue": "Proceedings of the ACM on Software Engineering",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3832184",
+    "url": "https://doi.org/10.1145/3832184",
+    "volume": "3",
+    "issue": "ISSTA",
+    "pages": "2136-2158",
+    "source": "crossref"
+  },
+  "arxiv:2405.16081": {
+    "title": "A Study on Developer Behaviors for Validating and Repairing LLM-Generated Code Using Eye Tracking and IDE Actions",
+    "year": 2024,
+    "authors": [
+      "Ningzhi Tang",
+      "Meng Chen",
+      "Zheng Ning",
+      "Aakash Bansal",
+      "Yu Huang",
+      "Collin McMillan",
+      "Toby Jia-Jun Li"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2405.16081",
+    "url": "https://arxiv.org/abs/2405.16081",
+    "source": "arxiv"
+  },
+  "10.1145/3613904.3642239": {
+    "title": "Ivie: Lightweight Anchored Explanations of Just-Generated Code",
+    "year": 2024,
+    "authors": [
+      "Litao Yan",
+      "Alyssa Hwang",
+      "Zhiyuan Wu",
+      "Andrew Head"
+    ],
+    "venue": "Proceedings of the CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3613904.3642239",
+    "url": "https://doi.org/10.1145/3613904.3642239",
+    "volume": null,
+    "issue": null,
+    "pages": "1-15",
+    "source": "crossref"
+  },
+  "10.1109/icse55347.2025.00126": {
+    "title": "Closing the Gap: A User Study on the Real-world Usefulness of AI-powered Vulnerability Detection &amp; Repair in the IDE",
+    "year": 2025,
+    "authors": [
+      "Benjamin Steenhoek",
+      "Kalpathy Sivaraman",
+      "Renata Saldivar Gonzalez",
+      "Yevhen Mohylevskyy",
+      "Roshanak Zilouchian Moghaddam",
+      "Wei Le"
+    ],
+    "venue": "2025 IEEE/ACM 47th International Conference on Software Engineering (ICSE)",
+    "type": "proceedings-article",
+    "publisher": "IEEE",
+    "doi": "10.1109/icse55347.2025.00126",
+    "url": "https://doi.org/10.1109/icse55347.2025.00126",
+    "volume": null,
+    "issue": null,
+    "pages": "01-13",
+    "source": "crossref"
+  },
+  "10.1145/3613904.3642497": {
+    "title": "How Do Analysts Understand and Verify AI-Assisted Data Analyses?",
+    "year": 2024,
+    "authors": [
+      "Ken Gu",
+      "Ruoxi Shang",
+      "Tim Althoff",
+      "Chenglong Wang",
+      "Steven M. Drucker"
+    ],
+    "venue": "Proceedings of the CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3613904.3642497",
+    "url": "https://doi.org/10.1145/3613904.3642497",
+    "volume": null,
+    "issue": null,
+    "pages": "1-22",
+    "source": "crossref"
+  },
+  "10.1145/3630106.3658984": {
+    "title": "Investigating and Designing for Trust in AI-powered Code Generation Tools",
+    "year": 2024,
+    "authors": [
+      "Ruotong Wang",
+      "Ruijia Cheng",
+      "Denae Ford",
+      "Thomas Zimmermann"
+    ],
+    "venue": "The 2024 ACM Conference on Fairness, Accountability, and Transparency",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3630106.3658984",
+    "url": "https://doi.org/10.1145/3630106.3658984",
+    "volume": null,
+    "issue": null,
+    "pages": "1475-1493",
+    "source": "crossref"
+  },
+  "10.1109/tse.2026.3659804": {
+    "title": "On the Need to Rethink Trust in AI Assistants for Software Development: A Critical Review",
+    "year": 2026,
+    "authors": [
+      "Sebastian Baltes",
+      "Timo Speith",
+      "Brenda Chiteri",
+      "Seyedmoein Mohsenimofidi",
+      "Shalini Chakraborty",
+      "Daniel Buschek"
+    ],
+    "venue": "IEEE Transactions on Software Engineering",
+    "type": "journal-article",
+    "publisher": "Institute of Electrical and Electronics Engineers (IEEE)",
+    "doi": "10.1109/tse.2026.3659804",
+    "url": "https://doi.org/10.1109/tse.2026.3659804",
+    "volume": "52",
+    "issue": "4",
+    "pages": "1265-1281",
+    "source": "crossref"
+  },
+  "10.1145/3651990": {
+    "title": "“It would work for me too”: How Online Communities Shape Software Developers’ Trust in AI-Powered Code Generation Tools",
+    "year": 2024,
+    "authors": [
+      "Ruijia Cheng",
+      "Ruotong Wang",
+      "Thomas Zimmermann",
+      "Denae Ford"
+    ],
+    "venue": "ACM Transactions on Interactive Intelligent Systems",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3651990",
+    "url": "https://doi.org/10.1145/3651990",
+    "volume": "14",
+    "issue": "2",
+    "pages": "1-39",
+    "source": "crossref"
+  },
+  "10.1109/icse-seip58684.2023.00043": {
+    "title": "Make Your Tools Sparkle with Trust: The PICSE Framework for Trust in Software Tools",
+    "year": 2023,
+    "authors": [
+      "Brittany Johnson",
+      "Christian Bird",
+      "Denae Ford",
+      "Nicole Forsgren",
+      "Thomas Zimmermann"
+    ],
+    "venue": "2023 IEEE/ACM 45th International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP)",
+    "type": "proceedings-article",
+    "publisher": "IEEE",
+    "doi": "10.1109/icse-seip58684.2023.00043",
+    "url": "https://doi.org/10.1109/icse-seip58684.2023.00043",
+    "volume": null,
+    "issue": null,
+    "pages": "409-419",
+    "source": "crossref"
+  },
+  "10.1145/3771282": {
+    "title": "Mapping the Trust Terrain: LLMs in Software Engineering - Insights and Perspectives",
+    "year": 2025,
+    "authors": [
+      "Dipin Khati",
+      "Yijin Liu",
+      "David N. Palacio",
+      "Yixuan Zhang",
+      "Denys Poshyvanyk"
+    ],
+    "venue": "ACM Transactions on Software Engineering and Methodology",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3771282",
+    "url": "https://doi.org/10.1145/3771282",
+    "volume": null,
+    "issue": null,
+    "pages": null,
+    "source": "crossref"
+  },
+  "10.1145/3664646.3664757": {
+    "title": "Identifying the Factors That Influence Trust in AI Code Completion",
+    "year": 2024,
+    "authors": [
+      "Adam Brown",
+      "Sarah D'Angelo",
+      "Ambar Murillo",
+      "Ciera Jaspan",
+      "Collin Green"
+    ],
+    "venue": "Proceedings of the 1st ACM International Conference on AI-Powered Software",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3664646.3664757",
+    "url": "https://doi.org/10.1145/3664646.3664757",
+    "volume": null,
+    "issue": null,
+    "pages": "1-9",
+    "source": "crossref"
+  },
+  "10.1145/3842739": {
+    "title": "What Needs Attention? Prioritizing Drivers of Developers’ Trust and Adoption of Generative AI",
+    "year": 2026,
+    "authors": [
+      "Rudrajit Choudhuri",
+      "Bianca Trinkenreich",
+      "Rahul Pandita",
+      "Eirini Kalliamvakou",
+      "Igor Steinmacher",
+      "Marco Gerosa",
+      "Christopher A. Sanchez",
+      "Anita Sarma"
+    ],
+    "venue": "ACM Transactions on Software Engineering and Methodology",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3842739",
+    "url": "https://doi.org/10.1145/3842739",
+    "volume": null,
+    "issue": null,
+    "pages": null,
+    "source": "crossref"
+  },
+  "10.1145/3803437.3806704": {
+    "title": "Towards an Appropriate Level of Reliance on AI: A Preliminary Reliance-Control Framework for AI in Software Engineering",
+    "year": 2026,
+    "authors": [
+      "Samuel Ferino",
+      "Rashina Hoda",
+      "John Grundy",
+      "Christoph Treude"
+    ],
+    "venue": "Proceedings of the 34th ACM International Conference on the Foundations of Software Engineering",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3803437.3806704",
+    "url": "https://doi.org/10.1145/3803437.3806704",
+    "volume": null,
+    "issue": null,
+    "pages": "1795-1799",
+    "source": "crossref"
+  },
+  "arxiv:2412.15948": {
+    "title": "Trust Calibration in IDEs: Paving the Way for Widespread Adoption of AI Refactoring",
+    "year": 2024,
+    "authors": [
+      "Markus Borg"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2412.15948",
+    "url": "https://arxiv.org/abs/2412.15948",
+    "source": "arxiv"
+  },
+  "10.1145/3639476.3639770": {
+    "title": "Towards Trustworthy AI Software Development Assistance",
+    "year": 2024,
+    "authors": [
+      "Daniel Maninger",
+      "Krishna Narasimhan",
+      "Mira Mezini"
+    ],
+    "venue": "Proceedings of the 2024 ACM/IEEE 44th International Conference on Software Engineering: New Ideas and Emerging Results",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3639476.3639770",
+    "url": "https://doi.org/10.1145/3639476.3639770",
+    "volume": null,
+    "issue": null,
+    "pages": "112-116",
+    "source": "crossref"
+  },
+  "10.1145/3491101.3519665": {
+    "title": "Expectation vs. Experience: Evaluating the Usability of Code Generation Tools Powered by Large Language Models",
+    "year": 2022,
+    "authors": [
+      "Priyan Vaithilingam",
+      "Tianyi Zhang",
+      "Elena L. Glassman"
+    ],
+    "venue": "CHI Conference on Human Factors in Computing Systems Extended Abstracts",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3491101.3519665",
+    "url": "https://doi.org/10.1145/3491101.3519665",
+    "volume": null,
+    "issue": null,
+    "pages": "1-7",
+    "source": "crossref"
+  },
+  "10.1145/3586030": {
+    "title": "Grounded Copilot: How Programmers Interact with Code-Generating Models",
+    "year": 2023,
+    "authors": [
+      "Shraddha Barke",
+      "Michael B. James",
+      "Nadia Polikarpova"
+    ],
+    "venue": "Proceedings of the ACM on Programming Languages",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3586030",
+    "url": "https://doi.org/10.1145/3586030",
+    "volume": "7",
+    "issue": "OOPSLA1",
+    "pages": "85-111",
+    "source": "crossref"
+  },
+  "10.1145/3613904.3641936": {
+    "title": "Reading Between the Lines: Modeling User Behavior and Costs in AI-Assisted Programming",
+    "year": 2024,
+    "authors": [
+      "Hussein Mozannar",
+      "Gagan Bansal",
+      "Adam Fourney",
+      "Eric Horvitz"
+    ],
+    "venue": "Proceedings of the CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3613904.3641936",
+    "url": "https://doi.org/10.1145/3613904.3641936",
+    "volume": null,
+    "issue": null,
+    "pages": "1-16",
+    "source": "crossref"
+  },
+  "10.1145/3597503.3608128": {
+    "title": "A Large-Scale Survey on the Usability of AI Programming Assistants: Successes and Challenges",
+    "year": 2024,
+    "authors": [
+      "Jenny T. Liang",
+      "Chenyang Yang",
+      "Brad A. Myers"
+    ],
+    "venue": "Proceedings of the IEEE/ACM 46th International Conference on Software Engineering",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3597503.3608128",
+    "url": "https://doi.org/10.1145/3597503.3608128",
+    "volume": null,
+    "issue": null,
+    "pages": "1-13",
+    "source": "crossref"
+  },
+  "10.1145/3581641.3584037": {
+    "title": "The Programmer’s Assistant: Conversational Interaction with a Large Language Model for Software Development",
+    "year": 2023,
+    "authors": [
+      "Steven I. Ross",
+      "Fernando Martinez",
+      "Stephanie Houde",
+      "Michael Muller",
+      "Justin D. Weisz"
+    ],
+    "venue": "Proceedings of the 28th International Conference on Intelligent User Interfaces",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3581641.3584037",
+    "url": "https://doi.org/10.1145/3581641.3584037",
+    "volume": null,
+    "issue": null,
+    "pages": "491-514",
+    "source": "crossref"
+  },
+  "10.1145/3617367": {
+    "title": "“It’s Weird That it Knows What I Want”: Usability and Interactions with Copilot for Novice Programmers",
+    "year": 2023,
+    "authors": [
+      "James Prather",
+      "Brent N. Reeves",
+      "Paul Denny",
+      "Brett A. Becker",
+      "Juho Leinonen",
+      "Andrew Luxton-Reilly",
+      "Garrett Powell",
+      "James Finnie-Ansley",
+      "Eddie Antonio Santos"
+    ],
+    "venue": "ACM Transactions on Computer-Human Interaction",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3617367",
+    "url": "https://doi.org/10.1145/3617367",
+    "volume": "31",
+    "issue": "1",
+    "pages": "1-31",
+    "source": "crossref"
+  },
+  "10.1145/3490099.3511119": {
+    "title": "Investigating Explainability of Generative AI for Code through Scenario-based Design",
+    "year": 2022,
+    "authors": [
+      "Jiao Sun",
+      "Q. Vera Liao",
+      "Michael Muller",
+      "Mayank Agarwal",
+      "Stephanie Houde",
+      "Kartik Talamadupula",
+      "Justin D. Weisz"
+    ],
+    "venue": "27th International Conference on Intelligent User Interfaces",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3490099.3511119",
+    "url": "https://doi.org/10.1145/3490099.3511119",
+    "volume": null,
+    "issue": null,
+    "pages": "212-228",
+    "source": "crossref"
+  },
+  "10.1145/3397481.3450656": {
+    "title": "Perfection Not Required? Human-AI Partnerships in Code Translation",
+    "year": 2021,
+    "authors": [
+      "Justin D. Weisz",
+      "Michael Muller",
+      "Stephanie Houde",
+      "John Richards",
+      "Steven I. Ross",
+      "Fernando Martinez",
+      "Mayank Agarwal",
+      "Kartik Talamadupula"
+    ],
+    "venue": "26th International Conference on Intelligent User Interfaces",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3397481.3450656",
+    "url": "https://doi.org/10.1145/3397481.3450656",
+    "volume": null,
+    "issue": null,
+    "pages": "402-412",
+    "source": "crossref"
+  },
+  "10.1145/3706598.3714002": {
+    "title": "Need Help? Designing Proactive AI Assistants for Programming",
+    "year": 2025,
+    "authors": [
+      "Valerie Chen",
+      "Alan Zhu",
+      "Sebastian Zhao",
+      "Hussein Mozannar",
+      "David Sontag",
+      "Ameet Talwalkar"
+    ],
+    "venue": "Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3706598.3714002",
+    "url": "https://doi.org/10.1145/3706598.3714002",
+    "volume": null,
+    "issue": null,
+    "pages": "1-18",
+    "source": "crossref"
+  },
+  "10.1109/forge66646.2025.00033": {
+    "title": "How Developers Interact with AI: A Taxonomy of Human-AI Collaboration in Software Engineering",
+    "year": 2025,
+    "authors": [
+      "Christoph Treude",
+      "Marco A. Gerosa"
+    ],
+    "venue": "2025 IEEE/ACM Second International Conference on AI Foundation Models and Software Engineering (Forge)",
+    "type": "proceedings-article",
+    "publisher": "IEEE",
+    "doi": "10.1109/forge66646.2025.00033",
+    "url": "https://doi.org/10.1109/forge66646.2025.00033",
+    "volume": null,
+    "issue": null,
+    "pages": "236-240",
+    "source": "crossref"
+  },
+  "10.1016/j.ijhcs.2025.103648": {
+    "title": "Understanding user mental models in AI-driven code completion tools: Insights from an elicitation study",
+    "year": 2025,
+    "authors": [
+      "Giuseppe Desolda",
+      "Andrea Esposito",
+      "Francesco Greco",
+      "Cesare Tucci",
+      "Paolo Buono",
+      "Antonio Piccinno"
+    ],
+    "venue": "International Journal of Human-Computer Studies",
+    "type": "journal-article",
+    "publisher": "Elsevier BV",
+    "doi": "10.1016/j.ijhcs.2025.103648",
+    "url": "https://doi.org/10.1016/j.ijhcs.2025.103648",
+    "volume": "205",
+    "issue": null,
+    "pages": "103648",
+    "source": "crossref"
+  },
+  "10.1145/3786583.3786883": {
+    "title": "Developer Needs and Feasible Features for AI Assistants in IDEs",
+    "year": 2026,
+    "authors": [
+      "Agnia Sergeyuk",
+      "Ekaterina Koshchenko",
+      "Ilya Zakharov",
+      "Timofey Bryksin",
+      "Maliheh Izadi"
+    ],
+    "venue": "Proceedings of the IEEE/ACM 48th International Conference on Software Engineering: Software Engineering in Practice",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3786583.3786883",
+    "url": "https://doi.org/10.1145/3786583.3786883",
+    "volume": null,
+    "issue": null,
+    "pages": "406-416",
+    "source": "crossref"
+  },
+  "arxiv:2608.12355": {
+    "title": "Humans are Missing from AI Coding Agent Research",
+    "year": 2026,
+    "authors": [
+      "Zora Z. Wang",
+      "John Yang",
+      "Kilian Lieret",
+      "Alexa Tartaglini",
+      "Valerie Chen",
+      "Yuxiang Wei",
+      "Zijian Wang",
+      "Lingming Zhang",
+      "Karthik Narasimhan",
+      "Ludwig Schmidt",
+      "Graham Neubig",
+      "Daniel Fried",
+      "Diyi Yang"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2608.12355",
+    "url": "https://arxiv.org/abs/2608.12355",
+    "source": "arxiv"
+  },
+  "arxiv:2607.15948": {
+    "title": "TARS: A Theory-of-Mind Agent for Personalized In-IDE Code Comprehension",
+    "year": 2026,
+    "authors": [
+      "Leopoldo Todisco",
+      "Antonio Della Porta",
+      "Stefano Lambiase",
+      "Fabio Palomba"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2607.15948",
+    "url": "https://arxiv.org/abs/2607.15948",
+    "source": "arxiv"
+  },
+  "arxiv:2607.08990": {
+    "title": "From Generic to Personalized: Exploring Persona-Aware Code Review Explanations",
+    "year": 2026,
+    "authors": [
+      "Shamse Tasnim Cynthia",
+      "Ratnadira Widyasari",
+      "Banani Roy",
+      "Italo Santos",
+      "David Lo"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2607.08990",
+    "url": "https://arxiv.org/abs/2607.08990",
+    "source": "arxiv"
+  },
+  "10.1145/3772318.3791176": {
+    "title": "When Help Hurts: Verification Load and Fatigue with AI Coding Assistants",
+    "year": 2026,
+    "authors": [
+      "Guangrui Fan",
+      "Dandan Liu",
+      "Lihu Pan",
+      "Rui Zhang"
+    ],
+    "venue": "Proceedings of the 2026 CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3772318.3791176",
+    "url": "https://doi.org/10.1145/3772318.3791176",
+    "volume": null,
+    "issue": null,
+    "pages": "1-25",
+    "source": "crossref"
+  },
+  "10.1145/3411764.3445717": {
+    "title": "Does the Whole Exceed its Parts? The Effect of AI Explanations on Complementary Team Performance",
+    "year": 2021,
+    "authors": [
+      "Gagan Bansal",
+      "Tongshuang Wu",
+      "Joyce Zhou",
+      "Raymond Fok",
+      "Besmira Nushi",
+      "Ece Kamar",
+      "Marco Tulio Ribeiro",
+      "Daniel Weld"
+    ],
+    "venue": "Proceedings of the 2021 CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3411764.3445717",
+    "url": "https://doi.org/10.1145/3411764.3445717",
+    "volume": null,
+    "issue": null,
+    "pages": "1-16",
+    "source": "crossref"
+  },
+  "10.1145/3449287": {
+    "title": "To Trust or to Think: Cognitive Forcing Functions Can Reduce Overreliance on AI in AI-assisted Decision-making",
+    "year": 2021,
+    "authors": [
+      "Zana Buçinca",
+      "Maja Barbara Malaya",
+      "Krzysztof Z. Gajos"
+    ],
+    "venue": "Proceedings of the ACM on Human-Computer Interaction",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3449287",
+    "url": "https://doi.org/10.1145/3449287",
+    "volume": "5",
+    "issue": "CSCW1",
+    "pages": "1-21",
+    "source": "crossref"
+  },
+  "10.1145/3579605": {
+    "title": "Explanations Can Reduce Overreliance on AI Systems During Decision-Making",
+    "year": 2023,
+    "authors": [
+      "Helena Vasconcelos",
+      "Matthew Jörke",
+      "Madeleine Grunde-McLaughlin",
+      "Tobias Gerstenberg",
+      "Michael S. Bernstein",
+      "Ranjay Krishna"
+    ],
+    "venue": "Proceedings of the ACM on Human-Computer Interaction",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3579605",
+    "url": "https://doi.org/10.1145/3579605",
+    "volume": "7",
+    "issue": "CSCW1",
+    "pages": "1-38",
+    "source": "crossref"
+  },
+  "10.1145/3706598.3714020": {
+    "title": "Fostering Appropriate Reliance on Large Language Models: The Role of Explanations, Sources, and Inconsistencies",
+    "year": 2025,
+    "authors": [
+      "Sunnie S. Y. Kim",
+      "Jennifer Wortman Vaughan",
+      "Q. Vera Liao",
+      "Tania Lombrozo",
+      "Olga Russakovsky"
+    ],
+    "venue": "Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3706598.3714020",
+    "url": "https://doi.org/10.1145/3706598.3714020",
+    "volume": null,
+    "issue": null,
+    "pages": "1-19",
+    "source": "crossref"
+  },
+  "10.1145/3706598.3714097": {
+    "title": "To Rely or Not to Rely? Evaluating Interventions for Appropriate Reliance on Large Language Models",
+    "year": 2025,
+    "authors": [
+      "Jessica Y Bo",
+      "Sophia Wan",
+      "Ashton Anderson"
+    ],
+    "venue": "Proceedings of the 2025 CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3706598.3714097",
+    "url": "https://doi.org/10.1145/3706598.3714097",
+    "volume": null,
+    "issue": null,
+    "pages": "1-23",
+    "source": "crossref"
+  },
+  "10.1145/3630106.3658941": {
+    "title": "\"I'm Not Sure, But...\": Examining the Impact of Large Language Models' Uncertainty Expression on User Reliance and Trust",
+    "year": 2024,
+    "authors": [
+      "Sunnie S. Y. Kim",
+      "Q. Vera Liao",
+      "Mihaela Vorvoreanu",
+      "Stephanie Ballard",
+      "Jennifer Wortman Vaughan"
+    ],
+    "venue": "The 2024 ACM Conference on Fairness Accountability and Transparency",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3630106.3658941",
+    "url": "https://doi.org/10.1145/3630106.3658941",
+    "volume": null,
+    "issue": null,
+    "pages": "822-835",
+    "source": "crossref"
+  },
+  "10.1038/s42256-024-00976-7": {
+    "title": "What large language models know and what people think they know",
+    "year": 2025,
+    "authors": [
+      "Mark Steyvers",
+      "Heliodoro Tejeda",
+      "Aakriti Kumar",
+      "Catarina Belem",
+      "Sheer Karny",
+      "Xinyue Hu",
+      "Lukas W. Mayer",
+      "Padhraic Smyth"
+    ],
+    "venue": "Nature Machine Intelligence",
+    "type": "journal-article",
+    "publisher": "Springer Science and Business Media LLC",
+    "doi": "10.1038/s42256-024-00976-7",
+    "url": "https://doi.org/10.1038/s42256-024-00976-7",
+    "volume": "7",
+    "issue": "2",
+    "pages": "221-231",
+    "source": "crossref"
+  },
+  "10.1145/3544548.3581058": {
+    "title": "Who Should I Trust: AI or Myself? Leveraging Human and AI Correctness Likelihood to Promote Appropriate Trust in AI-Assisted Decision-Making",
+    "year": 2023,
+    "authors": [
+      "Shuai Ma",
+      "Ying Lei",
+      "Xinru Wang",
+      "Chengbo Zheng",
+      "Chuhan Shi",
+      "Ming Yin",
+      "Xiaojuan Ma"
+    ],
+    "venue": "Proceedings of the 2023 CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3544548.3581058",
+    "url": "https://doi.org/10.1145/3544548.3581058",
+    "volume": null,
+    "issue": null,
+    "pages": "1-19",
+    "source": "crossref"
+  },
+  "10.1145/3351095.3372852": {
+    "title": "Effect of confidence and explanation on accuracy and trust calibration in AI-assisted decision making",
+    "year": 2020,
+    "authors": [
+      "Yunfeng Zhang",
+      "Q. Vera Liao",
+      "Rachel K. E. Bellamy"
+    ],
+    "venue": "Proceedings of the 2020 Conference on Fairness, Accountability, and Transparency",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3351095.3372852",
+    "url": "https://doi.org/10.1145/3351095.3372852",
+    "volume": null,
+    "issue": null,
+    "pages": "295-305",
+    "source": "crossref"
+  },
+  "10.1145/3581641.3584066": {
+    "title": "Appropriate Reliance on AI Advice: Conceptualization and the Effect of Explanations",
+    "year": 2023,
+    "authors": [
+      "Max Schemmer",
+      "Niklas Kuehl",
+      "Carina Benz",
+      "Andrea Bartos",
+      "Gerhard Satzger"
+    ],
+    "venue": "Proceedings of the 28th International Conference on Intelligent User Interfaces",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3581641.3584066",
+    "url": "https://doi.org/10.1145/3581641.3584066",
+    "volume": null,
+    "issue": null,
+    "pages": "410-422",
+    "source": "crossref"
+  },
+  "arxiv:2112.11471": {
+    "title": "Towards a Science of Human-AI Decision Making: A Survey of Empirical Studies",
+    "year": 2021,
+    "authors": [
+      "Vivian Lai",
+      "Chacha Chen",
+      "Q. Vera Liao",
+      "Alison Smith-Renner",
+      "Chenhao Tan"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2112.11471",
+    "url": "https://arxiv.org/abs/2112.11471",
+    "source": "arxiv"
+  },
+  "10.1145/3514094.3534128": {
+    "title": "A Meta-Analysis of the Utility of Explainable Artificial Intelligence in Human-AI Decision-Making",
+    "year": 2022,
+    "authors": [
+      "Max Schemmer",
+      "Patrick Hemmer",
+      "Maximilian Nitsche",
+      "Niklas Kühl",
+      "Michael Vössing"
+    ],
+    "venue": "Proceedings of the 2022 AAAI/ACM Conference on AI, Ethics, and Society",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3514094.3534128",
+    "url": "https://doi.org/10.1145/3514094.3534128",
+    "volume": null,
+    "issue": null,
+    "pages": "617-626",
+    "source": "crossref"
+  },
+  "10.1109/sp46214.2022.9833571": {
+    "title": "Asleep at the Keyboard? Assessing the Security of GitHub Copilot’s Code Contributions",
+    "year": 2022,
+    "authors": [
+      "Hammond Pearce",
+      "Baleegh Ahmad",
+      "Benjamin Tan",
+      "Brendan Dolan-Gavitt",
+      "Ramesh Karri"
+    ],
+    "venue": "2022 IEEE Symposium on Security and Privacy (SP)",
+    "type": "proceedings-article",
+    "publisher": "IEEE",
+    "doi": "10.1109/sp46214.2022.9833571",
+    "url": "https://doi.org/10.1109/sp46214.2022.9833571",
+    "volume": null,
+    "issue": null,
+    "pages": "754-768",
+    "source": "crossref"
+  },
+  "10.1145/3576915.3623157": {
+    "title": "Do Users Write More Insecure Code with AI Assistants?",
+    "year": 2023,
+    "authors": [
+      "Neil Perry",
+      "Megha Srivastava",
+      "Deepak Kumar",
+      "Dan Boneh"
+    ],
+    "venue": "Proceedings of the 2023 ACM SIGSAC Conference on Computer and Communications Security",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3576915.3623157",
+    "url": "https://doi.org/10.1145/3576915.3623157",
+    "volume": null,
+    "issue": null,
+    "pages": "2785-2799",
+    "source": "crossref"
+  },
+  "arxiv:2208.09727": {
+    "title": "Lost at C: A User Study on the Security Implications of Large Language Model Code Assistants",
+    "year": 2022,
+    "authors": [
+      "Gustavo Sandoval",
+      "Hammond Pearce",
+      "Teo Nys",
+      "Ramesh Karri",
+      "Siddharth Garg",
+      "Brendan Dolan-Gavitt"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2208.09727",
+    "url": "https://arxiv.org/abs/2208.09727",
+    "source": "arxiv"
+  },
+  "10.1145/3716848": {
+    "title": "Security Weaknesses of Copilot-Generated Code in GitHub Projects: An Empirical Study",
+    "year": 2025,
+    "authors": [
+      "Yujia Fu",
+      "Peng Liang",
+      "Amjed Tahir",
+      "Zengyang Li",
+      "Mojtaba Shahin",
+      "Jiaxin Yu",
+      "Jinfu Chen"
+    ],
+    "venue": "ACM Transactions on Software Engineering and Methodology",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3716848",
+    "url": "https://doi.org/10.1145/3716848",
+    "volume": "34",
+    "issue": "8",
+    "pages": "1-34",
+    "source": "crossref"
+  },
+  "10.1145/3658644.3690283": {
+    "title": "Using AI Assistants in Software Development: A Qualitative Study on Security Practices and Concerns",
+    "year": 2024,
+    "authors": [
+      "Jan H. Klemmer",
+      "Stefan Albert Horstmann",
+      "Nikhil Patnaik",
+      "Cordelia Ludden",
+      "Cordell Burton",
+      "Carson Powers",
+      "Fabio Massacci",
+      "Akond Rahman",
+      "Daniel Votipka",
+      "Heather Richter Lipford",
+      "Awais Rashid",
+      "Alena Naiakshina",
+      "Sascha Fahl"
+    ],
+    "venue": "Proceedings of the 2024 on ACM SIGSAC Conference on Computer and Communications Security",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3658644.3690283",
+    "url": "https://doi.org/10.1145/3658644.3690283",
+    "volume": null,
+    "issue": null,
+    "pages": "2726-2740",
+    "source": "crossref"
+  },
+  "10.1109/sp54263.2024.00046": {
+    "title": "Poisoned ChatGPT Finds Work for Idle Hands: Exploring Developers’ Coding Practices with Insecure Suggestions from Poisoned AI Models",
+    "year": 2024,
+    "authors": [
+      "Sanghak Oh",
+      "Kiho Lee",
+      "Seonhye Park",
+      "Doowon Kim",
+      "Hyoungshick Kim"
+    ],
+    "venue": "2024 IEEE Symposium on Security and Privacy (SP)",
+    "type": "proceedings-article",
+    "publisher": "IEEE",
+    "doi": "10.1109/sp54263.2024.00046",
+    "url": "https://doi.org/10.1109/sp54263.2024.00046",
+    "volume": null,
+    "issue": null,
+    "pages": "1141-1159",
+    "source": "crossref"
+  },
+  "arxiv:2605.23130": {
+    "title": "From Preventive to Reactive: How AI Coding Assistants Transform Developers' Security Awareness",
+    "year": 2026,
+    "authors": [
+      "Faisal Haque Bappy",
+      "Tahrim Hossain",
+      "Sidratul Muntaher Meheraj",
+      "Annoor Sharara Akhand",
+      "Tasfia Tabassum",
+      "Tarannum Shaila Zaman",
+      "Raiful Hasan",
+      "Tariqul Islam"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2605.23130",
+    "url": "https://arxiv.org/abs/2605.23130",
+    "source": "arxiv"
+  },
+  "10.52202/075280-0943": {
+    "title": "Is Your Code Generated by ChatGPT Really Correct? Rigorous Evaluation of Large Language Models for Code Generation",
+    "year": 2023,
+    "authors": [
+      "Jiawei Liu",
+      "Chunqiu Steven Xia",
+      "Yuyao Wang",
+      "Lingming Zhang"
+    ],
+    "venue": "Advances in Neural Information Processing Systems 36",
+    "type": "proceedings-article",
+    "publisher": "Neural Information Processing Systems Foundation, Inc. (NeurIPS)",
+    "doi": "10.52202/075280-0943",
+    "url": "https://doi.org/10.52202/075280-0943",
+    "volume": null,
+    "issue": null,
+    "pages": "21558-21572",
+    "source": "crossref"
+  },
+  "arxiv:2406.10279": {
+    "title": "We Have a Package for You! A Comprehensive Analysis of Package Hallucinations by Code Generating LLMs",
+    "year": 2024,
+    "authors": [
+      "Joseph Spracklen",
+      "Raveen Wijewickrama",
+      "A H M Nazmus Sakib",
+      "Anindya Maiti",
+      "Bimal Viswanath",
+      "Murtuza Jadliwala"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2406.10279",
+    "url": "https://arxiv.org/abs/2406.10279",
+    "source": "arxiv"
+  },
+  "10.1145/3728894": {
+    "title": "LLM Hallucinations in Practical Code Generation: Phenomena, Mechanism, and Mitigation",
+    "year": 2025,
+    "authors": [
+      "Ziyao Zhang",
+      "Chong Wang",
+      "Yanlin Wang",
+      "Ensheng Shi",
+      "Yuchi Ma",
+      "Wanjun Zhong",
+      "Jiachi Chen",
+      "Mingzhi Mao",
+      "Zibin Zheng"
+    ],
+    "venue": "Proceedings of the ACM on Software Engineering",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3728894",
+    "url": "https://doi.org/10.1145/3728894",
+    "volume": "2",
+    "issue": "ISSTA",
+    "pages": "481-503",
+    "source": "crossref"
+  },
+  "10.1609/aaai.v39i24.34717": {
+    "title": "CodeHalu: Investigating Code Hallucinations in LLMs via Execution-based Verification",
+    "year": 2025,
+    "authors": [
+      "Yuchen Tian",
+      "Weixiang Yan",
+      "Qian Yang",
+      "Xuandong Zhao",
+      "Qian Chen",
+      "Wen Wang",
+      "Ziyang Luo",
+      "Lei Ma",
+      "Dawn Song"
+    ],
+    "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+    "type": "journal-article",
+    "publisher": "Association for the Advancement of Artificial Intelligence (AAAI)",
+    "doi": "10.1609/aaai.v39i24.34717",
+    "url": "https://doi.org/10.1609/aaai.v39i24.34717",
+    "volume": "39",
+    "issue": "24",
+    "pages": "25300-25308",
+    "source": "crossref"
+  },
+  "10.1007/s10664-025-10614-4": {
+    "title": "Bugs in large language models generated code: an empirical study",
+    "year": 2025,
+    "authors": [
+      "Florian Tambon",
+      "Arghavan Moradi-Dakhel",
+      "Amin Nikanjam",
+      "Foutse Khomh",
+      "Michel C. Desmarais",
+      "Giuliano Antoniol"
+    ],
+    "venue": "Empirical Software Engineering",
+    "type": "journal-article",
+    "publisher": "Springer Science and Business Media LLC",
+    "doi": "10.1007/s10664-025-10614-4",
+    "url": "https://doi.org/10.1007/s10664-025-10614-4",
+    "volume": "30",
+    "issue": "3",
+    "pages": null,
+    "source": "crossref"
+  },
+  "10.1145/3613904.3642596": {
+    "title": "Is Stack Overflow Obsolete? An Empirical Study of the Characteristics of ChatGPT Answers to Stack Overflow Questions",
+    "year": 2024,
+    "authors": [
+      "Samia Kabir",
+      "David N. Udo-Imeh",
+      "Bonan Kou",
+      "Tianyi Zhang"
+    ],
+    "venue": "Proceedings of the CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3613904.3642596",
+    "url": "https://doi.org/10.1145/3613904.3642596",
+    "volume": null,
+    "issue": null,
+    "pages": "1-17",
+    "source": "crossref"
+  },
+  "10.1109/icse55347.2025.00040": {
+    "title": "Calibration and Correctness of Language Models for Code",
+    "year": 2025,
+    "authors": [
+      "Claudio Spiess",
+      "David Gros",
+      "Kunal Suresh Pai",
+      "Michael Pradel",
+      "Md Rafiqul Islam Rabin",
+      "Amin Alipour",
+      "Susmit Jha",
+      "Prem Devanbu",
+      "Toufique Ahmed"
+    ],
+    "venue": "2025 IEEE/ACM 47th International Conference on Software Engineering (ICSE)",
+    "type": "proceedings-article",
+    "publisher": "IEEE",
+    "doi": "10.1109/icse55347.2025.00040",
+    "url": "https://doi.org/10.1109/icse55347.2025.00040",
+    "volume": null,
+    "issue": null,
+    "pages": "540-552",
+    "source": "crossref"
+  },
+  "arxiv:2607.00107": {
+    "title": "The Illusion of Safety: Multi-Tier Verification of AI vs. Human C++ Code",
+    "year": 2026,
+    "authors": [
+      "Saif Mahmud",
+      "Fadul Sikder",
+      "Yuede Ji",
+      "Haotian Zhang",
+      "Yu Lei"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2607.00107",
+    "url": "https://arxiv.org/abs/2607.00107",
+    "source": "arxiv"
+  },
+  "arxiv:2507.09089": {
+    "title": "Measuring the Impact of Early-2025 AI on Experienced Open-Source Developer Productivity",
+    "year": 2025,
+    "authors": [
+      "Joel Becker",
+      "Nate Rush",
+      "Elizabeth Barnes",
+      "David Rein"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2507.09089",
+    "url": "https://arxiv.org/abs/2507.09089",
+    "source": "arxiv"
+  },
+  "arxiv:2302.06590": {
+    "title": "The Impact of AI on Developer Productivity: Evidence from GitHub Copilot",
+    "year": 2023,
+    "authors": [
+      "Sida Peng",
+      "Eirini Kalliamvakou",
+      "Peter Cihon",
+      "Mert Demirer"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2302.06590",
+    "url": "https://arxiv.org/abs/2302.06590",
+    "source": "arxiv"
+  },
+  "10.1287/mnsc.2025.00535": {
+    "title": "The Effects of Generative AI on High-Skilled Work: Evidence from Three Field Experiments with Software Developers",
+    "year": 2026,
+    "authors": [
+      "Kevin Zheyuan Cui",
+      "Mert Demirer",
+      "Sonia Jaffe",
+      "Leon Musolff",
+      "Sida Peng",
+      "Tobias Salz"
+    ],
+    "venue": "Management Science",
+    "type": "journal-article",
+    "publisher": "Institute for Operations Research and the Management Sciences (INFORMS)",
+    "doi": "10.1287/mnsc.2025.00535",
+    "url": "https://doi.org/10.1287/mnsc.2025.00535",
+    "volume": null,
+    "issue": null,
+    "pages": null,
+    "source": "crossref"
+  },
+  "10.1145/3520312.3534864": {
+    "title": "Productivity assessment of neural code completion",
+    "year": 2022,
+    "authors": [
+      "Albert Ziegler",
+      "Eirini Kalliamvakou",
+      "X. Alice Li",
+      "Andrew Rice",
+      "Devon Rifkin",
+      "Shawn Simister",
+      "Ganesh Sittampalam",
+      "Edward Aftandilian"
+    ],
+    "venue": "Proceedings of the 6th ACM SIGPLAN International Symposium on Machine Programming",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3520312.3534864",
+    "url": "https://doi.org/10.1145/3520312.3534864",
+    "volume": null,
+    "issue": null,
+    "pages": "21-29",
+    "source": "crossref"
+  },
+  "arxiv:2601.20245": {
+    "title": "How AI Impacts Skill Formation",
+    "year": 2026,
+    "authors": [
+      "Judy Hanwen Shen",
+      "Alex Tamkin"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2601.20245",
+    "url": "https://arxiv.org/abs/2601.20245",
+    "source": "arxiv"
+  },
+  "arxiv:2605.23135": {
+    "title": "The Impact of AI Coding Assistants on Software Engineering: A Longitudinal Study",
+    "year": 2026,
+    "authors": [
+      "Annie Vella",
+      "Kelly Blincoe"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2605.23135",
+    "url": "https://arxiv.org/abs/2605.23135",
+    "source": "arxiv"
+  },
+  "10.1145/3544548.3580919": {
+    "title": "Studying the effect of AI Code Generators on Supporting Novice Learners in Introductory Programming",
+    "year": 2023,
+    "authors": [
+      "Majeed Kazemitabaar",
+      "Justin Chow",
+      "Carl Ka To Ma",
+      "Barbara J. Ericson",
+      "David Weintrop",
+      "Tovi Grossman"
+    ],
+    "venue": "Proceedings of the 2023 CHI Conference on Human Factors in Computing Systems",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3544548.3580919",
+    "url": "https://doi.org/10.1145/3544548.3580919",
+    "volume": null,
+    "issue": null,
+    "pages": "1-23",
+    "source": "crossref"
+  },
+  "10.1145/3626252.3630842": {
+    "title": "Trust in Generative AI among Students: An exploratory study",
+    "year": 2024,
+    "authors": [
+      "Matin Amoozadeh",
+      "David Daniels",
+      "Daye Nam",
+      "Aayush Kumar",
+      "Stella Chen",
+      "Michael Hilton",
+      "Sruti Srinivasa Ragavan",
+      "Mohammad Amin Alipour"
+    ],
+    "venue": "Proceedings of the 55th ACM Technical Symposium on Computer Science Education V. 1",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3626252.3630842",
+    "url": "https://doi.org/10.1145/3626252.3630842",
+    "volume": null,
+    "issue": null,
+    "pages": "67-73",
+    "source": "crossref"
+  },
+  "10.1145/3597503.3639187": {
+    "title": "Using an LLM to Help With Code Understanding",
+    "year": 2024,
+    "authors": [
+      "Daye Nam",
+      "Andrew Macvean",
+      "Vincent Hellendoorn",
+      "Bogdan Vasilescu",
+      "Brad Myers"
+    ],
+    "venue": "Proceedings of the IEEE/ACM 46th International Conference on Software Engineering",
+    "type": "proceedings-article",
+    "publisher": "ACM",
+    "doi": "10.1145/3597503.3639187",
+    "url": "https://doi.org/10.1145/3597503.3639187",
+    "volume": null,
+    "issue": null,
+    "pages": "1-13",
+    "source": "crossref"
+  },
+  "10.1609/aaai.v38i9.28878": {
+    "title": "When to Show a Suggestion? Integrating Human Feedback in AI-Assisted Programming",
+    "year": 2024,
+    "authors": [
+      "Hussein Mozannar",
+      "Gagan Bansal",
+      "Adam Fourney",
+      "Eric Horvitz"
+    ],
+    "venue": "Proceedings of the AAAI Conference on Artificial Intelligence",
+    "type": "journal-article",
+    "publisher": "Association for the Advancement of Artificial Intelligence (AAAI)",
+    "doi": "10.1609/aaai.v38i9.28878",
+    "url": "https://doi.org/10.1609/aaai.v38i9.28878",
+    "volume": "38",
+    "issue": "9",
+    "pages": "10137-10144",
+    "source": "crossref"
+  },
+  "arxiv:2601.21379": {
+    "title": "Predicting Developer Acceptance of AI-Generated Code Suggestions",
+    "year": 2026,
+    "authors": [
+      "Jing Jiang",
+      "Liehao Li",
+      "Jinyun Hou",
+      "Xin Tan",
+      "Li Zhang"
+    ],
+    "venue": "arXiv preprint",
+    "type": "preprint",
+    "doi": null,
+    "arxiv": "2601.21379",
+    "url": "https://arxiv.org/abs/2601.21379",
+    "source": "arxiv"
+  },
+  "10.1518/hfes.46.1.50.30392": {
+    "title": "Trust in Automation: Designing for Appropriate Reliance",
+    "year": 2004,
+    "authors": [
+      "John D. Lee",
+      "Katrina A. See"
+    ],
+    "venue": "Human Factors: The Journal of the Human Factors and Ergonomics Society",
+    "type": "journal-article",
+    "publisher": "SAGE Publications",
+    "doi": "10.1518/hfes.46.1.50.30392",
+    "url": "https://doi.org/10.1518/hfes.46.1.50.30392",
+    "volume": "46",
+    "issue": "1",
+    "pages": "50-80",
+    "source": "crossref"
+  },
+  "10.1518/001872097778543886": {
+    "title": "Humans and Automation: Use, Misuse, Disuse, Abuse",
+    "year": 1997,
+    "authors": [
+      "Raja Parasuraman",
+      "Victor Riley"
+    ],
+    "venue": "Human Factors: The Journal of the Human Factors and Ergonomics Society",
+    "type": "journal-article",
+    "publisher": "SAGE Publications",
+    "doi": "10.1518/001872097778543886",
+    "url": "https://doi.org/10.1518/001872097778543886",
+    "volume": "39",
+    "issue": "2",
+    "pages": "230-253",
+    "source": "crossref"
+  },
+  "10.1177/0018720810376055": {
+    "title": "Complacency and Bias in Human Use of Automation: An Attentional Integration",
+    "year": 2010,
+    "authors": [
+      "Raja Parasuraman",
+      "Dietrich H. Manzey"
+    ],
+    "venue": "Human Factors: The Journal of the Human Factors and Ergonomics Society",
+    "type": "journal-article",
+    "publisher": "SAGE Publications",
+    "doi": "10.1177/0018720810376055",
+    "url": "https://doi.org/10.1177/0018720810376055",
+    "volume": "52",
+    "issue": "3",
+    "pages": "381-410",
+    "source": "crossref"
+  },
+  "10.1207/S15327566IJCE0401_04": {
+    "title": "Foundations for an Empirically Determined Scale of Trust in Automated Systems",
+    "year": 2000,
+    "authors": [
+      "Jiun-Yin Jian",
+      "Ann M. Bisantz",
+      "Colin G. Drury"
+    ],
+    "venue": "International Journal of Cognitive Ergonomics",
+    "type": "journal-article",
+    "publisher": "Informa UK Limited",
+    "doi": "10.1207/s15327566ijce0401_04",
+    "url": "https://doi.org/10.1207/s15327566ijce0401_04",
+    "volume": "4",
+    "issue": "1",
+    "pages": "53-71",
+    "source": "crossref"
+  },
+  "10.3389/fcomp.2023.1096257": {
+    "title": "Measures for explainable AI: Explanation goodness, user satisfaction, mental models, curiosity, trust, and human-AI performance",
+    "year": 2023,
+    "authors": [
+      "Robert R. Hoffman",
+      "Shane T. Mueller",
+      "Gary Klein",
+      "Jordan Litman"
+    ],
+    "venue": "Frontiers in Computer Science",
+    "type": "journal-article",
+    "publisher": "Frontiers Media SA",
+    "doi": "10.3389/fcomp.2023.1096257",
+    "url": "https://doi.org/10.3389/fcomp.2023.1096257",
+    "volume": "5",
+    "issue": null,
+    "pages": null,
+    "source": "crossref"
+  },
+  "10.1016/s0166-4115(08)62386-9": {
+    "title": "Development of NASA-TLX (Task Load Index): Results of Empirical and Theoretical Research",
+    "year": 1988,
+    "authors": [],
+    "venue": "Advances in Psychology",
+    "type": "book-chapter",
+    "publisher": "Elsevier",
+    "doi": "10.1016/s0166-4115(08)62386-9",
+    "url": "https://doi.org/10.1016/s0166-4115(08)62386-9",
+    "volume": null,
+    "issue": null,
+    "pages": "139-183",
+    "source": "crossref"
+  },
+  "10.1080/10447318.2018.1455307": {
+    "title": "The System Usability Scale: Past, Present, and Future",
+    "year": 2018,
+    "authors": [
+      "James R. Lewis"
+    ],
+    "venue": "International Journal of Human–Computer Interaction",
+    "type": "journal-article",
+    "publisher": "Informa UK Limited",
+    "doi": "10.1080/10447318.2018.1455307",
+    "url": "https://doi.org/10.1080/10447318.2018.1455307",
+    "volume": "34",
+    "issue": "7",
+    "pages": "577-590",
+    "source": "crossref"
+  },
+  "10.1175/1520-0493(1950)078<0001:vofeit>2.0.co;2": {
+    "title": "VERIFICATION OF FORECASTS EXPRESSED IN TERMS OF PROBABILITY",
+    "year": 1950,
+    "authors": [
+      "GLENN W. BRIER"
+    ],
+    "venue": "Monthly Weather Review",
+    "type": "journal-article",
+    "publisher": "American Meteorological Society",
+    "doi": "10.1175/1520-0493(1950)078<0001:vofeit>2.0.co;2",
+    "url": "https://doi.org/10.1175/1520-0493(1950)078<0001:vofeit>2.0.co;2",
+    "volume": "78",
+    "issue": "1",
+    "pages": "1-3",
+    "source": "crossref"
+  },
+  "10.1109/icse.2013.6606613": {
+    "title": "Why don't software developers use static analysis tools to find bugs?",
+    "year": 2013,
+    "authors": [
+      "Brittany Johnson",
+      "Yoonki Song",
+      "Emerson Murphy-Hill",
+      "Robert Bowdidge"
+    ],
+    "venue": "2013 35th International Conference on Software Engineering (ICSE)",
+    "type": "proceedings-article",
+    "publisher": "IEEE",
+    "doi": "10.1109/icse.2013.6606613",
+    "url": "https://doi.org/10.1109/icse.2013.6606613",
+    "volume": null,
+    "issue": null,
+    "pages": "672-681",
+    "source": "crossref"
+  },
+  "10.1145/3188720": {
+    "title": "Lessons from building static analysis tools at Google",
+    "year": 2018,
+    "authors": [
+      "Caitlin Sadowski",
+      "Edward Aftandilian",
+      "Alex Eagle",
+      "Liam Miller-Cushon",
+      "Ciera Jaspan"
+    ],
+    "venue": "Communications of the ACM",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3188720",
+    "url": "https://doi.org/10.1145/3188720",
+    "volume": "61",
+    "issue": "4",
+    "pages": "58-66",
+    "source": "crossref"
+  },
+  "10.1145/3695988": {
+    "title": "Large Language Models for Software Engineering: A Systematic Literature Review",
+    "year": 2024,
+    "authors": [
+      "Xinyi Hou",
+      "Yanjie Zhao",
+      "Yue Liu",
+      "Zhou Yang",
+      "Kailong Wang",
+      "Li Li",
+      "Xiapu Luo",
+      "David Lo",
+      "John Grundy",
+      "Haoyu Wang"
+    ],
+    "venue": "ACM Transactions on Software Engineering and Methodology",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3695988",
+    "url": "https://doi.org/10.1145/3695988",
+    "volume": "33",
+    "issue": "8",
+    "pages": "1-79",
+    "source": "crossref"
+  },
+  "10.1145/3809494": {
+    "title": "The Impact of LLM-Assistants on Software Developer Productivity: A Systematic Review and Mapping Study",
+    "year": 2026,
+    "authors": [
+      "Amr Mohamed",
+      "Maram Assi",
+      "Mariam Guizani"
+    ],
+    "venue": "ACM Transactions on Software Engineering and Methodology",
+    "type": "journal-article",
+    "publisher": "Association for Computing Machinery (ACM)",
+    "doi": "10.1145/3809494",
+    "url": "https://doi.org/10.1145/3809494",
+    "volume": null,
+    "issue": null,
+    "pages": null,
+    "source": "crossref"
+  }
+}

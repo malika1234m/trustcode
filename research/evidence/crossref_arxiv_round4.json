@@ -1,0 +1,385 @@
+[
+  {
+    "candidate": "On the Need to Rethink Trust in AI Assistants for Software Development: A Critical Review",
+    "crossref": {
+      "source": "crossref",
+      "similarity": 1.0,
+      "title": "On the Need to Rethink Trust in AI Assistants for Software Development: A Critical Review",
+      "year": 2026,
+      "doi": "https://doi.org/10.1109/tse.2026.3659804",
+      "venue": "IEEE Transactions on Software Engineering",
+      "type": "journal-article",
+      "authors": [
+        "Sebastian Baltes",
+        "Timo Speith",
+        "Brenda Chiteri",
+        "Seyedmoein Mohsenimofidi",
+        "Shalini Chakraborty",
+        "Daniel Buschek"
+      ],
+      "abstract": null
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "similarity": 1.0,
+      "title": "On the Need to Rethink Trust in AI Assistants for Software Development: A Critical Review",
+      "year": 2025,
+      "doi": null,
+      "url": "http://arxiv.org/abs/2504.12461v4",
+      "venue": "arXiv preprint",
+      "type": "preprint",
+      "authors": [
+        "Sebastian Baltes",
+        "Timo Speith",
+        "Brenda Chiteri",
+        "Seyedmoein Mohsenimofidi",
+        "Shalini Chakraborty",
+        "Daniel Buschek"
+      ],
+      "abstract": "Trust is a fundamental concept in human decision-making and collaboration that has long been studied in philosophy and psychology. However, software engineering (SE) articles often use the term trust informally; providing an explicit definition or embedding results in established trust models is rare. In SE research on AI assistants, this practice culminates in equating trust with the likelihood of accepting generated content, which, in isolation, does not capture the full conceptual complexity of trust. Without a common definition, true secondary research on trust is impossible. The objectives of our research were: (1) to present the psychological and philosophical foundations of human trust, (2) to systematically study how trust is conceptualized in SE and the related disciplines human-computer interaction and information systems, and (3) to discuss limitations of equating trust with content acceptance, outlining how SE research can adopt existing trust models to overcome the widespread informal use of the term trust. We conducted a literature review across disciplines and a critical review of recent SE articles with a focus on trust conceptualizations. We found that trust is rarely defined or conceptualized in SE articles. Related disciplines commonly embed their methodology and results in established trust models, clearly distinguishing, for example, between initial trust and trust formation and between appropriate and inappropriate trust. On a meta-scientific level, other disciplines even discuss whether and when trust can be applied to AI assistants at all. Our study reveals a significant maturity gap of trust research in SE compared to other disciplines. We provide concrete recommendations on how SE researchers can adopt established trust models and instruments to study trust in AI assistants beyond the acceptance of generated software artifacts."
+    },
+    "status": "VERIFIED",
+    "best": {
+      "source": "crossref",
+      "similarity": 1.0,
+      "title": "On the Need to Rethink Trust in AI Assistants for Software Development: A Critical Review",
+      "year": 2026,
+      "doi": "https://doi.org/10.1109/tse.2026.3659804",
+      "venue": "IEEE Transactions on Software Engineering",
+      "type": "journal-article",
+      "authors": [
+        "Sebastian Baltes",
+        "Timo Speith",
+        "Brenda Chiteri",
+        "Seyedmoein Mohsenimofidi",
+        "Shalini Chakraborty",
+        "Daniel Buschek"
+      ],
+      "abstract": null
+    }
+  },
+  {
+    "candidate": "Identifying the Factors That Influence Trust in AI Code Completion",
+    "crossref": {
+      "source": "crossref",
+      "similarity": 1.0,
+      "title": "Identifying the Factors That Influence Trust in AI Code Completion",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3664646.3664757",
+      "venue": "Proceedings of the 1st ACM International Conference on AI-Powered Software",
+      "type": "proceedings-article",
+      "authors": [
+        "Adam Brown",
+        "Sarah D'Angelo",
+        "Ambar Murillo",
+        "Ciera Jaspan",
+        "Collin Green"
+      ],
+      "abstract": null
+    },
+    "arxiv": null,
+    "status": "VERIFIED",
+    "best": {
+      "source": "crossref",
+      "similarity": 1.0,
+      "title": "Identifying the Factors That Influence Trust in AI Code Completion",
+      "year": 2024,
+      "doi": "https://doi.org/10.1145/3664646.3664757",
+      "venue": "Proceedings of the 1st ACM International Conference on AI-Powered Software",
+      "type": "proceedings-article",
+      "authors": [
+        "Adam Brown",
+        "Sarah D'Angelo",
+        "Ambar Murillo",
+        "Ciera Jaspan",
+        "Collin Green"
+      ],
+      "abstract": null
+    }
+  },
+  {
+    "candidate": "What Needs Attention? Prioritizing Drivers of Developers' Trust and Adoption of Generative AI",
+    "crossref": {
+      "source": "crossref",
+      "similarity": 1.0,
+      "title": "What Needs Attention? Prioritizing Drivers of Developers’ Trust and Adoption of Generative AI",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3842739",
+      "venue": "ACM Transactions on Software Engineering and Methodology",
+      "type": "journal-article",
+      "authors": [
+        "Rudrajit Choudhuri",
+        "Bianca Trinkenreich",
+        "Rahul Pandita",
+        "Eirini Kalliamvakou",
+        "Igor Steinmacher",
+        "Marco Gerosa",
+        "Christopher A. Sanchez",
+        "Anita Sarma"
+      ],
+      "abstract": "\n                    Generative AI (genAI) tools promise productivity gains, yet developers still struggle to determine when to trust and effectively integrate these tools into their everyday work. Moreover, genAI can be exclusionary, failing to adequately support developers across individual differences. One such difference is\n                    cognitive style\n                    , which can shape how developers engage with genAI (e.g., risk-averse developers may gate outputs behind tests, whereas risk-tolerant ones may prototype directly and address issues post hoc). When tools fail to accommodate these differences, they can create additional usability barriers. Thus, to design tools that developers intend to use, we must understand\n                    which factors shape developers’ trust in and adoption of genAI at work\n                    .\n                  \n                  \n                    We developed a theoretical model of developers’ trust and adoption of genAI using a large-scale survey (\n                    N\n                    = 238) conducted at GitHub and Microsoft. Using Partial Least Squares Structural Equation Modeling (PLS-SEM), we found aspects related to genAI’s\n                    system and output quality\n                    (e.g., presentation, safety/security, and performance), functional value (e.g., educational and practical benefits), and\n                    goal maintenance\n                    (ability to sustain alignment with task goals) to be significantly associated with trust. Trust, alongside developers’\n                    cognitive styles\n                    (i.e., risk tolerance, technophilic motivations, and computer self-efficacy), was in turn significantly associated with adoption intentions, which ultimately were associated with reported usage. An Importance-Performance Matrix Analysis (IPMA) identified high-importance factors for which existing genAI tools provided insufficient support, highlighting actionable targets for design improvements. We bolstered these findings through a qualitative analysis of developers’ reported challenges and risks of genAI use, uncovering why these gaps persisted in development contexts. Our study offers practical guidance for designing genAI tools that support trustworthy and inclusive developer–AI interactions.\n                  "
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "similarity": 1.0,
+      "title": "What Needs Attention? Prioritizing Drivers of Developers' Trust and Adoption of Generative AI",
+      "year": 2025,
+      "doi": null,
+      "url": "http://arxiv.org/abs/2505.17418v3",
+      "venue": "arXiv preprint",
+      "type": "preprint",
+      "authors": [
+        "Rudrajit Choudhuri",
+        "Bianca Trinkenreich",
+        "Rahul Pandita",
+        "Eirini Kalliamvakou",
+        "Igor Steinmacher",
+        "Marco Gerosa",
+        "Christopher Sanchez",
+        "Anita Sarma"
+      ],
+      "abstract": "Generative AI (genAI) tools promise productivity gains, yet miscalibrated trust and usage friction still hinder adoption. Moreover, genAI can be exclusionary, failing to adequately support diverse users. One such aspect of diversity is cognitive diversity, which leads to diverging interaction styles (e.g., a risk-averse developer may gate genAI outputs behind tests/review; a risk-tolerant one may prototype directly/fix issues post-hoc). When an individual's cognitive styles are unsupported, it creates additional usability barriers. Thus, to design tools that developers trust and use, we must first understand which factors shape their trust and intentions to use genAI at work? We developed a theoretical model of developers' trust and adoption of genAI through a large-scale survey (N = 238) conducted at GitHub and Microsoft. Using Partial Least Squares-Structural Equation Modeling (PLS-SEM), we found aspects related to genAI's system/output quality (e.g., presentation, safety/security, performance), functional value (e.g., educational/practical benefits), and goal maintenance (ability to sustain alignment with task goals) significantly influence trust, which, alongside developers' cognitive styles (i.e., risk tolerance, technophilic motivations, computer self-efficacy), affect adoption. An Importance-Performance Matrix Analysis (IPMA) identified high-importance factors where genAI underperforms, revealing targets for design improvement. We bolster these findings by qualitatively analyzing developers' reported challenges and risks of genAI use to uncover why these gaps persist in development contexts. We offer practical guidance for designing genAI tools that support effective, trustworthy, and inclusive developer-AI interactions."
+    },
+    "status": "VERIFIED",
+    "best": {
+      "source": "crossref",
+      "similarity": 1.0,
+      "title": "What Needs Attention? Prioritizing Drivers of Developers’ Trust and Adoption of Generative AI",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3842739",
+      "venue": "ACM Transactions on Software Engineering and Methodology",
+      "type": "journal-article",
+      "authors": [
+        "Rudrajit Choudhuri",
+        "Bianca Trinkenreich",
+        "Rahul Pandita",
+        "Eirini Kalliamvakou",
+        "Igor Steinmacher",
+        "Marco Gerosa",
+        "Christopher A. Sanchez",
+        "Anita Sarma"
+      ],
+      "abstract": "\n                    Generative AI (genAI) tools promise productivity gains, yet developers still struggle to determine when to trust and effectively integrate these tools into their everyday work. Moreover, genAI can be exclusionary, failing to adequately support developers across individual differences. One such difference is\n                    cognitive style\n                    , which can shape how developers engage with genAI (e.g., risk-averse developers may gate outputs behind tests, whereas risk-tolerant ones may prototype directly and address issues post hoc). When tools fail to accommodate these differences, they can create additional usability barriers. Thus, to design tools that developers intend to use, we must understand\n                    which factors shape developers’ trust in and adoption of genAI at work\n                    .\n                  \n                  \n                    We developed a theoretical model of developers’ trust and adoption of genAI using a large-scale survey (\n                    N\n                    = 238) conducted at GitHub and Microsoft. Using Partial Least Squares Structural Equation Modeling (PLS-SEM), we found aspects related to genAI’s\n                    system and output quality\n                    (e.g., presentation, safety/security, and performance), functional value (e.g., educational and practical benefits), and\n                    goal maintenance\n                    (ability to sustain alignment with task goals) to be significantly associated with trust. Trust, alongside developers’\n                    cognitive styles\n                    (i.e., risk tolerance, technophilic motivations, and computer self-efficacy), was in turn significantly associated with adoption intentions, which ultimately were associated with reported usage. An Importance-Performance Matrix Analysis (IPMA) identified high-importance factors for which existing genAI tools provided insufficient support, highlighting actionable targets for design improvements. We bolstered these findings through a qualitative analysis of developers’ reported challenges and risks of genAI use, uncovering why these gaps persisted in development contexts. Our study offers practical guidance for designing genAI tools that support trustworthy and inclusive developer–AI interactions.\n                  "
+    }
+  },
+  {
+    "candidate": "The Illusion of Safety: Multi-Tier Verification of AI vs. Human C++ Code",
+    "crossref": {
+      "source": "crossref",
+      "similarity": 0.463,
+      "title": "Human vs AI: Insecure Use of Security-Sensitive Functions in AI-generated Code in Comparison to Human-written Code",
+      "year": 2026,
+      "doi": "https://doi.org/10.1145/3748522.3779860",
+      "venue": "Proceedings of the 41st ACM/SIGAPP Symposium on Applied Computing",
+      "type": "proceedings-article",
+      "authors": [
+        "Joonku Lee",
+        "Sieun Ju",
+        "Seunghoon Woo",
+        "Heejo Lee"
+      ],
+      "abstract": null
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "similarity": 1.0,
+      "title": "The Illusion of Safety: Multi-Tier Verification of AI vs. Human C++ Code",
+      "year": 2026,
+      "doi": null,
+      "url": "http://arxiv.org/abs/2607.00107v3",
+      "venue": "arXiv preprint",
+      "type": "preprint",
+      "authors": [
+        "Saif Mahmud",
+        "Fadul Sikder",
+        "Yuede Ji",
+        "Haotian Zhang",
+        "Yu Lei"
+      ],
+      "abstract": "As large language models (LLMs) are increasingly deployed for systems programming, their ability to generate secure C++ code, where a single memory-safety failure creates an exploitable vulnerability, remains a critical concern. Yet most security evaluations of AI-generated code rely on static analysis alone, which flags warnings without confirming run- time violations or reasoning about untested paths. This study investigates whether AI-generated C++ is measurably less safe than human-written code, and whether common verification tools agree on the risk. We introduce VULBENCH-CPP, a benchmark of 8,918 C++ programs from three open-weight LLMs (Gemma 3 27B IT, LLaMA 3.3 70B Instruct, Qwen 2.5 Coder 32B Instruct) and human authors across 851 competitive-programming tasks. Each program is annotated by four verification tiers: functional testing, static analysis (cppcheck, clang-tidy), dynamic analysis (ASan/UBSan), and bounded model checking (ESBMC). Account- ing for the correlation among solutions to a shared task, we find that AI-generated code is roughly twice as likely as human code to trigger a confirmed runtime violation, even after controlling for code length and test pass-rate. Under static analysis the two look equally safe, but this is misleading: the apparent similarity reflects code length rather than real safety, and the tiers detect largely different classes of violation, demonstrating that no single tier is sufficient. These vulnerability patterns remain consistent across independent generations. We release the benchmark, harness, and annotated results."
+    },
+    "status": "VERIFIED",
+    "best": {
+      "source": "arxiv",
+      "similarity": 1.0,
+      "title": "The Illusion of Safety: Multi-Tier Verification of AI vs. Human C++ Code",
+      "year": 2026,
+      "doi": null,
+      "url": "http://arxiv.org/abs/2607.00107v3",
+      "venue": "arXiv preprint",
+      "type": "preprint",
+      "authors": [
+        "Saif Mahmud",
+        "Fadul Sikder",
+        "Yuede Ji",
+        "Haotian Zhang",
+        "Yu Lei"
+      ],
+      "abstract": "As large language models (LLMs) are increasingly deployed for systems programming, their ability to generate secure C++ code, where a single memory-safety failure creates an exploitable vulnerability, remains a critical concern. Yet most security evaluations of AI-generated code rely on static analysis alone, which flags warnings without confirming run- time violations or reasoning about untested paths. This study investigates whether AI-generated C++ is measurably less safe than human-written code, and whether common verification tools agree on the risk. We introduce VULBENCH-CPP, a benchmark of 8,918 C++ programs from three open-weight LLMs (Gemma 3 27B IT, LLaMA 3.3 70B Instruct, Qwen 2.5 Coder 32B Instruct) and human authors across 851 competitive-programming tasks. Each program is annotated by four verification tiers: functional testing, static analysis (cppcheck, clang-tidy), dynamic analysis (ASan/UBSan), and bounded model checking (ESBMC). Account- ing for the correlation among solutions to a shared task, we find that AI-generated code is roughly twice as likely as human code to trigger a confirmed runtime violation, even after controlling for code length and test pass-rate. Under static analysis the two look equally safe, but this is misleading: the apparent similarity reflects code length rather than real safety, and the tiers detect largely different classes of violation, demonstrating that no single tier is sufficient. These vulnerability patterns remain consistent across independent generations. We release the benchmark, harness, and annotated results."
+    }
+  },
+  {
+    "candidate": "A Survey of Bugs in AI-Generated Code",
+    "crossref": {
+      "source": "crossref",
+      "similarity": 0.64,
+      "title": "Cybersecurity Risks of AI-Generated Code",
+      "year": 2024,
+      "doi": "https://doi.org/10.51593/2023ca010",
+      "venue": null,
+      "type": "report",
+      "authors": [
+        "Jessica Ji",
+        "Jenny Jun",
+        "Maggie Wu",
+        "Rebecca Gelles"
+      ],
+      "abstract": "Artificial intelligence models have become increasingly adept at generating computer code. They are powerful and promising tools for software development across many industries, but they can also pose direct and indirect cybersecurity risks. This report identifies three broad categories of risk associated with AI code generation models and discusses their policy and cybersecurity implications."
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "similarity": 1.0,
+      "title": "A Survey of Bugs in AI-Generated Code",
+      "year": 2025,
+      "doi": null,
+      "url": "http://arxiv.org/abs/2512.05239v1",
+      "venue": "arXiv preprint",
+      "type": "preprint",
+      "authors": [
+        "Ruofan Gao",
+        "Amjed Tahir",
+        "Peng Liang",
+        "Teo Susnjak",
+        "Foutse Khomh"
+      ],
+      "abstract": "Developers are widely using AI code-generation models, aiming to increase productivity and efficiency. However, there are also quality concerns regarding the AI-generated code. The generated code is produced by models trained on publicly available code, which are known to contain bugs and quality issues. Those issues can cause trust and maintenance challenges during the development process. Several quality issues associated with AI-generated code have been reported, including bugs and defects. However, these findings are often scattered and lack a systematic summary. A comprehensive review is currently lacking to reveal the types and distribution of these errors, possible remediation strategies, as well as their correlation with the specific models. In this paper, we systematically analyze the existing AI-generated code literature to establish an overall understanding of bugs and defects in generated code, providing a reference for future model improvement and quality assessment. We aim to understand the nature and extent of bugs in AI-generated code, and provide a classification of bug types and patterns present in code generated by different models. We also discuss possible fixes and mitigation strategies adopted to eliminate bugs from the generated code."
+    },
+    "status": "VERIFIED",
+    "best": {
+      "source": "arxiv",
+      "similarity": 1.0,
+      "title": "A Survey of Bugs in AI-Generated Code",
+      "year": 2025,
+      "doi": null,
+      "url": "http://arxiv.org/abs/2512.05239v1",
+      "venue": "arXiv preprint",
+      "type": "preprint",
+      "authors": [
+        "Ruofan Gao",
+        "Amjed Tahir",
+        "Peng Liang",
+        "Teo Susnjak",
+        "Foutse Khomh"
+      ],
+      "abstract": "Developers are widely using AI code-generation models, aiming to increase productivity and efficiency. However, there are also quality concerns regarding the AI-generated code. The generated code is produced by models trained on publicly available code, which are known to contain bugs and quality issues. Those issues can cause trust and maintenance challenges during the development process. Several quality issues associated with AI-generated code have been reported, including bugs and defects. However, these findings are often scattered and lack a systematic summary. A comprehensive review is currently lacking to reveal the types and distribution of these errors, possible remediation strategies, as well as their correlation with the specific models. In this paper, we systematically analyze the existing AI-generated code literature to establish an overall understanding of bugs and defects in generated code, providing a reference for future model improvement and quality assessment. We aim to understand the nature and extent of bugs in AI-generated code, and provide a classification of bug types and patterns present in code generated by different models. We also discuss possible fixes and mitigation strategies adopted to eliminate bugs from the generated code."
+    }
+  },
+  {
+    "candidate": "Poisoned ChatGPT Finds Work for Idle Hands: Exploring Developers' Coding Practices with Insecure Suggestions from Poisoned AI Models",
+    "crossref": {
+      "source": "crossref",
+      "similarity": 1.0,
+      "title": "Poisoned ChatGPT Finds Work for Idle Hands: Exploring Developers’ Coding Practices with Insecure Suggestions from Poisoned AI Models",
+      "year": 2024,
+      "doi": "https://doi.org/10.1109/sp54263.2024.00046",
+      "venue": "2024 IEEE Symposium on Security and Privacy (SP)",
+      "type": "proceedings-article",
+      "authors": [
+        "Sanghak Oh",
+        "Kiho Lee",
+        "Seonhye Park",
+        "Doowon Kim",
+        "Hyoungshick Kim"
+      ],
+      "abstract": null
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "similarity": 1.0,
+      "title": "Poisoned ChatGPT Finds Work for Idle Hands: Exploring Developers' Coding Practices with Insecure Suggestions from Poisoned AI Models",
+      "year": 2023,
+      "doi": null,
+      "url": "http://arxiv.org/abs/2312.06227v1",
+      "venue": "arXiv preprint",
+      "type": "preprint",
+      "authors": [
+        "Sanghak Oh",
+        "Kiho Lee",
+        "Seonhye Park",
+        "Doowon Kim",
+        "Hyoungshick Kim"
+      ],
+      "abstract": "AI-powered coding assistant tools have revolutionized the software engineering ecosystem. However, prior work has demonstrated that these tools are vulnerable to poisoning attacks. In a poisoning attack, an attacker intentionally injects maliciously crafted insecure code snippets into training datasets to manipulate these tools. The poisoned tools can suggest insecure code to developers, resulting in vulnerabilities in their products that attackers can exploit. However, it is still little understood whether such poisoning attacks against the tools would be practical in real-world settings and how developers address the poisoning attacks during software development. To understand the real-world impact of poisoning attacks on developers who rely on AI-powered coding assistants, we conducted two user studies: an online survey and an in-lab study. The online survey involved 238 participants, including software developers and computer science students. The survey results revealed widespread adoption of these tools among participants, primarily to enhance coding speed, eliminate repetition, and gain boilerplate code. However, the survey also found that developers may misplace trust in these tools because they overlooked the risk of poisoning attacks. The in-lab study was conducted with 30 professional developers. The developers were asked to complete three programming tasks with a representative type of AI-powered coding assistant tool, running on Visual Studio Code. The in-lab study results showed that developers using a poisoned ChatGPT-like tool were more prone to including insecure code than those using an IntelliCode-like tool or no tool. This demonstrates the strong influence of these tools on the security of generated code. Our study results highlight the need for education and improved coding practices to address new security issues introduced by AI-powered coding assistant tools."
+    },
+    "status": "VERIFIED",
+    "best": {
+      "source": "crossref",
+      "similarity": 1.0,
+      "title": "Poisoned ChatGPT Finds Work for Idle Hands: Exploring Developers’ Coding Practices with Insecure Suggestions from Poisoned AI Models",
+      "year": 2024,
+      "doi": "https://doi.org/10.1109/sp54263.2024.00046",
+      "venue": "2024 IEEE Symposium on Security and Privacy (SP)",
+      "type": "proceedings-article",
+      "authors": [
+        "Sanghak Oh",
+        "Kiho Lee",
+        "Seonhye Park",
+        "Doowon Kim",
+        "Hyoungshick Kim"
+      ],
+      "abstract": null
+    }
+  },
+  {
+    "candidate": "Factors Influencing the Quality of AI-Generated Code: A Synthesis of Empirical Evidence",
+    "crossref": {
+      "source": "crossref",
+      "similarity": 0.585,
+      "title": "Analysis of factors influencing audit quality: Empirical evidence from Indonesia",
+      "year": 2025,
+      "doi": "https://doi.org/10.21511/afc.07(1).2026.01",
+      "venue": "Accounting and Financial Control",
+      "type": "journal-article",
+      "authors": [
+        "Khoirul Aswar",
+        "Wisnu Julianto",
+        "Grace Persulessy",
+        "Gino Giovano Manuputty"
+      ],
+      "abstract": "Type of the article: Research ArticleOne of the most crucial factors in making decisions and offering feedback on a report is audit quality. Therefore, this study aims to present empirical evidence on the relationship between audit cost, audit human capital, audit processes, workload, and audit quality. To gather data for this study, 70 auditors from the government within the Principal Inspectorate of Indonesia’s Supreme Audit Institution who had been working in their profession for at least two years were given questionnaires using Google Form. The study adopted a quantitative approach using purposive sampling. Structural equation modelling with PLS version 3 was used to process the data. The study’s findings show that audit quality is significantly impacted by audit human capital. In contrast, audit quality is not significantly impacted by audit cost, audit procedures, and workload. In addition to providing auditors with information and understanding regarding the impact of information technology systems on audit activities, this is anticipated to further advance understanding of the skills and knowledge that can be acquired through audit experience or activities such as training and seminars related to public sector audits. This will help auditors implement audit procedures more effectively, expand the scope of audits, require fewer resources, and complete audits more quickly."
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "similarity": 1.0,
+      "title": "Factors Influencing the Quality of AI-Generated Code: A Synthesis of Empirical Evidence",
+      "year": 2026,
+      "doi": null,
+      "url": "http://arxiv.org/abs/2603.25146v1",
+      "venue": "arXiv preprint",
+      "type": "preprint",
+      "authors": [
+        "Vehid Geruslu",
+        "Zulfiyya Aliyeva",
+        "Eray Tüzün"
+      ],
+      "abstract": "Context: The rapid adoption of AI-assisted code generation tools, such as large language models (LLMs), is transforming software development practices. While these tools promise significant productivity gains, concerns regarding the quality, reliability, and security of AI-generated code are increasingly reported in both academia and industry. --Objective: This study aims to systematically synthesize existing empirical evidence on the factors influencing the quality of AI-generated source code and to analyze how these factors impact software quality outcomes across different evaluation contexts. --Method: We conducted a systematic literature review (SLR) following established guidelines, supported by an AI-assisted workflow with human oversight. A total of 24 primary studies were selected through a structured search and screening process across major digital libraries. Data were extracted and analyzed using qualitative, pattern-based evidence synthesis. --Results: The findings reveal that code quality in AI-assisted development is influenced by a combination of human factors, AI system characteristics, and human AI interaction dynamics. Key influencing factors include prompt design, task specification, and developer expertise. The results also show variability in quality outcomes such as correctness, security, maintainability, and complexity across studies, with both improvements and risks reported. --Conclusion: AI-assisted code generation represents a socio-technical shift in software engineering, where achieving high-quality outcomes depends on both technological and human factors. While promising, AI-generated code requires careful validation and integration into development workflows."
+    },
+    "status": "VERIFIED",
+    "best": {
+      "source": "arxiv",
+      "similarity": 1.0,
+      "title": "Factors Influencing the Quality of AI-Generated Code: A Synthesis of Empirical Evidence",
+      "year": 2026,
+      "doi": null,
+      "url": "http://arxiv.org/abs/2603.25146v1",
+      "venue": "arXiv preprint",
+      "type": "preprint",
+      "authors": [
+        "Vehid Geruslu",
+        "Zulfiyya Aliyeva",
+        "Eray Tüzün"
+      ],
+      "abstract": "Context: The rapid adoption of AI-assisted code generation tools, such as large language models (LLMs), is transforming software development practices. While these tools promise significant productivity gains, concerns regarding the quality, reliability, and security of AI-generated code are increasingly reported in both academia and industry. --Objective: This study aims to systematically synthesize existing empirical evidence on the factors influencing the quality of AI-generated source code and to analyze how these factors impact software quality outcomes across different evaluation contexts. --Method: We conducted a systematic literature review (SLR) following established guidelines, supported by an AI-assisted workflow with human oversight. A total of 24 primary studies were selected through a structured search and screening process across major digital libraries. Data were extracted and analyzed using qualitative, pattern-based evidence synthesis. --Results: The findings reveal that code quality in AI-assisted development is influenced by a combination of human factors, AI system characteristics, and human AI interaction dynamics. Key influencing factors include prompt design, task specification, and developer expertise. The results also show variability in quality outcomes such as correctness, security, maintainability, and complexity across studies, with both improvements and risks reported. --Conclusion: AI-assisted code generation represents a socio-technical shift in software engineering, where achieving high-quality outcomes depends on both technological and human factors. While promising, AI-generated code requires careful validation and integration into development workflows."
+    }
+  }
+]

@@ -5,3 +5,4 @@ __pycache__/
 !.env.example
 .DS_Store
 node_modules/
+.venv/

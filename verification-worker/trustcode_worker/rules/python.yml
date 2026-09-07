@@ -1,0 +1,198 @@
+# TrustCode frozen Semgrep ruleset - Python (v1). Changing this file changes the ruleset digest
+# shown to users and recorded with every result. Do not modify during an experiment.
+rules:
+  - id: sql-string-formatting
+    languages: [python]
+    severity: ERROR
+    message: SQL query built with string formatting or concatenation and passed to execute().
+    patterns:
+      - pattern-either:
+          - pattern: $CUR.execute($Q % ..., ...)
+          - pattern: $CUR.execute($Q.format(...), ...)
+          - pattern: $CUR.execute(f"...", ...)
+          - pattern: $CUR.execute($A + $B, ...)
+          - patterns:
+              - pattern-inside: |
+                  $V = f"..."
+                  ...
+              - pattern: $CUR.execute($V, ...)
+          - patterns:
+              - pattern-inside: |
+                  $V = $A + $B
+                  ...
+              - pattern: $CUR.execute($V, ...)
+    metadata:
+      title: SQL injection risk
+      trustcode_severity: high
+      cwe: ["CWE-89"]
+      owasp: ["A03:2021 Injection"]
+      why_beginner: If a user types special characters (like a quote), they can change what the database command does - for example reading or deleting other people's data.
+      why: Untrusted input concatenated into SQL can alter query structure (SQL injection).
+      fix: Use parameterised queries, e.g. cur.execute("SELECT * FROM t WHERE id = ?", (user_id,)).
+  - id: shell-command-injection
+    languages: [python]
+    severity: ERROR
+    message: Command executed through a shell (os.system / shell=True).
+    pattern-either:
+      - pattern: os.system(...)
+      - pattern: os.popen(...)
+      - pattern: subprocess.$F(..., shell=True, ...)
+    metadata:
+      title: Shell command execution
+      trustcode_severity: high
+      cwe: ["CWE-78"]
+      owasp: ["A03:2021 Injection"]
+      why_beginner: Running commands through the shell lets specially crafted input run extra commands on the computer.
+      why: Shell interpretation of arguments enables OS command injection if any part is attacker-influenced.
+      fix: Use subprocess.run([...], shell=False) with an argument list; never build command strings from input.
+      confidence: medium - flagged even when arguments are constant; review whether input can reach it.
+  - id: eval-exec-use
+    languages: [python]
+    severity: ERROR
+    message: eval()/exec() executes arbitrary code.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: exec(...)
+    metadata:
+      title: Dynamic code execution
+      trustcode_severity: high
+      cwe: ["CWE-95"]
+      owasp: ["A03:2021 Injection"]
+      why_beginner: eval runs text as Python code, so anyone who controls that text controls your program.
+      why: Evaluating strings as code allows arbitrary code execution if input is attacker-influenced.
+      fix: Parse the data explicitly (e.g. ast.literal_eval for literals, json.loads for JSON).
+  - id: unsafe-deserialization
+    languages: [python]
+    severity: ERROR
+    message: Deserialising data with pickle/marshal or yaml.load without a safe loader.
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: pickle.load(...)
+      - pattern: marshal.loads(...)
+      - patterns:
+          - pattern: yaml.load(...)
+          - pattern-not: yaml.load(..., Loader=yaml.SafeLoader, ...)
+    metadata:
+      title: Unsafe deserialisation
+      trustcode_severity: high
+      cwe: ["CWE-502"]
+      owasp: ["A08:2021 Software and Data Integrity Failures"]
+      why_beginner: Loading pickled or YAML data from someone else can run their code on your machine.
+      why: These formats can instantiate arbitrary objects, leading to code execution on untrusted input.
+      fix: Use json, or yaml.safe_load; never unpickle data from untrusted sources.
+  - id: weak-password-hash
+    languages: [python]
+    severity: WARNING
+    message: Fast, unsalted hash (MD5/SHA-1/SHA-256) used - unsuitable for passwords.
+    pattern-either:
+      - pattern: hashlib.md5(...)
+      - pattern: hashlib.sha1(...)
+      - patterns:
+          - pattern: hashlib.sha256($X.encode(...))
+          - metavariable-regex:
+              metavariable: $X
+              regex: (?i).*(pass|pwd|secret).*
+    metadata:
+      title: Weak hashing
+      trustcode_severity: medium
+      cwe: ["CWE-327", "CWE-916"]
+      owasp: ["A02:2021 Cryptographic Failures"]
+      why_beginner: These hashes are very fast to compute, so stolen password hashes can be guessed quickly.
+      why: MD5/SHA-1 are broken for collision resistance; fast unsalted hashes are inadequate for password storage.
+      fix: For passwords use hashlib.scrypt / argon2 / bcrypt with a random salt. MD5 for non-security checksums may be acceptable.
+      confidence: medium - acceptable for non-security checksums.
+  - id: insecure-random
+    languages: [python]
+    severity: WARNING
+    message: The random module is not cryptographically secure.
+    pattern-either:
+      - pattern: random.random(...)
+      - pattern: random.randint(...)
+      - pattern: random.choice(...)
+      - pattern: random.choices(...)
+      - pattern: random.shuffle(...)
+      - pattern: random.getrandbits(...)
+    metadata:
+      title: Non-cryptographic randomness
+      trustcode_severity: medium
+      cwe: ["CWE-330"]
+      owasp: ["A02:2021 Cryptographic Failures"]
+      why_beginner: Values from 'random' can be predicted, so they must not be used for passwords, tokens or keys.
+      why: Mersenne Twister output is predictable; insecure for tokens, session IDs or keys.
+      fix: Use the secrets module for security-sensitive values. For simulations/shuffling non-secret data, random is fine.
+      confidence: low - frequently a false positive when randomness is not security-relevant.
+  - id: hardcoded-secret
+    languages: [python]
+    severity: WARNING
+    message: Possible hard-coded credential.
+    patterns:
+      - pattern: $NAME = "$VALUE"
+      - metavariable-regex:
+          metavariable: $NAME
+          regex: (?i).*(password|passwd|secret|api_key|apikey|token|private_key).*
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: .{6,}
+    metadata:
+      title: Hard-coded secret
+      trustcode_severity: medium
+      cwe: ["CWE-798"]
+      owasp: ["A07:2021 Identification and Authentication Failures"]
+      why_beginner: Passwords written in code end up in version control where others can read them.
+      why: Credentials in source are exposed through repositories, logs and builds.
+      fix: Load secrets from environment variables or a secrets manager.
+  - id: tls-verification-disabled
+    languages: [python]
+    severity: ERROR
+    message: TLS certificate verification disabled.
+    pattern-either:
+      - pattern: requests.$M(..., verify=False, ...)
+      - pattern: ssl._create_unverified_context(...)
+    metadata:
+      title: TLS verification disabled
+      trustcode_severity: high
+      cwe: ["CWE-295"]
+      owasp: ["A07:2021 Identification and Authentication Failures"]
+      why_beginner: Turning off certificate checks means you might be talking to an impostor server.
+      why: Disabling certificate validation enables man-in-the-middle attacks.
+      fix: Keep verify=True (default); configure a CA bundle if needed.
+  - id: path-traversal-open
+    languages: [python]
+    severity: WARNING
+    message: File path built from a function parameter without normalisation/containment check.
+    patterns:
+      - pattern-inside: |
+          def $F(..., $P, ...):
+            ...
+      - pattern-either:
+          - pattern: open(os.path.join($BASE, $P), ...)
+          - pattern: open($BASE + $P, ...)
+          - pattern: open(f"...{$P}...", ...)
+      - pattern-not-inside: |
+          if <... os.path.realpath(...) ...>:
+            ...
+    metadata:
+      title: Possible path traversal
+      trustcode_severity: medium
+      cwe: ["CWE-22"]
+      owasp: ["A01:2021 Broken Access Control"]
+      why_beginner: A name like '../../secret.txt' could make the program open files outside the folder you intended.
+      why: Unvalidated path components allow directory traversal outside the intended base directory.
+      fix: Resolve with os.path.realpath and verify the result starts with the base directory.
+  - id: assert-for-validation
+    languages: [python]
+    severity: INFO
+    message: assert used for input validation; asserts are removed with python -O.
+    patterns:
+      - pattern-inside: |
+          def $F(...):
+            ...
+      - pattern: assert $COND, ...
+    metadata:
+      title: assert used for validation
+      trustcode_severity: low
+      cwe: ["CWE-617"]
+      owasp: []
+      why_beginner: Python can be run in a mode that skips assert statements, so this check might silently disappear.
+      why: Assertions are stripped under optimisation (-O), removing the validation.
+      fix: Raise an explicit exception (e.g. ValueError) for invalid input.

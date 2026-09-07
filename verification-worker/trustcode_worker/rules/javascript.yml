@@ -1,0 +1,169 @@
+# TrustCode frozen Semgrep ruleset - JavaScript (v1). Do not modify during an experiment.
+rules:
+  - id: js-eval
+    languages: [javascript]
+    severity: ERROR
+    message: eval()/new Function() executes arbitrary code.
+    pattern-either:
+      - pattern: eval(...)
+      - pattern: new Function(...)
+    metadata:
+      title: Dynamic code execution
+      trustcode_severity: high
+      cwe: ["CWE-95"]
+      owasp: ["A03:2021 Injection"]
+      why_beginner: eval runs text as JavaScript code, so anyone who controls that text controls your program.
+      why: Evaluating strings as code allows arbitrary code execution when input is attacker-influenced.
+      fix: Use JSON.parse for data, or explicit parsing logic.
+  - id: js-child-process-exec
+    languages: [javascript]
+    severity: ERROR
+    message: child_process.exec runs a shell command string.
+    pattern-either:
+      - pattern: require('child_process').exec(...)
+      - pattern: child_process.exec(...)
+      - pattern: $CP.execSync($CMD, ...)
+      - patterns:
+          - pattern: exec($CMD, ...)
+          - pattern-inside: |
+              const { ..., exec, ... } = require('child_process');
+              ...
+    metadata:
+      title: Shell command execution
+      trustcode_severity: high
+      cwe: ["CWE-78"]
+      owasp: ["A03:2021 Injection"]
+      why_beginner: Commands run through the shell can be tricked into running extra commands.
+      why: exec/execSync interpret the string with a shell, enabling command injection.
+      fix: Use execFile/spawn with an argument array and no shell.
+      confidence: medium - flagged even when the command string is constant.
+  - id: js-sql-concat
+    languages: [javascript]
+    severity: ERROR
+    message: SQL query built with string concatenation or template literal.
+    pattern-either:
+      - pattern: $DB.query("..." + $X, ...)
+      - pattern: $DB.query(`...${$X}...`, ...)
+      - pattern: $DB.run("..." + $X, ...)
+      - pattern: $DB.run(`...${$X}...`, ...)
+      - pattern: $DB.all(`...${$X}...`, ...)
+      - pattern: $DB.get(`...${$X}...`, ...)
+      - pattern: $DB.prepare(`...${$X}...`)
+      - pattern: $DB.prepare("..." + $X)
+    metadata:
+      title: SQL injection risk
+      trustcode_severity: high
+      cwe: ["CWE-89"]
+      owasp: ["A03:2021 Injection"]
+      why_beginner: Typing special characters into a form could change what the database command does.
+      why: Interpolating input into SQL text allows injection.
+      fix: Use placeholders, e.g. db.prepare("SELECT * FROM t WHERE id = ?").get(id).
+  - id: js-innerhtml
+    languages: [javascript]
+    severity: WARNING
+    message: Assignment to innerHTML/outerHTML or document.write with dynamic content.
+    pattern-either:
+      - pattern: $EL.innerHTML = $X
+      - pattern: $EL.outerHTML = $X
+      - pattern: document.write($X)
+    metadata:
+      title: Possible cross-site scripting (XSS)
+      trustcode_severity: medium
+      cwe: ["CWE-79"]
+      owasp: ["A03:2021 Injection"]
+      why_beginner: If the text contains HTML or script tags, the browser will run them as part of your page.
+      why: Writing untrusted strings as HTML enables XSS.
+      fix: Use textContent, or sanitise with a vetted library.
+  - id: js-insecure-random
+    languages: [javascript]
+    severity: WARNING
+    message: Math.random() is not cryptographically secure.
+    pattern: Math.random()
+    metadata:
+      title: Non-cryptographic randomness
+      trustcode_severity: medium
+      cwe: ["CWE-330"]
+      owasp: ["A02:2021 Cryptographic Failures"]
+      why_beginner: Math.random values can be predicted, so they must not be used for passwords, tokens or keys.
+      why: Math.random is a non-cryptographic PRNG; predictable for security tokens.
+      fix: Use crypto.randomBytes / crypto.randomUUID for secrets. Math.random is fine for non-secret uses.
+      confidence: low - frequently a false positive when randomness is not security-relevant.
+  - id: js-weak-hash
+    languages: [javascript]
+    severity: WARNING
+    message: Weak hash algorithm (MD5/SHA-1).
+    pattern-either:
+      - pattern: $C.createHash('md5')
+      - pattern: $C.createHash('sha1')
+      - pattern: $C.createHash("md5")
+      - pattern: $C.createHash("sha1")
+    metadata:
+      title: Weak hashing
+      trustcode_severity: medium
+      cwe: ["CWE-327"]
+      owasp: ["A02:2021 Cryptographic Failures"]
+      why_beginner: These hashes are fast and broken, so they should not protect passwords or verify trust.
+      why: MD5/SHA-1 are cryptographically broken.
+      fix: Use crypto.scrypt for passwords or SHA-256+ for integrity.
+      confidence: medium - acceptable for non-security checksums.
+  - id: js-hardcoded-secret
+    languages: [javascript]
+    severity: WARNING
+    message: Possible hard-coded credential.
+    patterns:
+      - pattern-either:
+          - pattern: const $NAME = "$VALUE"
+          - pattern: let $NAME = "$VALUE"
+          - pattern: var $NAME = "$VALUE"
+      - metavariable-regex:
+          metavariable: $NAME
+          regex: (?i).*(password|passwd|secret|apikey|api_key|token|privatekey).*
+      - metavariable-regex:
+          metavariable: $VALUE
+          regex: .{6,}
+    metadata:
+      title: Hard-coded secret
+      trustcode_severity: medium
+      cwe: ["CWE-798"]
+      owasp: ["A07:2021 Identification and Authentication Failures"]
+      why_beginner: Passwords written in code end up in version control where others can read them.
+      why: Credentials in source are exposed via repositories and builds.
+      fix: Read secrets from process.env or a secrets manager.
+  - id: js-path-traversal
+    languages: [javascript]
+    severity: WARNING
+    message: File path built from input without containment check.
+    patterns:
+      - pattern-either:
+          - pattern: fs.readFileSync(path.join($BASE, $P), ...)
+          - pattern: fs.readFile(path.join($BASE, $P), ...)
+          - pattern: fs.readFileSync($BASE + $P, ...)
+          - pattern: fs.createReadStream(path.join($BASE, $P), ...)
+      - pattern-not-inside: |
+          if (<... $X.startsWith(...) ...>) { ... }
+    metadata:
+      title: Possible path traversal
+      trustcode_severity: medium
+      cwe: ["CWE-22"]
+      owasp: ["A01:2021 Broken Access Control"]
+      why_beginner: A name like '../../secret' could make the program read files outside the intended folder.
+      why: Joining unvalidated input to a base path allows traversal.
+      fix: path.resolve the result and check it startsWith the resolved base directory.
+  - id: js-prototype-pollution-merge
+    languages: [javascript]
+    severity: WARNING
+    message: Recursive property copy without guarding __proto__/constructor keys.
+    patterns:
+      - pattern: |
+          for (const $K in $SRC) { ... $DST[$K] = ...; ... }
+      - pattern-not: |
+          for (const $K in $SRC) { ... if (<... $K === "__proto__" ...>) { ... } ... }
+    metadata:
+      title: Possible prototype pollution
+      trustcode_severity: medium
+      cwe: ["CWE-1321"]
+      owasp: ["A08:2021 Software and Data Integrity Failures"]
+      why_beginner: Copying keys like "__proto__" from user data can change how every object in the program behaves.
+      why: Unrestricted key assignment from untrusted objects can pollute Object.prototype.
+      fix: Skip __proto__, constructor and prototype keys, or use Object.create(null)/structuredClone.
+      confidence: medium

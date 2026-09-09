@@ -10,13 +10,17 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 import shutil
 import subprocess
+import threading
+import time
 import uuid
 from dataclasses import dataclass
 
 IMAGE = os.environ.get("TRUSTCODE_SANDBOX_IMAGE", "trustcode-sandbox:0.1")
 TIMEOUT = int(os.environ.get("TRUSTCODE_SANDBOX_TIMEOUT", "30"))
+MAX_OUTPUT = 1_000_000  # bytes read from the sandbox; beyond this the container is killed
 
 
 @dataclass
@@ -48,19 +52,66 @@ def sandbox_command(name: str) -> list[str]:
             "-e", f"TRUSTCODE_RUN_TIMEOUT={max(TIMEOUT - 8, 5)}", IMAGE]
 
 
+def _read_capped(stream, buf: bytearray, overflow: threading.Event):
+    while True:
+        chunk = stream.read(65536)
+        if not chunk:
+            return
+        if len(buf) + len(chunk) > MAX_OUTPUT:
+            overflow.set()
+            return
+        buf.extend(chunk)
+
+
 def run_in_sandbox(language: str, code: str, tests: str) -> SandboxOutcome:
     ok, why = docker_available()
     if not ok:
         return SandboxOutcome(False, error=why)
     name = f"trustcode-{uuid.uuid4().hex[:12]}"
-    payload = json.dumps({"language": language, "code": code, "tests": tests})
+    nonce = secrets.token_hex(16)
+    payload = json.dumps({"language": language, "code": code, "tests": tests, "nonce": nonce}).encode()
+    p = subprocess.Popen(sandbox_command(name), stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out, err, overflow = bytearray(), bytearray(), threading.Event()
+    readers = [threading.Thread(target=_read_capped, args=(p.stdout, out, overflow), daemon=True),
+               threading.Thread(target=_read_capped, args=(p.stderr, err, overflow), daemon=True)]
+    for t in readers:
+        t.start()
     try:
-        p = subprocess.run(sandbox_command(name), input=payload, capture_output=True, text=True, timeout=TIMEOUT)
-    except subprocess.TimeoutExpired:
-        subprocess.run(["docker", "kill", name], capture_output=True, timeout=15)
-        return SandboxOutcome(False, error=f"sandbox exceeded {TIMEOUT}s and was killed")
-    line = next((ln for ln in p.stdout.splitlines()[::-1] if ln.startswith("TRUSTCODE_RESULT=")), None)
+        p.stdin.write(payload)
+        p.stdin.close()
+    except BrokenPipeError:
+        pass
+    killed_reason = None
+    start = time.monotonic()
+    try:
+        while p.poll() is None:
+            if overflow.is_set():
+                killed_reason = f"sandbox output exceeded {MAX_OUTPUT} bytes"
+                break
+            try:
+                p.wait(timeout=0.2)
+            except subprocess.TimeoutExpired:
+                pass
+            if time.monotonic() - start > TIMEOUT:
+                killed_reason = f"sandbox exceeded {TIMEOUT}s and was killed"
+                break
+    finally:
+        if killed_reason or overflow.is_set():
+            subprocess.run(["docker", "kill", name], capture_output=True, timeout=15)
+            p.kill()
+            killed_reason = killed_reason or f"sandbox output exceeded {MAX_OUTPUT} bytes"
+        p.wait(timeout=15)
+        for t in readers:
+            t.join(timeout=5)
+    if killed_reason:
+        return SandboxOutcome(False, error=killed_reason)
+    marker = f"TRUSTCODE_RESULT_{nonce}="
+    line = next((ln for ln in out.decode(errors="replace").splitlines()[::-1] if ln.startswith(marker)), None)
     if not line:
         hint = "possibly out of memory" if p.returncode == 137 else f"exit code {p.returncode}"
-        return SandboxOutcome(False, error=f"sandbox produced no result ({hint}): {p.stderr[-300:]}")
-    return SandboxOutcome(True, data=json.loads(line.split("=", 1)[1]))
+        return SandboxOutcome(False, error=f"sandbox produced no authenticated result ({hint}): {err.decode(errors='replace')[-300:]}")
+    try:
+        return SandboxOutcome(True, data=json.loads(line[len(marker):]))
+    except json.JSONDecodeError:
+        return SandboxOutcome(False, error="sandbox result was not valid JSON")
+

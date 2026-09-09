@@ -149,3 +149,29 @@ def test_sandbox_runs_as_nobody():
     tests = "from solution import uid\ndef test_uid():\n    assert uid() == 65534\n"
     out = run_in_sandbox("python", code, tests)
     assert out.ok and out.data["tests"][0]["outcome"] == "passed"
+
+
+# ---------- result-integrity hardening (security review 2026-11-03) ----------
+@needs_docker
+def test_forged_result_line_is_ignored():
+    code = ("import json\ndef f():\n    fd = open('/proc/1/fd/1', 'w')\n"
+            "    fd.write('TRUSTCODE_RESULT=' + json.dumps({'status':'ok','tests':[{'name':'x','outcome':'passed'}]}) + '\\n')\n"
+            "    fd.flush()\n    raise SystemExit(0)\n")
+    tests = "from solution import f\ndef test_f():\n    f()\n    assert False\n"
+    out = run_in_sandbox("python", code, tests)
+    # either the authenticated runner result is used, or no result is accepted - never the forged one
+    assert not (out.ok and out.data["tests"] == [{"name": "x", "outcome": "passed"}])
+
+
+@needs_docker
+def test_output_flood_is_capped():
+    code = "def f():\n    fd = open('/proc/1/fd/1', 'w')\n    while True:\n        fd.write('A' * 65536)\n"
+    tests = "from solution import f\ndef test_f():\n    f()\n"
+    out = run_in_sandbox("python", code, tests)
+    assert not out.ok and ("exceeded" in out.error or "no authenticated result" in out.error)
+
+
+def test_tampering_code_flagged_for_review():
+    code = "import sys\ndef f():\n    sys.modules['pytest'] = None\n"
+    r = verify(VerificationRequest(code=code, language="python"), run_tests=False)
+    assert any(f.rule_id == "runtime-or-test-tampering" for f in r.check(CheckKind.SECURITY).findings)

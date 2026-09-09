@@ -167,3 +167,23 @@ rules:
       why: Unrestricted key assignment from untrusted objects can pollute Object.prototype.
       fix: Skip __proto__, constructor and prototype keys, or use Object.create(null)/structuredClone.
       confidence: medium
+  - id: js-runtime-or-test-tampering
+    languages: [javascript]
+    severity: ERROR
+    message: Code exits the process, signals other processes or patches the test framework; test results may be unreliable.
+    pattern-either:
+      - pattern: process.exit(...)
+      - pattern: process.kill(...)
+      - pattern: require('node:test')
+      - pattern: require('assert')
+      - pattern: require('node:assert')
+      - pattern: fs.writeSync(1, ...)
+      - pattern: fs.openSync("=~/^\/proc/.*/", ...)
+    metadata:
+      title: Runtime / test-environment tampering
+      trustcode_severity: critical
+      cwe: ["CWE-506"]
+      owasp: ["A08:2021 Software and Data Integrity Failures"]
+      why_beginner: This code interferes with the program or the test runner itself, which could make failing tests look like they passed.
+      why: Tests run in the same process; exiting early or patching the test/assert modules can falsify outcomes (threat T-7).
+      fix: Treat test results as unverified and inspect the code manually.

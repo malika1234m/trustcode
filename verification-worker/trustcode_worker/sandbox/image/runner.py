@@ -11,15 +11,21 @@ import xml.etree.ElementTree as ET  # parses our own junit file only
 RUN_TIMEOUT = int(os.environ.get("TRUSTCODE_RUN_TIMEOUT", "20"))
 
 
+_NONCE = ""  # per-run secret from the host (stdin only); never passed to the code under test
+
+
 def emit(obj):
-    print("TRUSTCODE_RESULT=" + json.dumps(obj))
+    # The host accepts only a line carrying the per-run nonce, so code under test cannot forge
+    # a result by writing to this process's stdout (e.g. via /proc/1/fd/1).
+    sys.stdout.write(f"TRUSTCODE_RESULT_{_NONCE}=" + json.dumps(obj) + "\n")
+    sys.stdout.flush()
     sys.exit(0)
 
 
 def run(cmd, env=None):
     try:
         p = subprocess.run(cmd, capture_output=True, text=True, timeout=RUN_TIMEOUT, cwd="/tmp/w",
-                           env={**os.environ, **(env or {})})
+                           stdin=subprocess.DEVNULL, env={**os.environ, **(env or {})})
         return p.returncode, p.stdout[-20000:], p.stderr[-20000:], False
     except subprocess.TimeoutExpired as e:
         return -1, (e.stdout or "")[-5000:] if isinstance(e.stdout, str) else "", "", True
@@ -84,7 +90,9 @@ def js_tests(code, tests):
 
 
 def main():
-    req = json.loads(sys.stdin.read())
+    global _NONCE
+    req = json.loads(sys.stdin.read(5_000_000))
+    _NONCE = req.pop("nonce")
     os.makedirs("/tmp/w", exist_ok=True)
     if req["language"] == "python":
         python_tests(req["code"], req["tests"])

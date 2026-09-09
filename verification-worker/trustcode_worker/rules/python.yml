@@ -196,3 +196,25 @@ rules:
       why_beginner: Python can be run in a mode that skips assert statements, so this check might silently disappear.
       why: Assertions are stripped under optimisation (-O), removing the validation.
       fix: Raise an explicit exception (e.g. ValueError) for invalid input.
+  - id: runtime-or-test-tampering
+    languages: [python]
+    severity: ERROR
+    message: Code modifies the interpreter, test framework or other processes; test results for this code may be unreliable.
+    pattern-either:
+      - pattern: sys.modules[$K] = $V
+      - pattern: import _pytest
+      - pattern: import pytest
+      - pattern: builtins.$X = $V
+      - pattern: os.kill(...)
+      - pattern: open("=~/^\/proc/.*/")
+      - pattern: os.open("=~/^\/proc/.*/", ...)
+      - pattern: sys.settrace(...)
+      - pattern: os._exit(...)
+    metadata:
+      title: Runtime / test-environment tampering
+      trustcode_severity: critical
+      cwe: ["CWE-506"]
+      owasp: ["A08:2021 Software and Data Integrity Failures"]
+      why_beginner: This code changes how Python or the test runner behaves. That is very unusual for normal code and could be used to make failing tests look like they passed.
+      why: Tests run in the same process as the code; tampering with sys.modules, builtins, pytest or other processes can falsify test outcomes (threat T-7).
+      fix: Treat all test results for this snippet as unverified and inspect the code manually.

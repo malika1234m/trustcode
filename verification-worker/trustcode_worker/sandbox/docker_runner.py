@@ -1,7 +1,7 @@
 """Executes untrusted code + tests inside an isolated Docker container (ADR-003).
 
-Isolation: no network, read-only root FS, noexec tmpfs, all capabilities dropped,
-no-new-privileges, non-root UID, PID/memory/CPU limits, wall-clock timeout with
+Isolation: no network, read-only root FS, noexec tmpfs, all capabilities dropped except
+SETUID/SETGID/KILL for the trusted runner, no-new-privileges, untrusted tests as uid 65534, PID/memory/CPU limits, wall-clock timeout with
 forced kill, and --rm cleanup. Input is passed on stdin: no host directory is mounted.
 If Docker is unavailable the caller reports CHECK_FAILED - code is NEVER executed
 on the host as a fallback.
@@ -46,7 +46,8 @@ def docker_available() -> tuple[bool, str]:
 def sandbox_command(name: str) -> list[str]:
     return ["docker", "run", "--rm", "-i", "--name", name,
             "--network", "none", "--read-only", "--tmpfs", "/tmp:rw,noexec,nosuid,size=64m",
-            "--cap-drop", "ALL", "--security-opt", "no-new-privileges", "--user", "65534:65534",
+            "--cap-drop", "ALL", "--cap-add", "SETUID", "--cap-add", "SETGID", "--cap-add", "KILL",
+            "--security-opt", "no-new-privileges", "--user", "0:0",
             "--pids-limit", "64", "--memory", "256m", "--memory-swap", "256m", "--cpus", "1",
             "--ulimit", "fsize=10485760:10485760", "--ulimit", "nofile=256:256",
             "-e", f"TRUSTCODE_RUN_TIMEOUT={max(TIMEOUT - 8, 5)}", IMAGE]

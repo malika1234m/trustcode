@@ -21,7 +21,7 @@ class Settings(BaseSettings):
     result_ttl_hours_no_history: int = 24
     result_ttl_days_history: int = 30
     anthropic_api_key: str | None = None           # optional; LLM explanations disabled when absent
-    llm_model: str = "claude-sonnet-5-5"
+    llm_model: str = "claude-opus-5-5"
     benchmark_dir: str = "../datasets/benchmark"
     cors_origins: str = ""
 

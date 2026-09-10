@@ -164,11 +164,20 @@ def test_forged_result_line_is_ignored():
 
 
 @needs_docker
-def test_output_flood_is_capped():
-    code = "def f():\n    fd = open('/proc/1/fd/1', 'w')\n    while True:\n        fd.write('A' * 65536)\n"
+def test_untrusted_code_cannot_reach_runner_pipe():
+    code = "def f():\n    open('/proc/1/fd/1', 'w').write('A' * 65536)\n"
     tests = "from solution import f\ndef test_f():\n    f()\n"
     out = run_in_sandbox("python", code, tests)
-    assert not out.ok and ("exceeded" in out.error or "no authenticated result" in out.error)
+    assert out.ok and out.data["tests"][0]["outcome"] == "failed"
+    assert "Permission" in (out.data["tests"][0]["message"] or "")
+
+
+@needs_docker
+def test_output_flood_does_not_hang_or_pass():
+    code = "import sys\ndef f():\n    while True:\n        sys.stdout.write('A' * 65536)\n"
+    tests = "from solution import f\ndef test_f():\n    f()\n"
+    r = verify(VerificationRequest(code=code, tests=tests, language="python"))
+    assert r.check(CheckKind.TESTS).status != CheckStatus.PASSED
 
 
 def test_tampering_code_flagged_for_review():

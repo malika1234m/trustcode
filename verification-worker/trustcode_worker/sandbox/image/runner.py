@@ -4,6 +4,7 @@ with TRUSTCODE_RESULT=. Everything here is untrusted-input handling; no network 
 import json
 import os
 import re
+import signal
 import subprocess
 import sys
 import xml.etree.ElementTree as ET  # parses our own junit file only
@@ -22,26 +23,48 @@ def emit(obj):
     sys.exit(0)
 
 
+UNTRUSTED_UID = 65534
+
+
+def _drop_privileges():
+    os.setgroups([])
+    os.setgid(UNTRUSTED_UID)
+    os.setuid(UNTRUSTED_UID)
+
+
 def run(cmd, env=None):
+    """Run untrusted work as uid 65534 in a new session; kill the whole group afterwards."""
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.DEVNULL, text=True,
+                         cwd="/tmp/w", env={"PATH": os.environ["PATH"], "HOME": "/tmp/w", "PYTHONDONTWRITEBYTECODE": "1",
+                                            **(env or {})},
+                         preexec_fn=_drop_privileges, start_new_session=True)
+    timed_out = False
     try:
-        p = subprocess.run(cmd, capture_output=True, text=True, timeout=RUN_TIMEOUT, cwd="/tmp/w",
-                           stdin=subprocess.DEVNULL, env={**os.environ, **(env or {})})
-        return p.returncode, p.stdout[-20000:], p.stderr[-20000:], False
-    except subprocess.TimeoutExpired as e:
-        return -1, (e.stdout or "")[-5000:] if isinstance(e.stdout, str) else "", "", True
+        out, err = p.communicate(timeout=RUN_TIMEOUT)
+    except subprocess.TimeoutExpired:
+        timed_out = True
+        out, err = "", ""
+    finally:
+        try:
+            os.killpg(p.pid, signal.SIGKILL)  # removes any background processes left by the code under test
+        except ProcessLookupError:
+            pass
+        if timed_out:
+            p.communicate()
+    return (-1 if timed_out else p.returncode), (out or "")[-20000:], (err or "")[-20000:], timed_out
 
 
 def python_tests(code, tests):
     open("/tmp/w/solution.py", "w").write(code)
     open("/tmp/w/test_solution.py", "w").write(tests)
-    rc, out, err, to = run([sys.executable, "-m", "coverage", "run", "--data-file=/tmp/.cov", "--include=/tmp/w/solution.py",
-                            "-m", "pytest", "-q", "-p", "no:cacheprovider", "--junitxml=/tmp/junit.xml",
+    rc, out, err, to = run([sys.executable, "-m", "coverage", "run", "--data-file=/tmp/w/.cov", "--include=/tmp/w/solution.py",
+                            "-m", "pytest", "-q", "-p", "no:cacheprovider", "--junitxml=/tmp/w/junit.xml",
                             "/tmp/w/test_solution.py"], env={"PYTHONPATH": "/tmp/w"})
     if to:
         emit({"status": "timeout", "output": out})
     results = []
     try:
-        root = ET.parse("/tmp/junit.xml").getroot()
+        root = ET.parse("/tmp/w/junit.xml").getroot()
         for tc in root.iter("testcase"):
             outcome, msg = "passed", None
             for tag in ("failure", "error", "skipped"):
@@ -53,9 +76,9 @@ def python_tests(code, tests):
     except (OSError, ET.ParseError):
         emit({"status": "error", "output": (out + err)[-3000:], "tests": []})
     executed = None
-    rc2, _, _, _ = run([sys.executable, "-m", "coverage", "json", "--data-file=/tmp/.cov", "-o", "/tmp/cov.json"])
-    if rc2 == 0 and os.path.exists("/tmp/cov.json"):
-        files = json.load(open("/tmp/cov.json")).get("files", {})
+    rc2, _, _, _ = run([sys.executable, "-m", "coverage", "json", "--data-file=/tmp/w/.cov", "-o", "/tmp/w/cov.json"])
+    if rc2 == 0 and os.path.exists("/tmp/w/cov.json"):
+        files = json.load(open("/tmp/w/cov.json")).get("files", {})
         f = next(iter(files.values()), None)
         if f:
             executed = {"executed": f["executed_lines"], "missing": f["missing_lines"]}
@@ -94,6 +117,7 @@ def main():
     req = json.loads(sys.stdin.read(5_000_000))
     _NONCE = req.pop("nonce")
     os.makedirs("/tmp/w", exist_ok=True)
+    os.chmod("/tmp/w", 0o777)
     if req["language"] == "python":
         python_tests(req["code"], req["tests"])
     else:

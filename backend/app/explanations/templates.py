@@ -150,7 +150,7 @@ def explain_unverified(u: dict, level: str) -> dict:
 
 
 GUIDANCE = {
-    "beginner": ["Passing checks do not prove the code is correct. Look at the 'Not verified' list - that is where hidden bugs live.",
+    "beginner": ["Passing checks are not proof of correctness. Look at the 'Not verified' list - that is where hidden bugs live.",
                  "Try one unusual input yourself (empty, negative, very large) and predict what should happen."],
     "intermediate": ["Checks are independent; review 'Not verified' areas and edge cases not covered by tests."],
     "advanced": ["No aggregate verdict is computed; see per-check scope."],

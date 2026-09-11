@@ -8,3 +8,4 @@ node_modules/
 .venv/
 *.egg-info/
 build/
+trustcode.db

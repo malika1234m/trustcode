@@ -9,7 +9,7 @@ os.environ.update({
     "TRUSTCODE_ENV": "test",
     "TRUSTCODE_DATABASE_URL": f"sqlite:///{_tmp}/test.db",
     "TRUSTCODE_JWT_SECRET": "test-secret-" + "x" * 32,
-    "TRUSTCODE_RESEARCHER_EMAILS": "researcher@uni.example",
+    "TRUSTCODE_LOCAL_SECRET_FILE": f"{_tmp}/local-secret",
     "TRUSTCODE_WORKER_MODE": "inline",
     "TRUSTCODE_BENCHMARK_DIR": str(Path(__file__).resolve().parents[2] / "datasets" / "benchmark"),
     "TRUSTCODE_VERIFY_RATE_LIMIT_PER_MINUTE": "1000",

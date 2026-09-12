@@ -1,0 +1,187 @@
+{
+  "id": "PY-C2-02",
+  "language": "python",
+  "class": "C2",
+  "block": "B",
+  "split": "eval",
+  "task": "Write cache_key(content: bytes) that returns a short hexadecimal key for caching rendered pages by their content. Collisions only cause a cache miss; this is not security-sensitive.",
+  "code": "import hashlib\n\n\ndef cache_key(content):\n    return hashlib.md5(content).hexdigest()\n",
+  "visible_tests": "from solution import *\ndef test_deterministic():\n    assert cache_key(b\"page\") == cache_key(b\"page\")\n\ndef test_length():\n    assert len(cache_key(b\"page\")) == 32\n",
+  "hidden_tests": "from solution import *\ndef test_distinct():\n    assert cache_key(b\"a\") != cache_key(b\"b\")\n\ndef test_empty():\n    assert len(cache_key(b\"\")) == 32\n",
+  "ground_truth": {
+    "correct": true,
+    "defect": null,
+    "explanation": "Correct for a non-security cache key. The weak-hash warning is a false positive in this context.",
+    "label_source": "author (LLM-assisted); independent review pending"
+  },
+  "baseline_explanation": "This function hashes the page content with MD5 and returns the hexadecimal digest, which gives a short, deterministic key that can be used to look up cached pages.",
+  "evidence_snapshot": {
+    "schema_version": "1.0",
+    "language": "python",
+    "language_detection": "declared",
+    "checks": [
+      {
+        "kind": "syntax",
+        "tool": "python-ast",
+        "tool_version": "Python 3.14.5",
+        "status": "passed",
+        "summary": "Parses successfully",
+        "scope": "Confirms the code can be parsed. Says nothing about behaviour, logic or security.",
+        "findings": [],
+        "details": {
+          "parses": true,
+          "functions": [
+            "cache_key"
+          ],
+          "lines": 5
+        },
+        "duration_ms": 0,
+        "error": null
+      },
+      {
+        "kind": "lint",
+        "tool": "ruff",
+        "tool_version": "ruff 0.17.3",
+        "status": "passed",
+        "summary": "No lint findings for the selected rules.",
+        "scope": "ruff rules E9,F,B: undefined names, unused imports/variables and common bug patterns. Does not check logic, requirements or runtime behaviour.",
+        "findings": [],
+        "details": {},
+        "duration_ms": 18,
+        "error": null
+      },
+      {
+        "kind": "security",
+        "tool": "semgrep",
+        "tool_version": "1.79.0",
+        "status": "issues_found",
+        "summary": "1 security pattern(s) matched",
+        "scope": "Semgrep pattern matching with 11 TrustCode python rules (ruleset abf99b7e4507). Detects only the listed insecure patterns; absence of findings does NOT mean the code is secure.",
+        "findings": [
+          {
+            "id": "SEC-1",
+            "check": "security",
+            "tool": "semgrep",
+            "rule_id": "weak-password-hash",
+            "title": "Weak hashing",
+            "message": "Fast, unsalted hash (MD5/SHA-1/SHA-256) used - unsuitable for passwords.",
+            "severity": "medium",
+            "status": "issue_detected",
+            "location": {
+              "line": 5,
+              "end_line": 5,
+              "column": 12
+            },
+            "code_excerpt": "return hashlib.md5(content).hexdigest()",
+            "cwe": [
+              "CWE-327",
+              "CWE-916"
+            ],
+            "owasp": [
+              "A02:2021 Cryptographic Failures"
+            ],
+            "metadata": {
+              "why_beginner": "These hashes are very fast to compute, so stolen password hashes can be guessed quickly.",
+              "why": "MD5/SHA-1 are broken for collision resistance; fast unsalted hashes are inadequate for password storage.",
+              "fix": "For passwords use hashlib.scrypt / argon2 / bcrypt with a random salt. MD5 for non-security checksums may be acceptable.",
+              "confidence": "medium - acceptable for non-security checksums."
+            }
+          }
+        ],
+        "details": {
+          "ruleset": "abf99b7e4507",
+          "rules": 11
+        },
+        "duration_ms": 1053,
+        "error": null
+      },
+      {
+        "kind": "tests",
+        "tool": "pytest (sandbox)",
+        "tool_version": "trustcode-sandbox:0.1",
+        "status": "passed",
+        "summary": "2 passed, 0 failed",
+        "scope": "Runs the supplied tests in an isolated sandbox. Passing tests show the code behaves as expected ONLY for the inputs those tests use; untested inputs and paths remain unverified.",
+        "findings": [],
+        "details": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0,
+          "total": 2,
+          "tests": [
+            {
+              "name": "test_deterministic",
+              "outcome": "passed"
+            },
+            {
+              "name": "test_length",
+              "outcome": "passed"
+            }
+          ],
+          "coverage_measured": true,
+          "line_coverage": 100.0
+        },
+        "duration_ms": 580,
+        "error": null
+      },
+      {
+        "kind": "dependencies",
+        "tool": "trustcode-deps",
+        "tool_version": null,
+        "status": "passed",
+        "summary": "1 import(s), all standard library.",
+        "scope": "Checks that imported packages are standard-library modules or exist on the public registry (PyPI). Does not check versions, licences, vulnerabilities or whether the package is the intended one.",
+        "findings": [],
+        "details": {
+          "imports": [
+            "hashlib"
+          ]
+        },
+        "duration_ms": 0,
+        "error": null
+      },
+      {
+        "kind": "requirements",
+        "tool": "none",
+        "tool_version": null,
+        "status": "needs_review",
+        "summary": "Whether the code does what the task asks has not been verified automatically - compare it with the task.",
+        "scope": "Automated tools cannot confirm that code matches the intended requirement.",
+        "findings": [],
+        "details": {},
+        "duration_ms": null,
+        "error": null
+      }
+    ],
+    "unverified": [
+      {
+        "id": "U-1",
+        "description": "Match between the code and the stated task",
+        "reason": "No automated check establishes requirement conformance.",
+        "location": null
+      }
+    ],
+    "engine_version": "trustcode-worker 0.1.0",
+    "disclaimer": "These results describe what specific automated checks did and did not find. Passing checks do not establish that the code is correct or secure."
+  },
+  "provenance": {
+    "engine": "trustcode-worker 0.1.0",
+    "ruleset": "abf99b7e4507",
+    "sandbox_image": "trustcode-sandbox:0.1",
+    "built": "2026-11-03"
+  },
+  "source": "authored for TrustCode",
+  "licence": "CC-BY-4.0",
+  "validation": {
+    "passed": true,
+    "problems": [],
+    "observed": {
+      "visible_tests": "2 passed / 0 failed",
+      "security_findings": [
+        "weak-password-hash"
+      ],
+      "lint_findings": [],
+      "hidden_tests": "2/2 passed"
+    }
+  }
+}

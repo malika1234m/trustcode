@@ -1,0 +1,191 @@
+{
+  "id": "JS-C2-02",
+  "language": "javascript",
+  "class": "C2",
+  "block": "B",
+  "split": "eval",
+  "task": "Write checksum(buffer) that returns a hex checksum used only to detect accidental file corruption during a local copy (not for security).",
+  "code": "const crypto = require('crypto');\n\nfunction checksum(buffer) {\n  return crypto.createHash('md5').update(buffer).digest('hex');\n}\n\nmodule.exports = { checksum };\n",
+  "visible_tests": "const test = require('node:test');\nconst assert = require('node:assert');\nconst m = require('./solution');\ntest('deterministic', () => assert.strictEqual(m.checksum(Buffer.from('x')), m.checksum(Buffer.from('x'))));\ntest('length', () => assert.strictEqual(m.checksum(Buffer.from('x')).length, 32));\n",
+  "hidden_tests": "const test = require('node:test');\nconst assert = require('node:assert');\nconst m = require('./solution');\ntest('distinct', () => assert.notStrictEqual(m.checksum(Buffer.from('a')), m.checksum(Buffer.from('b'))));\ntest('empty', () => assert.strictEqual(m.checksum(Buffer.alloc(0)).length, 32));\n",
+  "ground_truth": {
+    "correct": true,
+    "defect": null,
+    "explanation": "Correct for accidental-corruption detection. The weak-hash warning is a false positive in this context.",
+    "label_source": "author (LLM-assisted); independent review pending"
+  },
+  "baseline_explanation": "This function uses Node's crypto module to compute an MD5 digest of the buffer and returns it as a hexadecimal string.",
+  "evidence_snapshot": {
+    "schema_version": "1.0",
+    "language": "javascript",
+    "language_detection": "declared",
+    "checks": [
+      {
+        "kind": "syntax",
+        "tool": "node --check",
+        "tool_version": "v20.20.2",
+        "status": "passed",
+        "summary": "Parses successfully",
+        "scope": "Confirms the code can be parsed. Says nothing about behaviour, logic or security.",
+        "findings": [],
+        "details": {
+          "parses": true,
+          "functions": [
+            "checksum"
+          ],
+          "lines": 7
+        },
+        "duration_ms": 36,
+        "error": null
+      },
+      {
+        "kind": "lint",
+        "tool": "none",
+        "tool_version": null,
+        "status": "not_run",
+        "summary": "No linter configured for JavaScript in this version.",
+        "scope": "Not run: undefined variables, unused code and common bug patterns were NOT checked.",
+        "findings": [],
+        "details": {},
+        "duration_ms": null,
+        "error": null
+      },
+      {
+        "kind": "security",
+        "tool": "semgrep",
+        "tool_version": "1.79.0",
+        "status": "issues_found",
+        "summary": "1 security pattern(s) matched",
+        "scope": "Semgrep pattern matching with 10 TrustCode javascript rules (ruleset abf99b7e4507). Detects only the listed insecure patterns; absence of findings does NOT mean the code is secure.",
+        "findings": [
+          {
+            "id": "SEC-1",
+            "check": "security",
+            "tool": "semgrep",
+            "rule_id": "js-weak-hash",
+            "title": "Weak hashing",
+            "message": "Weak hash algorithm (MD5/SHA-1).",
+            "severity": "medium",
+            "status": "issue_detected",
+            "location": {
+              "line": 4,
+              "end_line": 4,
+              "column": 10
+            },
+            "code_excerpt": "return crypto.createHash('md5').update(buffer).digest('hex');",
+            "cwe": [
+              "CWE-327"
+            ],
+            "owasp": [
+              "A02:2021 Cryptographic Failures"
+            ],
+            "metadata": {
+              "why_beginner": "These hashes are fast and broken, so they should not protect passwords or verify trust.",
+              "why": "MD5/SHA-1 are cryptographically broken.",
+              "fix": "Use crypto.scrypt for passwords or SHA-256+ for integrity.",
+              "confidence": "medium - acceptable for non-security checksums."
+            }
+          }
+        ],
+        "details": {
+          "ruleset": "abf99b7e4507",
+          "rules": 10
+        },
+        "duration_ms": 778,
+        "error": null
+      },
+      {
+        "kind": "tests",
+        "tool": "node --test (sandbox)",
+        "tool_version": "trustcode-sandbox:0.1",
+        "status": "passed",
+        "summary": "2 passed, 0 failed",
+        "scope": "Runs the supplied tests in an isolated sandbox. Passing tests show the code behaves as expected ONLY for the inputs those tests use; untested inputs and paths remain unverified.",
+        "findings": [],
+        "details": {
+          "passed": 2,
+          "failed": 0,
+          "skipped": 0,
+          "total": 2,
+          "tests": [
+            {
+              "name": "deterministic",
+              "outcome": "passed"
+            },
+            {
+              "name": "length",
+              "outcome": "passed"
+            }
+          ],
+          "coverage_measured": false
+        },
+        "duration_ms": 374,
+        "error": null
+      },
+      {
+        "kind": "dependencies",
+        "tool": "trustcode-deps",
+        "tool_version": null,
+        "status": "passed",
+        "summary": "1 import(s), all standard library.",
+        "scope": "Checks that imported packages are standard-library modules or exist on the public registry (npm). Does not check versions, licences, vulnerabilities or whether the package is the intended one.",
+        "findings": [],
+        "details": {
+          "imports": [
+            "crypto"
+          ]
+        },
+        "duration_ms": 0,
+        "error": null
+      },
+      {
+        "kind": "requirements",
+        "tool": "none",
+        "tool_version": null,
+        "status": "needs_review",
+        "summary": "Whether the code does what the task asks has not been verified automatically - compare it with the task.",
+        "scope": "Automated tools cannot confirm that code matches the intended requirement.",
+        "findings": [],
+        "details": {},
+        "duration_ms": null,
+        "error": null
+      }
+    ],
+    "unverified": [
+      {
+        "id": "U-1",
+        "description": "Which lines the tests executed",
+        "reason": "Coverage is not measured for this language in this version.",
+        "location": null
+      },
+      {
+        "id": "U-2",
+        "description": "Match between the code and the stated task",
+        "reason": "No automated check establishes requirement conformance.",
+        "location": null
+      }
+    ],
+    "engine_version": "trustcode-worker 0.1.0",
+    "disclaimer": "These results describe what specific automated checks did and did not find. Passing checks do not establish that the code is correct or secure."
+  },
+  "provenance": {
+    "engine": "trustcode-worker 0.1.0",
+    "ruleset": "abf99b7e4507",
+    "sandbox_image": "trustcode-sandbox:0.1",
+    "built": "2026-11-03"
+  },
+  "source": "authored for TrustCode",
+  "licence": "CC-BY-4.0",
+  "validation": {
+    "passed": true,
+    "problems": [],
+    "observed": {
+      "visible_tests": "2 passed / 0 failed",
+      "security_findings": [
+        "js-weak-hash"
+      ],
+      "lint_findings": [],
+      "hidden_tests": "2/2 passed"
+    }
+  }
+}

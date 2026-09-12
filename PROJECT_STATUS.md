@@ -6,7 +6,7 @@ _Last updated: 2026-11-03_
 |---|---|---|---|
 | 1 | Research landscape & literature review | **Draft complete — awaiting your review** | Partially (see below) |
 | 2 | Novelty & feasibility validation | **Draft complete** (4 docs in `research/`) | Yes, pending supervisor sign-off |
-| 3–8 | Architecture, UX, benchmark, backend, verification engine, explanations | **In progress**: verification worker partly built (evidence model, language detection, syntax/ruff/Semgrep/dependency analyzers, 19 validated Semgrep rules). Still to do: sandboxed test runner, pipeline, unit tests | No |
+| 3–8 | Architecture, UX, benchmark, backend, verification engine, explanations | **Implemented & tested**: worker (25 tests incl. sandbox attacks), backend API (28 tests), benchmark 20/20 validated. Remaining: Phase 3/4 design docs | Partly |
 | 9–12 | Extension, E2E tests, deployment, experiment design | Not started | — |
 | 13–16 | Pilot, main study, analysis, improvement | **Blocked**: needs ethics approval + participants | — |
 | 17–19 | Dissertation, release, viva | Not started | — |

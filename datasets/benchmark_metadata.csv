@@ -1,0 +1,21 @@
+id,language,class,block,split,ground_truth_correct,known_defect,severity,visible_tests,security_findings,hidden_tests,validation_passed,source,licence,validation_method
+PY-C1-01,python,C1,A,eval,True,,,2 passed / 0 failed,,3/3 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+PY-C1-02,python,C1,B,eval,True,,,2 passed / 0 failed,,3/3 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+PY-C2-01,python,C2,A,eval,True,,,1 passed / 0 failed,insecure-random,2/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+PY-C2-02,python,C2,B,eval,True,,,2 passed / 0 failed,weak-password-hash,2/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+PY-D1-01,python,D1,A,eval,False,SQL injection (CWE-89): username is interpolated into SQL; quotes break the query and injection returns other users' rows.,high,2 passed / 0 failed,sql-string-formatting,0/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+PY-D1-02,python,D1,B,eval,False,"items[-0:] returns the whole list, so n = 0 returns every element. The supplied test test_zero fails.",medium,1 passed / 1 failed,,1/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+PY-D2-01,python,D2,A,eval,False,Ignores the century rule: 1900 is reported as a leap year.,medium,2 passed / 0 failed,,1/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+PY-D2-02,python,D2,B,eval,False,Raises ZeroDivisionError for an empty list instead of returning 0.0 as the task requires.,medium,2 passed / 0 failed,,0/1 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-C1-01,javascript,C1,A,eval,True,,,2 passed / 0 failed,,2/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-C1-02,javascript,C1,B,eval,True,,,2 passed / 0 failed,,2/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-C2-01,javascript,C2,A,eval,True,,,1 passed / 0 failed,js-insecure-random,2/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-C2-02,javascript,C2,B,eval,True,,,2 passed / 0 failed,js-weak-hash,2/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-D1-01,javascript,D1,A,eval,False,SQL injection (CWE-89): id is interpolated into the SQL text.,high,1 passed / 0 failed,js-sql-concat,0/1 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-D1-02,javascript,D1,B,eval,False,"Loop starts at index 1, so the first element is skipped. The supplied test 'three' fails.",medium,1 passed / 1 failed,,0/1 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-D2-01,javascript,D2,A,eval,False,"Does not remove non-alphanumeric characters, contrary to the task.",medium,2 passed / 0 failed,,0/1 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-D2-02,javascript,D2,B,eval,False,Returns 1 for an empty string and over-counts when words are separated by multiple spaces.,medium,2 passed / 0 failed,,0/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+PY-C1-D1,python,C1,,dev,True,,,1 passed / 0 failed,,2/2 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-D1-D1,javascript,D1,,dev,False,eval executes arbitrary user-supplied code (CWE-95).,high,1 passed / 0 failed,js-eval,0/1 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+PY-D2-D1,python,D2,,dev,False,Drops the final partial chunk.,medium,1 passed / 0 failed,,0/1 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests
+JS-C2-D1,javascript,C2,,dev,True,,,1 passed / 0 failed,js-insecure-random,1/1 passed,True,authored,CC-BY-4.0,engine run + sandboxed hidden tests

@@ -1,0 +1,149 @@
+{
+  "id": "PY-C1-D1",
+  "language": "python",
+  "class": "C1",
+  "block": null,
+  "split": "dev",
+  "task": "Write factorial(n) for integers n >= 0.",
+  "code": "def factorial(n):\n    result = 1\n    for k in range(2, n + 1):\n        result *= k\n    return result\n",
+  "visible_tests": "from solution import *\ndef test_five():\n    assert factorial(5) == 120\n",
+  "hidden_tests": "from solution import *\ndef test_zero():\n    assert factorial(0) == 1\n\ndef test_one():\n    assert factorial(1) == 1\n",
+  "ground_truth": {
+    "correct": true,
+    "defect": null,
+    "explanation": "Correct.",
+    "label_source": "author (LLM-assisted); independent review pending"
+  },
+  "baseline_explanation": "This function multiplies the integers from 2 up to n to compute n factorial, returning 1 for 0 and 1.",
+  "evidence_snapshot": {
+    "schema_version": "1.0",
+    "language": "python",
+    "language_detection": "declared",
+    "checks": [
+      {
+        "kind": "syntax",
+        "tool": "python-ast",
+        "tool_version": "Python 3.14.5",
+        "status": "passed",
+        "summary": "Parses successfully",
+        "scope": "Confirms the code can be parsed. Says nothing about behaviour, logic or security.",
+        "findings": [],
+        "details": {
+          "parses": true,
+          "functions": [
+            "factorial"
+          ],
+          "lines": 5
+        },
+        "duration_ms": 0,
+        "error": null
+      },
+      {
+        "kind": "lint",
+        "tool": "ruff",
+        "tool_version": "ruff 0.17.3",
+        "status": "passed",
+        "summary": "No lint findings for the selected rules.",
+        "scope": "ruff rules E9,F,B: undefined names, unused imports/variables and common bug patterns. Does not check logic, requirements or runtime behaviour.",
+        "findings": [],
+        "details": {},
+        "duration_ms": 76,
+        "error": null
+      },
+      {
+        "kind": "security",
+        "tool": "semgrep",
+        "tool_version": "1.79.0",
+        "status": "passed",
+        "summary": "No listed insecure patterns matched.",
+        "scope": "Semgrep pattern matching with 11 TrustCode python rules (ruleset abf99b7e4507). Detects only the listed insecure patterns; absence of findings does NOT mean the code is secure.",
+        "findings": [],
+        "details": {
+          "ruleset": "abf99b7e4507",
+          "rules": 11
+        },
+        "duration_ms": 660,
+        "error": null
+      },
+      {
+        "kind": "tests",
+        "tool": "pytest (sandbox)",
+        "tool_version": "trustcode-sandbox:0.1",
+        "status": "passed",
+        "summary": "1 passed, 0 failed",
+        "scope": "Runs the supplied tests in an isolated sandbox. Passing tests show the code behaves as expected ONLY for the inputs those tests use; untested inputs and paths remain unverified.",
+        "findings": [],
+        "details": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "total": 1,
+          "tests": [
+            {
+              "name": "test_five",
+              "outcome": "passed"
+            }
+          ],
+          "coverage_measured": true,
+          "line_coverage": 100.0
+        },
+        "duration_ms": 574,
+        "error": null
+      },
+      {
+        "kind": "dependencies",
+        "tool": "trustcode-deps",
+        "tool_version": null,
+        "status": "passed",
+        "summary": "No imports.",
+        "scope": "Checks that imported packages are standard-library modules or exist on the public registry (PyPI). Does not check versions, licences, vulnerabilities or whether the package is the intended one.",
+        "findings": [],
+        "details": {
+          "imports": []
+        },
+        "duration_ms": 0,
+        "error": null
+      },
+      {
+        "kind": "requirements",
+        "tool": "none",
+        "tool_version": null,
+        "status": "needs_review",
+        "summary": "Whether the code does what the task asks has not been verified automatically - compare it with the task.",
+        "scope": "Automated tools cannot confirm that code matches the intended requirement.",
+        "findings": [],
+        "details": {},
+        "duration_ms": null,
+        "error": null
+      }
+    ],
+    "unverified": [
+      {
+        "id": "U-1",
+        "description": "Match between the code and the stated task",
+        "reason": "No automated check establishes requirement conformance.",
+        "location": null
+      }
+    ],
+    "engine_version": "trustcode-worker 0.1.0",
+    "disclaimer": "These results describe what specific automated checks did and did not find. Passing checks do not establish that the code is correct or secure."
+  },
+  "provenance": {
+    "engine": "trustcode-worker 0.1.0",
+    "ruleset": "abf99b7e4507",
+    "sandbox_image": "trustcode-sandbox:0.1",
+    "built": "2026-11-03"
+  },
+  "source": "authored for TrustCode",
+  "licence": "CC-BY-4.0",
+  "validation": {
+    "passed": true,
+    "problems": [],
+    "observed": {
+      "visible_tests": "1 passed / 0 failed",
+      "security_findings": [],
+      "lint_findings": [],
+      "hidden_tests": "2/2 passed"
+    }
+  }
+}

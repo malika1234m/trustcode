@@ -1,0 +1,171 @@
+{
+  "id": "PY-D1-02",
+  "language": "python",
+  "class": "D1",
+  "block": "B",
+  "split": "eval",
+  "task": "Write last_n(items, n) that returns the last n elements of a list (an empty list when n is 0).",
+  "code": "def last_n(items, n):\n    return items[-n:]\n",
+  "visible_tests": "from solution import *\ndef test_two():\n    assert last_n([1, 2, 3], 2) == [2, 3]\n\ndef test_zero():\n    assert last_n([1, 2, 3], 0) == []\n",
+  "hidden_tests": "from solution import *\ndef test_zero():\n    assert last_n([1, 2, 3], 0) == []\n\ndef test_more_than_len():\n    assert last_n([1, 2], 5) == [1, 2]\n",
+  "ground_truth": {
+    "correct": false,
+    "defect": "items[-0:] returns the whole list, so n = 0 returns every element. The supplied test test_zero fails.",
+    "explanation": "Defective for n = 0; detected by a supplied test.",
+    "label_source": "author (LLM-assisted); independent review pending"
+  },
+  "baseline_explanation": "This function uses Python's negative slicing to return the last n elements of the list in their original order.",
+  "evidence_snapshot": {
+    "schema_version": "1.0",
+    "language": "python",
+    "language_detection": "declared",
+    "checks": [
+      {
+        "kind": "syntax",
+        "tool": "python-ast",
+        "tool_version": "Python 3.14.5",
+        "status": "passed",
+        "summary": "Parses successfully",
+        "scope": "Confirms the code can be parsed. Says nothing about behaviour, logic or security.",
+        "findings": [],
+        "details": {
+          "parses": true,
+          "functions": [
+            "last_n"
+          ],
+          "lines": 2
+        },
+        "duration_ms": 0,
+        "error": null
+      },
+      {
+        "kind": "lint",
+        "tool": "ruff",
+        "tool_version": "ruff 0.17.3",
+        "status": "passed",
+        "summary": "No lint findings for the selected rules.",
+        "scope": "ruff rules E9,F,B: undefined names, unused imports/variables and common bug patterns. Does not check logic, requirements or runtime behaviour.",
+        "findings": [],
+        "details": {},
+        "duration_ms": 25,
+        "error": null
+      },
+      {
+        "kind": "security",
+        "tool": "semgrep",
+        "tool_version": "1.79.0",
+        "status": "passed",
+        "summary": "No listed insecure patterns matched.",
+        "scope": "Semgrep pattern matching with 11 TrustCode python rules (ruleset abf99b7e4507). Detects only the listed insecure patterns; absence of findings does NOT mean the code is secure.",
+        "findings": [],
+        "details": {
+          "ruleset": "abf99b7e4507",
+          "rules": 11
+        },
+        "duration_ms": 703,
+        "error": null
+      },
+      {
+        "kind": "tests",
+        "tool": "pytest (sandbox)",
+        "tool_version": "trustcode-sandbox:0.1",
+        "status": "issues_found",
+        "summary": "1 passed, 1 failed",
+        "scope": "Runs the supplied tests in an isolated sandbox. Passing tests show the code behaves as expected ONLY for the inputs those tests use; untested inputs and paths remain unverified.",
+        "findings": [
+          {
+            "id": "TEST-1",
+            "check": "tests",
+            "tool": "pytest (sandbox)",
+            "rule_id": "test-failed",
+            "title": "Test failed: test_zero",
+            "message": "assert [1, 2, 3] == []\n  \n  Left contains 3 more items, first extra item: 1\n  Use -v to get more diff\ndef test_zero():\n>       assert last_n([1, 2, 3], 0) == []\nE       assert [1, 2, 3] == []\nE         \nE         Left contains 3 more items, first extra item: 1\nE         Use -v to get more diff\n\ntest_solution.py:6: AssertionError",
+            "severity": "high",
+            "status": "issue_detected",
+            "location": null,
+            "code_excerpt": null,
+            "cwe": [],
+            "owasp": [],
+            "metadata": {
+              "test": "test_zero"
+            }
+          }
+        ],
+        "details": {
+          "passed": 1,
+          "failed": 1,
+          "skipped": 0,
+          "total": 2,
+          "tests": [
+            {
+              "name": "test_two",
+              "outcome": "passed"
+            },
+            {
+              "name": "test_zero",
+              "outcome": "failed"
+            }
+          ],
+          "coverage_measured": true,
+          "line_coverage": 100.0
+        },
+        "duration_ms": 680,
+        "error": null
+      },
+      {
+        "kind": "dependencies",
+        "tool": "trustcode-deps",
+        "tool_version": null,
+        "status": "passed",
+        "summary": "No imports.",
+        "scope": "Checks that imported packages are standard-library modules or exist on the public registry (PyPI). Does not check versions, licences, vulnerabilities or whether the package is the intended one.",
+        "findings": [],
+        "details": {
+          "imports": []
+        },
+        "duration_ms": 0,
+        "error": null
+      },
+      {
+        "kind": "requirements",
+        "tool": "none",
+        "tool_version": null,
+        "status": "needs_review",
+        "summary": "Whether the code does what the task asks has not been verified automatically - compare it with the task.",
+        "scope": "Automated tools cannot confirm that code matches the intended requirement.",
+        "findings": [],
+        "details": {},
+        "duration_ms": null,
+        "error": null
+      }
+    ],
+    "unverified": [
+      {
+        "id": "U-1",
+        "description": "Match between the code and the stated task",
+        "reason": "No automated check establishes requirement conformance.",
+        "location": null
+      }
+    ],
+    "engine_version": "trustcode-worker 0.1.0",
+    "disclaimer": "These results describe what specific automated checks did and did not find. Passing checks do not establish that the code is correct or secure."
+  },
+  "provenance": {
+    "engine": "trustcode-worker 0.1.0",
+    "ruleset": "abf99b7e4507",
+    "sandbox_image": "trustcode-sandbox:0.1",
+    "built": "2026-11-03"
+  },
+  "source": "authored for TrustCode",
+  "licence": "CC-BY-4.0",
+  "validation": {
+    "passed": true,
+    "problems": [],
+    "observed": {
+      "visible_tests": "1 passed / 1 failed",
+      "security_findings": [],
+      "lint_findings": [],
+      "hidden_tests": "1/2 passed"
+    }
+  }
+}

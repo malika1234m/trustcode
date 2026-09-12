@@ -1,0 +1,185 @@
+{
+  "id": "JS-C2-D1",
+  "language": "javascript",
+  "class": "C2",
+  "block": null,
+  "split": "dev",
+  "task": "Write retryDelay(attempt) that returns an exponential back-off delay in ms (100 * 2^attempt) plus up to 50 ms of random jitter, to avoid synchronised retries (not security-sensitive).",
+  "code": "function retryDelay(attempt) {\n  return 100 * 2 ** attempt + Math.floor(Math.random() * 50);\n}\n\nmodule.exports = { retryDelay };\n",
+  "visible_tests": "const test = require('node:test');\nconst assert = require('node:assert');\nconst m = require('./solution');\ntest('range', () => { const d = m.retryDelay(1); assert.ok(d >= 200 && d < 250); });\n",
+  "hidden_tests": "const test = require('node:test');\nconst assert = require('node:assert');\nconst m = require('./solution');\ntest('zero', () => { const d = m.retryDelay(0); assert.ok(d >= 100 && d < 150); });\n",
+  "ground_truth": {
+    "correct": true,
+    "defect": null,
+    "explanation": "Correct; insecure-random warning is a false positive for jitter.",
+    "label_source": "author (LLM-assisted); independent review pending"
+  },
+  "baseline_explanation": "This function doubles a 100 ms base delay for each attempt and adds a small random jitter.",
+  "evidence_snapshot": {
+    "schema_version": "1.0",
+    "language": "javascript",
+    "language_detection": "declared",
+    "checks": [
+      {
+        "kind": "syntax",
+        "tool": "node --check",
+        "tool_version": "v20.20.2",
+        "status": "passed",
+        "summary": "Parses successfully",
+        "scope": "Confirms the code can be parsed. Says nothing about behaviour, logic or security.",
+        "findings": [],
+        "details": {
+          "parses": true,
+          "functions": [
+            "retryDelay"
+          ],
+          "lines": 5
+        },
+        "duration_ms": 55,
+        "error": null
+      },
+      {
+        "kind": "lint",
+        "tool": "none",
+        "tool_version": null,
+        "status": "not_run",
+        "summary": "No linter configured for JavaScript in this version.",
+        "scope": "Not run: undefined variables, unused code and common bug patterns were NOT checked.",
+        "findings": [],
+        "details": {},
+        "duration_ms": null,
+        "error": null
+      },
+      {
+        "kind": "security",
+        "tool": "semgrep",
+        "tool_version": "1.79.0",
+        "status": "issues_found",
+        "summary": "1 security pattern(s) matched",
+        "scope": "Semgrep pattern matching with 10 TrustCode javascript rules (ruleset abf99b7e4507). Detects only the listed insecure patterns; absence of findings does NOT mean the code is secure.",
+        "findings": [
+          {
+            "id": "SEC-1",
+            "check": "security",
+            "tool": "semgrep",
+            "rule_id": "js-insecure-random",
+            "title": "Non-cryptographic randomness",
+            "message": "Math.random() is not cryptographically secure.",
+            "severity": "medium",
+            "status": "issue_detected",
+            "location": {
+              "line": 2,
+              "end_line": 2,
+              "column": 42
+            },
+            "code_excerpt": "return 100 * 2 ** attempt + Math.floor(Math.random() * 50);",
+            "cwe": [
+              "CWE-330"
+            ],
+            "owasp": [
+              "A02:2021 Cryptographic Failures"
+            ],
+            "metadata": {
+              "why_beginner": "Math.random values can be predicted, so they must not be used for passwords, tokens or keys.",
+              "why": "Math.random is a non-cryptographic PRNG; predictable for security tokens.",
+              "fix": "Use crypto.randomBytes / crypto.randomUUID for secrets. Math.random is fine for non-secret uses.",
+              "confidence": "low - frequently a false positive when randomness is not security-relevant."
+            }
+          }
+        ],
+        "details": {
+          "ruleset": "abf99b7e4507",
+          "rules": 10
+        },
+        "duration_ms": 790,
+        "error": null
+      },
+      {
+        "kind": "tests",
+        "tool": "node --test (sandbox)",
+        "tool_version": "trustcode-sandbox:0.1",
+        "status": "passed",
+        "summary": "1 passed, 0 failed",
+        "scope": "Runs the supplied tests in an isolated sandbox. Passing tests show the code behaves as expected ONLY for the inputs those tests use; untested inputs and paths remain unverified.",
+        "findings": [],
+        "details": {
+          "passed": 1,
+          "failed": 0,
+          "skipped": 0,
+          "total": 1,
+          "tests": [
+            {
+              "name": "range",
+              "outcome": "passed"
+            }
+          ],
+          "coverage_measured": false
+        },
+        "duration_ms": 427,
+        "error": null
+      },
+      {
+        "kind": "dependencies",
+        "tool": "trustcode-deps",
+        "tool_version": null,
+        "status": "passed",
+        "summary": "No imports.",
+        "scope": "Checks that imported packages are standard-library modules or exist on the public registry (npm). Does not check versions, licences, vulnerabilities or whether the package is the intended one.",
+        "findings": [],
+        "details": {
+          "imports": []
+        },
+        "duration_ms": 0,
+        "error": null
+      },
+      {
+        "kind": "requirements",
+        "tool": "none",
+        "tool_version": null,
+        "status": "needs_review",
+        "summary": "Whether the code does what the task asks has not been verified automatically - compare it with the task.",
+        "scope": "Automated tools cannot confirm that code matches the intended requirement.",
+        "findings": [],
+        "details": {},
+        "duration_ms": null,
+        "error": null
+      }
+    ],
+    "unverified": [
+      {
+        "id": "U-1",
+        "description": "Which lines the tests executed",
+        "reason": "Coverage is not measured for this language in this version.",
+        "location": null
+      },
+      {
+        "id": "U-2",
+        "description": "Match between the code and the stated task",
+        "reason": "No automated check establishes requirement conformance.",
+        "location": null
+      }
+    ],
+    "engine_version": "trustcode-worker 0.1.0",
+    "disclaimer": "These results describe what specific automated checks did and did not find. Passing checks do not establish that the code is correct or secure."
+  },
+  "provenance": {
+    "engine": "trustcode-worker 0.1.0",
+    "ruleset": "abf99b7e4507",
+    "sandbox_image": "trustcode-sandbox:0.1",
+    "built": "2026-11-03"
+  },
+  "source": "authored for TrustCode",
+  "licence": "CC-BY-4.0",
+  "validation": {
+    "passed": true,
+    "problems": [],
+    "observed": {
+      "visible_tests": "1 passed / 0 failed",
+      "security_findings": [
+        "js-insecure-random"
+      ],
+      "lint_findings": [],
+      "hidden_tests": "1/1 passed"
+    }
+  }
+}

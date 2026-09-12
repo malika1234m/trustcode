@@ -58,8 +58,9 @@ def register(body: RegisterIn, request: Request, db: Session = Depends(get_db)):
         raise HTTPException(400, "registration disabled in local mode; use /auth/local")
     if db.scalar(select(User).where(User.email == body.email)):
         raise HTTPException(409, "account already exists")
-    role = "researcher" if body.email in get_settings().researchers else "developer"
-    user = User(email=body.email, password_hash=hash_password(body.password), role=role)
+    # Roles are never granted at self-registration; researchers are promoted by an admin
+    # command on the server (python -m app.admin grant-researcher EMAIL).
+    user = User(email=body.email, password_hash=hash_password(body.password), role="developer")
     db.add(user)
     db.flush()
     db.add(Profile(user_id=user.id))
@@ -98,13 +99,22 @@ def logout(body: RefreshIn, user: User = Depends(current_user), db: Session = De
     return Response(status_code=204)
 
 
+LOCAL_HOSTS = {"localhost", "127.0.0.1", "[::1]", "testserver"}
+
+
 @router.post("/auth/local", response_model=TokenOut, tags=["auth"])
 def local_login(request: Request, db: Session = Depends(get_db)):
-    """Local mode: single implicit user, only from the loopback interface."""
+    """Local mode: single implicit user. Requires the per-install secret (file readable only by the
+    OS user who started the server), a loopback Host header, and no browser Origin (DNS-rebinding/CSRF)."""
+    from ..local_secret import check_local_secret
     if not get_settings().local_mode:
         raise HTTPException(404, "not found")
-    if not request.client or request.client.host not in ("127.0.0.1", "::1", "testclient"):
-        raise HTTPException(403, "local mode accepts loopback connections only")
+    host = (request.headers.get("host") or "").rsplit(":", 1)[0] if not (request.headers.get("host") or "").startswith("[") \
+        else (request.headers.get("host") or "").split("]")[0] + "]"
+    if host not in LOCAL_HOSTS or request.headers.get("origin"):
+        raise HTTPException(403, "local mode accepts direct loopback requests only")
+    if not check_local_secret(request.headers.get("x-trustcode-local-secret", "")):
+        raise HTTPException(401, "invalid local secret")
     user = db.scalar(select(User).where(User.is_local.is_(True)))
     if not user:
         user = User(is_local=True, role="researcher")

@@ -1,0 +1,176 @@
+{
+  "id": "JS-D1-02",
+  "language": "javascript",
+  "class": "D1",
+  "block": "B",
+  "split": "eval",
+  "task": "Write sum(numbers) that returns the sum of an array of numbers (0 for an empty array).",
+  "code": "function sum(numbers) {\n  let total = 0;\n  for (let i = 1; i < numbers.length; i++) {\n    total += numbers[i];\n  }\n  return total;\n}\n\nmodule.exports = { sum };\n",
+  "visible_tests": "const test = require('node:test');\nconst assert = require('node:assert');\nconst m = require('./solution');\ntest('empty', () => assert.strictEqual(m.sum([]), 0));\ntest('three', () => assert.strictEqual(m.sum([1, 2, 3]), 6));\n",
+  "hidden_tests": "const test = require('node:test');\nconst assert = require('node:assert');\nconst m = require('./solution');\ntest('single', () => assert.strictEqual(m.sum([5]), 5));\n",
+  "ground_truth": {
+    "correct": false,
+    "defect": "Loop starts at index 1, so the first element is skipped. The supplied test 'three' fails.",
+    "explanation": "Defective; detected by a supplied test.",
+    "label_source": "author (LLM-assisted); independent review pending"
+  },
+  "baseline_explanation": "This function iterates over the array, adding each number to a running total that starts at 0, and returns the total.",
+  "evidence_snapshot": {
+    "schema_version": "1.0",
+    "language": "javascript",
+    "language_detection": "declared",
+    "checks": [
+      {
+        "kind": "syntax",
+        "tool": "node --check",
+        "tool_version": "v20.20.2",
+        "status": "passed",
+        "summary": "Parses successfully",
+        "scope": "Confirms the code can be parsed. Says nothing about behaviour, logic or security.",
+        "findings": [],
+        "details": {
+          "parses": true,
+          "functions": [
+            "sum"
+          ],
+          "lines": 9
+        },
+        "duration_ms": 46,
+        "error": null
+      },
+      {
+        "kind": "lint",
+        "tool": "none",
+        "tool_version": null,
+        "status": "not_run",
+        "summary": "No linter configured for JavaScript in this version.",
+        "scope": "Not run: undefined variables, unused code and common bug patterns were NOT checked.",
+        "findings": [],
+        "details": {},
+        "duration_ms": null,
+        "error": null
+      },
+      {
+        "kind": "security",
+        "tool": "semgrep",
+        "tool_version": "1.79.0",
+        "status": "passed",
+        "summary": "No listed insecure patterns matched.",
+        "scope": "Semgrep pattern matching with 10 TrustCode javascript rules (ruleset abf99b7e4507). Detects only the listed insecure patterns; absence of findings does NOT mean the code is secure.",
+        "findings": [],
+        "details": {
+          "ruleset": "abf99b7e4507",
+          "rules": 10
+        },
+        "duration_ms": 680,
+        "error": null
+      },
+      {
+        "kind": "tests",
+        "tool": "node --test (sandbox)",
+        "tool_version": "trustcode-sandbox:0.1",
+        "status": "issues_found",
+        "summary": "1 passed, 1 failed",
+        "scope": "Runs the supplied tests in an isolated sandbox. Passing tests show the code behaves as expected ONLY for the inputs those tests use; untested inputs and paths remain unverified.",
+        "findings": [
+          {
+            "id": "TEST-1",
+            "check": "tests",
+            "tool": "node --test (sandbox)",
+            "rule_id": "test-failed",
+            "title": "Test failed: three",
+            "message": "Expected values to be strictly equal:",
+            "severity": "high",
+            "status": "issue_detected",
+            "location": null,
+            "code_excerpt": null,
+            "cwe": [],
+            "owasp": [],
+            "metadata": {
+              "test": "three"
+            }
+          }
+        ],
+        "details": {
+          "passed": 1,
+          "failed": 1,
+          "skipped": 0,
+          "total": 2,
+          "tests": [
+            {
+              "name": "empty",
+              "outcome": "passed"
+            },
+            {
+              "name": "three",
+              "outcome": "failed"
+            }
+          ],
+          "coverage_measured": false
+        },
+        "duration_ms": 372,
+        "error": null
+      },
+      {
+        "kind": "dependencies",
+        "tool": "trustcode-deps",
+        "tool_version": null,
+        "status": "passed",
+        "summary": "No imports.",
+        "scope": "Checks that imported packages are standard-library modules or exist on the public registry (npm). Does not check versions, licences, vulnerabilities or whether the package is the intended one.",
+        "findings": [],
+        "details": {
+          "imports": []
+        },
+        "duration_ms": 0,
+        "error": null
+      },
+      {
+        "kind": "requirements",
+        "tool": "none",
+        "tool_version": null,
+        "status": "needs_review",
+        "summary": "Whether the code does what the task asks has not been verified automatically - compare it with the task.",
+        "scope": "Automated tools cannot confirm that code matches the intended requirement.",
+        "findings": [],
+        "details": {},
+        "duration_ms": null,
+        "error": null
+      }
+    ],
+    "unverified": [
+      {
+        "id": "U-1",
+        "description": "Which lines the tests executed",
+        "reason": "Coverage is not measured for this language in this version.",
+        "location": null
+      },
+      {
+        "id": "U-2",
+        "description": "Match between the code and the stated task",
+        "reason": "No automated check establishes requirement conformance.",
+        "location": null
+      }
+    ],
+    "engine_version": "trustcode-worker 0.1.0",
+    "disclaimer": "These results describe what specific automated checks did and did not find. Passing checks do not establish that the code is correct or secure."
+  },
+  "provenance": {
+    "engine": "trustcode-worker 0.1.0",
+    "ruleset": "abf99b7e4507",
+    "sandbox_image": "trustcode-sandbox:0.1",
+    "built": "2026-11-03"
+  },
+  "source": "authored for TrustCode",
+  "licence": "CC-BY-4.0",
+  "validation": {
+    "passed": true,
+    "problems": [],
+    "observed": {
+      "visible_tests": "1 passed / 1 failed",
+      "security_findings": [],
+      "lint_findings": [],
+      "hidden_tests": "0/1 passed"
+    }
+  }
+}

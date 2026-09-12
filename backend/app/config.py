@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     local_mode: bool = False                       # single-user, no registration; bind to 127.0.0.1 only
     worker_mode: str = "inline"                    # inline (dev/test only) | queue (production)
     run_tests: bool = True                         # sandboxed test execution enabled
-    researcher_emails: str = ""                    # comma-separated accounts granted the researcher role
     rate_limit_per_minute: int = 60
     verify_rate_limit_per_minute: int = 10
     max_code_chars: int = 50_000
@@ -25,9 +24,7 @@ class Settings(BaseSettings):
     benchmark_dir: str = "../datasets/benchmark"
     cors_origins: str = ""
 
-    @property
-    def researchers(self) -> set[str]:
-        return {e.strip().lower() for e in self.researcher_emails.split(",") if e.strip()}
+    local_secret_file: str = "~/.trustcode/local-secret"  # per-install secret for local mode (mode 0600)
 
 
 @lru_cache

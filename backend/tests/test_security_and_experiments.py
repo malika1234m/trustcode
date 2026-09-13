@@ -21,10 +21,23 @@ def test_self_registration_never_grants_researcher(client):
     assert client.post(f"{V}/experiments/sessions", headers=h, json={}).status_code == 403
 
 
-def test_admin_cli_grants_researcher(client):
-    h = _register(client, "prof@uni.example")
-    assert admin.main(["grant-researcher", "prof@uni.example"]) == 0
+def test_admin_creates_researcher_and_refuses_squatted_email(client):
+    from app.db import SessionLocal
+    db = SessionLocal()
+    pw = admin.create_researcher(db, "prof@uni.example")
+    r = client.post(f"{V}/auth/login", json={"email": "prof@uni.example", "password": pw})
+    h = {"Authorization": f"Bearer {r.json()['access_token']}"}
     assert client.get(f"{V}/profile", headers=h).json()["role"] == "researcher"
+    _register(client, "squatted@uni.example")
+    import pytest
+    with pytest.raises(ValueError):
+        admin.create_researcher(db, "squatted@uni.example")
+    db.close()
+
+
+def test_grant_existing_account_requires_interactive_confirmation(client):
+    _register(client, "existing@uni.example")
+    assert admin.main(["grant-researcher", "existing@uni.example"]) == 1  # stdin is not a TTY under pytest
 
 
 # ---------- security review 2026-11-03: local mode hardening ----------
@@ -51,8 +64,11 @@ def test_local_secret_file_is_private():
 
 # ---------- experiment mode end-to-end ----------
 def test_experiment_full_session_and_export(client):
-    rh = _register(client, "lead@uni.example")
-    admin.main(["grant-researcher", "lead@uni.example"])
+    from app.db import SessionLocal
+    db = SessionLocal()
+    pw = admin.create_researcher(db, "lead@uni.example")
+    db.close()
+    rh = {"Authorization": "Bearer " + client.post(f"{V}/auth/login", json={"email": "lead@uni.example", "password": pw}).json()["access_token"]}
     codes = []
     for _ in range(4):
         r = client.post(f"{V}/experiments/sessions", headers=rh, json={"study_id": "e2e"})

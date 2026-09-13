@@ -1,16 +1,39 @@
 """Server-side admin commands (run on the server, never exposed over HTTP).
 
-    python -m app.admin grant-researcher EMAIL
+    python -m app.admin create-researcher EMAIL   (preferred: creates the account, prints a one-time password)
+    python -m app.admin grant-researcher EMAIL    (existing account: interactive confirmation required)
     python -m app.admin revoke-researcher EMAIL
+
+Promoting a self-registered account is risky because email ownership is not verified (anyone
+could register the address first), so grant-researcher shows the account's creation time and
+login history and requires typing the email again on an interactive terminal.
     python -m app.admin purge-expired
 """
+import secrets
 import sys
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from .db import Base, SessionLocal, engine
 from .models import AuditLog, User
+from .security import hash_password
 from .services.jobs import purge_expired
+
+
+def create_researcher(db, email: str) -> str:
+    email = email.strip().lower()
+    if db.scalar(select(User).where(User.email == email)):
+        raise ValueError("an account with this email already exists; it may have been registered by someone else. "
+                         "Delete it (DELETE /api/v1/me/data by its owner) or use grant-researcher after checking ownership.")
+    password = secrets.token_urlsafe(15)
+    user = User(email=email, password_hash=hash_password(password), role="researcher")
+    db.add(user)
+    db.flush()
+    from .models import Profile
+    db.add(Profile(user_id=user.id))
+    db.add(AuditLog(user_id=user.id, action="create_researcher", meta={"via": "admin-cli"}))
+    db.commit()
+    return password
 
 
 def main(argv: list[str]) -> int:
@@ -21,11 +44,30 @@ def main(argv: list[str]) -> int:
     db = SessionLocal()
     try:
         cmd = argv[0]
+        if cmd == "create-researcher" and len(argv) == 2:
+            try:
+                pw = create_researcher(db, argv[1])
+            except ValueError as e:
+                print(e)
+                return 1
+            print(f"created researcher {argv[1]}; one-time password (share securely): {pw}")
+            return 0
         if cmd in ("grant-researcher", "revoke-researcher") and len(argv) == 2:
             user = db.scalar(select(User).where(User.email == argv[1].strip().lower()))
             if not user:
-                print("no such user (the account must register first)")
+                print("no such user")
                 return 1
+            if cmd == "grant-researcher":
+                logins = db.scalar(select(func.count()).select_from(AuditLog).where(AuditLog.user_id == user.id,
+                                                                                     AuditLog.action == "login")) or 0
+                print(f"Account {user.email}: created {user.created_at:%Y-%m-%d %H:%M} UTC, {logins} login(s).")
+                print("Email ownership is NOT verified. Confirm the owner registered it themselves.")
+                if not sys.stdin.isatty():
+                    print("refusing: interactive confirmation required (use create-researcher for scripted setup)")
+                    return 1
+                if input("Type the email again to confirm: ").strip().lower() != user.email:
+                    print("not confirmed")
+                    return 1
             user.role = "researcher" if cmd == "grant-researcher" else "developer"
             db.add(AuditLog(user_id=user.id, action=cmd.replace("-", "_"), meta={"via": "admin-cli"}))
             db.commit()

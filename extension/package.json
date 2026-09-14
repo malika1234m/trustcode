@@ -1,0 +1,126 @@
+{
+  "name": "trustcode",
+  "displayName": "TrustCode",
+  "description": "Evidence-grounded verification of AI-generated code: see what was checked, what was found, and what was NOT verified.",
+  "version": "0.1.0",
+  "publisher": "trustcode-research",
+  "license": "MIT",
+  "private": true,
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Linters",
+    "Testing",
+    "Other"
+  ],
+  "main": "./out/src/extension.js",
+  "activationEvents": [],
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "trustcode",
+          "title": "TrustCode",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "trustcode": [
+        {
+          "type": "webview",
+          "id": "trustcode.panel",
+          "name": "Verify AI Code"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "trustcode.verifySelection",
+        "title": "TrustCode: Verify Selected Code",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "trustcode.signIn",
+        "title": "TrustCode: Sign In"
+      },
+      {
+        "command": "trustcode.signOut",
+        "title": "TrustCode: Sign Out"
+      },
+      {
+        "command": "trustcode.setExperienceLevel",
+        "title": "TrustCode: Set Experience Level"
+      },
+      {
+        "command": "trustcode.privacySettings",
+        "title": "TrustCode: Privacy & History Settings"
+      },
+      {
+        "command": "trustcode.startExperiment",
+        "title": "TrustCode: Join Research Study"
+      },
+      {
+        "command": "trustcode.forgetConsent",
+        "title": "TrustCode: Ask Before Sending Code Again"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "trustcode.verifySelection",
+          "when": "editorHasSelection",
+          "group": "navigation@90"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TrustCode",
+      "properties": {
+        "trustcode.backendUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:8000",
+          "description": "TrustCode backend URL. Code is only sent here after you confirm."
+        },
+        "trustcode.mode": {
+          "type": "string",
+          "enum": [
+            "local",
+            "account"
+          ],
+          "default": "local",
+          "description": "local: single-user backend on this machine (no account). account: sign in to a shared backend."
+        },
+        "trustcode.requestTimeoutSeconds": {
+          "type": "number",
+          "default": 30,
+          "minimum": 5
+        },
+        "trustcode.useLlmExplanations": {
+          "type": "boolean",
+          "default": false,
+          "description": "Request LLM-written explanations (sends finding details to the configured LLM provider via the backend). Off by default."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "watch": "tsc -w -p .",
+    "test": "npm run compile && node --test out/test/*.test.js",
+    "package": "vsce package --no-dependencies",
+    "test:integration": "npm run compile && node out/test/integration/run.js"
+  },
+  "devDependencies": {
+    "@types/node": "20.14.10",
+    "@types/vscode": "1.90.0",
+    "@vscode/vsce": "3.2.1",
+    "typescript": "5.6.3",
+    "@vscode/test-electron": "2.4.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://example.invalid/trustcode.git"
+  }
+}

@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     local_mode: bool = False                       # single-user, no registration; bind to 127.0.0.1 only
     worker_mode: str = "inline"                    # inline (dev/test only) | queue (production)
     run_tests: bool = True                         # sandboxed test execution enabled
-    rate_limit_per_minute: int = 60
+    rate_limit_per_minute: int = 300                # general authenticated limit (status polling included)
     verify_rate_limit_per_minute: int = 10
     max_code_chars: int = 50_000
     result_ttl_hours_no_history: int = 24

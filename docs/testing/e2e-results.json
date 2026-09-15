@@ -1,0 +1,77 @@
+[
+  {
+    "name": "auth: local-mode login with per-install secret",
+    "ok": true,
+    "ms": 29
+  },
+  {
+    "name": "auth: wrong local secret rejected",
+    "ok": true,
+    "ms": 3
+  },
+  {
+    "name": "A: correct code -> checks run, no unsupported correctness claim",
+    "ok": true,
+    "ms": 4097
+  },
+  {
+    "name": "B: vulnerable code -> security finding with evidence + explanation",
+    "ok": true,
+    "ms": 2446
+  },
+  {
+    "name": "C: logical defect -> failing test shown; uncovered code marked unverified",
+    "ok": true,
+    "ms": 2405
+  },
+  {
+    "name": "D: incomplete/invalid code -> syntax error, no pretend success",
+    "ok": true,
+    "ms": 1285
+  },
+  {
+    "name": "E: adaptive explanations -> depth changes, evidence identical",
+    "ok": true,
+    "ms": 1279
+  },
+  {
+    "name": "F: human decision recorded; code not modified by TrustCode",
+    "ok": true,
+    "ms": 6
+  },
+  {
+    "name": "G1: malicious code (network + fork bomb) contained, never \"passed\"",
+    "ok": true,
+    "ms": 4097
+  },
+  {
+    "name": "G2: infinite loop -> timeout reported",
+    "ok": true,
+    "ms": 24726
+  },
+  {
+    "name": "G3: malformed input rejected with structured error",
+    "ok": true,
+    "ms": 7
+  },
+  {
+    "name": "G4: invalid authentication rejected",
+    "ok": true,
+    "ms": 3
+  },
+  {
+    "name": "G5: cancellation of a queued/running job",
+    "ok": true,
+    "ms": 13
+  },
+  {
+    "name": "G6: API unavailable -> clear network error",
+    "ok": true,
+    "ms": 1
+  },
+  {
+    "name": "G7: LLM provider unavailable -> template fallback",
+    "ok": true,
+    "ms": 13
+  }
+]

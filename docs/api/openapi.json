@@ -1,0 +1,1700 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "TrustCode API",
+  "description": "Evidence-grounded verification of AI-generated code. Never returns an aggregate correctness verdict.",
+  "version": "0.1.0"
+ },
+ "paths": {
+  "/api/v1/health": {
+   "get": {
+    "tags": [
+     "system"
+    ],
+    "summary": "Health",
+    "operationId": "health_api_v1_health_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/register": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Register",
+    "operationId": "register_api_v1_auth_register_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RegisterIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TokenOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/login": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Login",
+    "operationId": "login_api_v1_auth_login_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/LoginIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TokenOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/refresh": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Refresh",
+    "operationId": "refresh_api_v1_auth_refresh_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RefreshIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TokenOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/auth/logout": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Logout",
+    "operationId": "logout_api_v1_auth_logout_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/RefreshIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/v1/auth/local": {
+   "post": {
+    "tags": [
+     "auth"
+    ],
+    "summary": "Local Login",
+    "description": "Local mode: single implicit user. Requires the per-install secret (file readable only by the\nOS user who started the server), a loopback Host header, and no browser Origin (DNS-rebinding/CSRF).",
+    "operationId": "local_login_api_v1_auth_local_post",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/TokenOut"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/profile": {
+   "get": {
+    "tags": [
+     "profile"
+    ],
+    "summary": "Get Profile",
+    "operationId": "get_profile_api_v1_profile_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   },
+   "patch": {
+    "tags": [
+     "profile"
+    ],
+    "summary": "Update Profile",
+    "operationId": "update_profile_api_v1_profile_patch",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/ProfileIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ProfileOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/v1/verifications": {
+   "post": {
+    "tags": [
+     "verification"
+    ],
+    "summary": "Create Verification",
+    "operationId": "create_verification_api_v1_verifications_post",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/VerifyIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "202": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   },
+   "get": {
+    "tags": [
+     "verification"
+    ],
+    "summary": "List Verifications",
+    "operationId": "list_verifications_api_v1_verifications_get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "cursor",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Cursor"
+      }
+     },
+     {
+      "name": "limit",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 100,
+       "minimum": 1,
+       "default": 20,
+       "title": "Limit"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobPage"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/verifications/{job_id}": {
+   "get": {
+    "tags": [
+     "verification"
+    ],
+    "summary": "Get Verification",
+    "operationId": "get_verification_api_v1_verifications__job_id__get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Job Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/verifications/{job_id}/cancel": {
+   "post": {
+    "tags": [
+     "verification"
+    ],
+    "summary": "Cancel Verification",
+    "operationId": "cancel_verification_api_v1_verifications__job_id__cancel_post",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Job Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/JobOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/verifications/{job_id}/explanation": {
+   "get": {
+    "tags": [
+     "verification"
+    ],
+    "summary": "Get Explanation",
+    "operationId": "get_explanation_api_v1_verifications__job_id__explanation_get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Job Id"
+      }
+     },
+     {
+      "name": "level",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "pattern": "^(beginner|intermediate|advanced)$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Level"
+      }
+     },
+     {
+      "name": "llm",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "boolean",
+       "default": false,
+       "title": "Llm"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/verifications/{job_id}/decision": {
+   "post": {
+    "tags": [
+     "verification"
+    ],
+    "summary": "Record Decision",
+    "operationId": "record_decision_api_v1_verifications__job_id__decision_post",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "job_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Job Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/feedback": {
+   "post": {
+    "tags": [
+     "feedback"
+    ],
+    "summary": "Feedback",
+    "operationId": "feedback_api_v1_feedback_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/FeedbackIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/v1/me/data": {
+   "delete": {
+    "tags": [
+     "profile"
+    ],
+    "summary": "Delete My Data",
+    "description": "Right to erasure: removes the account and all product data (cascade).",
+    "operationId": "delete_my_data_api_v1_me_data_delete",
+    "responses": {
+     "204": {
+      "description": "Successful Response"
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/v1/experiments/sessions": {
+   "post": {
+    "tags": [
+     "experiments"
+    ],
+    "summary": "Create Session",
+    "operationId": "create_session_api_v1_experiments_sessions_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/SessionCreateIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/SessionCreateOut"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/v1/experiments/join": {
+   "post": {
+    "tags": [
+     "experiments"
+    ],
+    "summary": "Join Session",
+    "operationId": "join_session_api_v1_experiments_join_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/JoinIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/experiments/next": {
+   "get": {
+    "tags": [
+     "experiments"
+    ],
+    "summary": "Next Trial",
+    "operationId": "next_trial_api_v1_experiments_next_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/v1/experiments/trials/{trial_id}/decision": {
+   "post": {
+    "tags": [
+     "experiments"
+    ],
+    "summary": "Trial Decision",
+    "operationId": "trial_decision_api_v1_experiments_trials__trial_id__decision_post",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "trial_id",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "string",
+       "title": "Trial Id"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/TrialDecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/experiments/events": {
+   "post": {
+    "tags": [
+     "experiments"
+    ],
+    "summary": "Trial Event",
+    "operationId": "trial_event_api_v1_experiments_events_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/EventIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/v1/experiments/questionnaires": {
+   "post": {
+    "tags": [
+     "experiments"
+    ],
+    "summary": "Questionnaire",
+    "operationId": "questionnaire_api_v1_experiments_questionnaires_post",
+    "requestBody": {
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/QuestionnaireIn"
+       }
+      }
+     },
+     "required": true
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    },
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ]
+   }
+  },
+  "/api/v1/experiments/export.csv": {
+   "get": {
+    "tags": [
+     "experiments"
+    ],
+    "summary": "Export",
+    "operationId": "export_api_v1_experiments_export_csv_get",
+    "security": [
+     {
+      "HTTPBearer": []
+     }
+    ],
+    "parameters": [
+     {
+      "name": "study_id",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Study Id"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "422": {
+      "description": "Validation Error",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/HTTPValidationError"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "DecisionIn": {
+    "properties": {
+     "decision": {
+      "type": "string",
+      "enum": [
+       "accept",
+       "modify",
+       "reject"
+      ],
+      "title": "Decision"
+     },
+     "confidence": {
+      "anyOf": [
+       {
+        "type": "integer",
+        "maximum": 100.0,
+        "minimum": 0.0
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Confidence"
+     },
+     "rationale": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rationale"
+     }
+    },
+    "type": "object",
+    "required": [
+     "decision"
+    ],
+    "title": "DecisionIn"
+   },
+   "EventIn": {
+    "properties": {
+     "trial_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 32
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Trial Id"
+     },
+     "type": {
+      "type": "string",
+      "enum": [
+       "evidence_expand",
+       "evidence_collapse",
+       "explanation_level_view",
+       "unverified_view",
+       "request_more_checks",
+       "code_scroll",
+       "panel_focus",
+       "panel_blur"
+      ],
+      "title": "Type"
+     },
+     "payload": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Payload"
+     }
+    },
+    "type": "object",
+    "required": [
+     "type"
+    ],
+    "title": "EventIn"
+   },
+   "FeedbackIn": {
+    "properties": {
+     "job_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 32
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Job Id"
+     },
+     "finding_id": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 20
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finding Id"
+     },
+     "rating": {
+      "type": "string",
+      "enum": [
+       "helpful",
+       "not_helpful",
+       "too_technical",
+       "too_simple",
+       "incorrect"
+      ],
+      "title": "Rating"
+     },
+     "comment": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Comment"
+     }
+    },
+    "type": "object",
+    "required": [
+     "rating"
+    ],
+    "title": "FeedbackIn"
+   },
+   "HTTPValidationError": {
+    "properties": {
+     "detail": {
+      "items": {
+       "$ref": "#/components/schemas/ValidationError"
+      },
+      "type": "array",
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "title": "HTTPValidationError"
+   },
+   "JobOut": {
+    "properties": {
+     "id": {
+      "type": "string",
+      "title": "Id"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "code_lines": {
+      "type": "integer",
+      "title": "Code Lines"
+     },
+     "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "title": "Created At"
+     },
+     "finished_at": {
+      "anyOf": [
+       {
+        "type": "string",
+        "format": "date-time"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Finished At"
+     },
+     "error": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Error"
+     },
+     "result": {
+      "anyOf": [
+       {
+        "additionalProperties": true,
+        "type": "object"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Result"
+     }
+    },
+    "type": "object",
+    "required": [
+     "id",
+     "status",
+     "language",
+     "code_lines",
+     "created_at"
+    ],
+    "title": "JobOut"
+   },
+   "JobPage": {
+    "properties": {
+     "items": {
+      "items": {
+       "$ref": "#/components/schemas/JobOut"
+      },
+      "type": "array",
+      "title": "Items"
+     },
+     "next_cursor": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Next Cursor"
+     }
+    },
+    "type": "object",
+    "required": [
+     "items",
+     "next_cursor"
+    ],
+    "title": "JobPage"
+   },
+   "JoinIn": {
+    "properties": {
+     "participant_code": {
+      "type": "string",
+      "maxLength": 16,
+      "title": "Participant Code"
+     },
+     "consent": {
+      "type": "boolean",
+      "title": "Consent"
+     },
+     "experience_level": {
+      "type": "string",
+      "enum": [
+       "beginner",
+       "intermediate",
+       "advanced"
+      ],
+      "title": "Experience Level"
+     },
+     "years_experience": {
+      "type": "integer",
+      "maximum": 60.0,
+      "minimum": 0.0,
+      "title": "Years Experience"
+     }
+    },
+    "type": "object",
+    "required": [
+     "participant_code",
+     "consent",
+     "experience_level",
+     "years_experience"
+    ],
+    "title": "JoinIn"
+   },
+   "LoginIn": {
+    "properties": {
+     "email": {
+      "type": "string",
+      "maxLength": 254,
+      "title": "Email"
+     },
+     "password": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Password"
+     }
+    },
+    "type": "object",
+    "required": [
+     "email",
+     "password"
+    ],
+    "title": "LoginIn"
+   },
+   "ProfileIn": {
+    "properties": {
+     "experience_level": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "beginner",
+         "intermediate",
+         "advanced"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Experience Level"
+     },
+     "store_history": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Store History"
+     },
+     "allow_llm": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Allow Llm"
+     },
+     "adaptive_suggestions": {
+      "anyOf": [
+       {
+        "type": "boolean"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Adaptive Suggestions"
+     }
+    },
+    "type": "object",
+    "title": "ProfileIn"
+   },
+   "ProfileOut": {
+    "properties": {
+     "experience_level": {
+      "type": "string",
+      "enum": [
+       "beginner",
+       "intermediate",
+       "advanced"
+      ],
+      "title": "Experience Level"
+     },
+     "store_history": {
+      "type": "boolean",
+      "title": "Store History"
+     },
+     "allow_llm": {
+      "type": "boolean",
+      "title": "Allow Llm"
+     },
+     "adaptive_suggestions": {
+      "type": "boolean",
+      "title": "Adaptive Suggestions"
+     },
+     "llm_available": {
+      "type": "boolean",
+      "title": "Llm Available"
+     },
+     "role": {
+      "type": "string",
+      "title": "Role"
+     }
+    },
+    "type": "object",
+    "required": [
+     "experience_level",
+     "store_history",
+     "allow_llm",
+     "adaptive_suggestions",
+     "llm_available",
+     "role"
+    ],
+    "title": "ProfileOut"
+   },
+   "QuestionnaireIn": {
+    "properties": {
+     "instrument": {
+      "type": "string",
+      "enum": [
+       "nasa_tlx",
+       "trust",
+       "sus",
+       "open"
+      ],
+      "title": "Instrument"
+     },
+     "condition": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "baseline",
+         "trustcode"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Condition"
+     },
+     "responses": {
+      "additionalProperties": true,
+      "type": "object",
+      "title": "Responses"
+     }
+    },
+    "type": "object",
+    "required": [
+     "instrument",
+     "responses"
+    ],
+    "title": "QuestionnaireIn"
+   },
+   "RefreshIn": {
+    "properties": {
+     "refresh_token": {
+      "type": "string",
+      "maxLength": 200,
+      "title": "Refresh Token"
+     }
+    },
+    "type": "object",
+    "required": [
+     "refresh_token"
+    ],
+    "title": "RefreshIn"
+   },
+   "RegisterIn": {
+    "properties": {
+     "email": {
+      "type": "string",
+      "maxLength": 254,
+      "title": "Email"
+     },
+     "password": {
+      "type": "string",
+      "maxLength": 200,
+      "minLength": 10,
+      "title": "Password"
+     }
+    },
+    "type": "object",
+    "required": [
+     "email",
+     "password"
+    ],
+    "title": "RegisterIn"
+   },
+   "SessionCreateIn": {
+    "properties": {
+     "study_id": {
+      "type": "string",
+      "maxLength": 40,
+      "pattern": "^[a-z0-9_-]+$",
+      "title": "Study Id",
+      "default": "main"
+     }
+    },
+    "type": "object",
+    "title": "SessionCreateIn"
+   },
+   "SessionCreateOut": {
+    "properties": {
+     "participant_code": {
+      "type": "string",
+      "title": "Participant Code"
+     },
+     "condition_order": {
+      "items": {
+       "type": "string"
+      },
+      "type": "array",
+      "title": "Condition Order"
+     },
+     "adaptation": {
+      "type": "string",
+      "title": "Adaptation"
+     },
+     "n_trials": {
+      "type": "integer",
+      "title": "N Trials"
+     }
+    },
+    "type": "object",
+    "required": [
+     "participant_code",
+     "condition_order",
+     "adaptation",
+     "n_trials"
+    ],
+    "title": "SessionCreateOut"
+   },
+   "TokenOut": {
+    "properties": {
+     "access_token": {
+      "type": "string",
+      "title": "Access Token"
+     },
+     "refresh_token": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Refresh Token"
+     },
+     "token_type": {
+      "type": "string",
+      "title": "Token Type",
+      "default": "bearer"
+     },
+     "expires_in": {
+      "type": "integer",
+      "title": "Expires In"
+     }
+    },
+    "type": "object",
+    "required": [
+     "access_token",
+     "expires_in"
+    ],
+    "title": "TokenOut"
+   },
+   "TrialDecisionIn": {
+    "properties": {
+     "decision": {
+      "type": "string",
+      "enum": [
+       "accept",
+       "modify",
+       "reject"
+      ],
+      "title": "Decision"
+     },
+     "confidence": {
+      "type": "integer",
+      "maximum": 100.0,
+      "minimum": 0.0,
+      "title": "Confidence"
+     },
+     "rationale": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 2000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Rationale"
+     }
+    },
+    "type": "object",
+    "required": [
+     "decision",
+     "confidence"
+    ],
+    "title": "TrialDecisionIn"
+   },
+   "ValidationError": {
+    "properties": {
+     "loc": {
+      "items": {
+       "anyOf": [
+        {
+         "type": "string"
+        },
+        {
+         "type": "integer"
+        }
+       ]
+      },
+      "type": "array",
+      "title": "Location"
+     },
+     "msg": {
+      "type": "string",
+      "title": "Message"
+     },
+     "type": {
+      "type": "string",
+      "title": "Error Type"
+     },
+     "input": {
+      "title": "Input"
+     },
+     "ctx": {
+      "type": "object",
+      "title": "Context"
+     }
+    },
+    "type": "object",
+    "required": [
+     "loc",
+     "msg",
+     "type"
+    ],
+    "title": "ValidationError"
+   },
+   "VerifyIn": {
+    "properties": {
+     "code": {
+      "type": "string",
+      "maxLength": 50000,
+      "minLength": 1,
+      "title": "Code"
+     },
+     "language": {
+      "anyOf": [
+       {
+        "type": "string",
+        "enum": [
+         "python",
+         "javascript"
+        ]
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Language"
+     },
+     "task": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 10000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Task"
+     },
+     "tests": {
+      "anyOf": [
+       {
+        "type": "string",
+        "maxLength": 50000
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Tests"
+     },
+     "client_consent": {
+      "type": "boolean",
+      "title": "Client Consent",
+      "description": "Client confirms the user explicitly approved sending this code"
+     }
+    },
+    "type": "object",
+    "required": [
+     "code",
+     "client_consent"
+    ],
+    "title": "VerifyIn"
+   }
+  },
+  "securitySchemes": {
+   "HTTPBearer": {
+    "type": "http",
+    "scheme": "bearer"
+   }
+  }
+ }
+}

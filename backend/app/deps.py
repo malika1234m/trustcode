@@ -43,7 +43,8 @@ limiter = RateLimiter()
 
 
 def rate_limit(request: Request):
-    limiter.check(f"ip:{request.client.host if request.client else 'unknown'}", get_settings().rate_limit_per_minute)
+    """Strict per-IP limit for unauthenticated endpoints (brute-force / enumeration guard)."""
+    limiter.check(f"ip-auth:{request.client.host if request.client else 'unknown'}", get_settings().auth_rate_limit_per_minute)
 
 
 def _credentials_error():

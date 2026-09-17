@@ -14,6 +14,7 @@ os.environ.update({
     "TRUSTCODE_BENCHMARK_DIR": str(Path(__file__).resolve().parents[2] / "datasets" / "benchmark"),
     "TRUSTCODE_VERIFY_RATE_LIMIT_PER_MINUTE": "1000",
     "TRUSTCODE_RATE_LIMIT_PER_MINUTE": "1000",
+    "TRUSTCODE_AUTH_RATE_LIMIT_PER_MINUTE": "1000",
 })
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 

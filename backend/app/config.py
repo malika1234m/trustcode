@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     run_tests: bool = True                         # sandboxed test execution enabled
     rate_limit_per_minute: int = 300                # general authenticated limit (status polling included)
     verify_rate_limit_per_minute: int = 10
+    auth_rate_limit_per_minute: int = 20            # per-IP limit on unauthenticated endpoints (login, register, refresh, join)
     max_code_chars: int = 50_000
     result_ttl_hours_no_history: int = 24
     result_ttl_days_history: int = 30

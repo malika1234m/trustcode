@@ -112,3 +112,13 @@ def test_experiment_full_session_and_export(client):
     assert all(r["decision_correct"] in ("0", "1") for r in rows)
     assert all("@" not in v for r in rows for v in r.values())  # no identifiers
     assert {r["item_class"] for r in rows} == {"C1", "C2", "D1", "D2"}
+
+
+def test_unauthenticated_endpoints_have_strict_ip_limit(client, monkeypatch):
+    from app.deps import limiter
+    monkeypatch.setattr(get_settings(), "auth_rate_limit_per_minute", 5)
+    limiter.reset()
+    codes = [client.post(f"{V}/auth/login", json={"email": f"x{i}@uni.example", "password": "whatever-123"}).status_code
+             for i in range(7)]
+    assert codes[:5] == [401] * 5 and codes[5] == 429
+    limiter.reset()

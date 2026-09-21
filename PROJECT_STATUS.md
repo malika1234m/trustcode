@@ -2,14 +2,27 @@
 
 _Last updated: 2026-11-03_
 
-| Phase | Name | Status | Exit criteria met? |
-|---|---|---|---|
-| 1 | Research landscape & literature review | **Draft complete — awaiting your review** | Partially (see below) |
-| 2 | Novelty & feasibility validation | **Draft complete** (4 docs in `research/`) | Yes, pending supervisor sign-off |
-| 3–8 | Architecture, UX, benchmark, backend, verification engine, explanations | **Implemented & tested**: worker (25 tests incl. sandbox attacks), backend API (28 tests), benchmark 20/20 validated. Remaining: Phase 3/4 design docs | Partly |
-| 9–12 | Extension, E2E tests, deployment, experiment design | Not started | — |
-| 13–16 | Pilot, main study, analysis, improvement | **Blocked**: needs ethics approval + participants | — |
-| 17–19 | Dissertation, release, viva | Not started | — |
+| Phase | Name | Status |
+|---|---|---|
+| 1 | Literature review & gap | ✅ Draft complete (full texts of 12 key papers + Scopus search pending) |
+| 2 | Novelty & feasibility | ✅ Complete (supervisor sign-off pending) |
+| 3 | Requirements & architecture | ✅ `docs/requirements`, `docs/architecture`, `docs/security`, `docs/api/openapi.json`, `ARCHITECTURE_DECISIONS.md` |
+| 4 | UX & interaction design | ✅ `docs/ux/interaction_design.md`; implemented in the webview (usability validation pending pilot) |
+| 5 | Benchmark | ✅ 20 items validated 20/20 (independent label review pending) |
+| 6 | Backend | ✅ 30 tests |
+| 7 | Verification engine | ✅ 25 tests incl. sandbox attacks |
+| 8 | Explanation engine | ✅ templates + validated optional LLM (real API untested) |
+| 9 | VS Code extension | ✅ 12 unit + 5 extension-host tests; VSIX built |
+| 10 | Integration & E2E | ✅ 15/15 e2e; `TEST_REPORT.md` |
+| 11 | Deployment | 🟡 local verified; compose partly verified (see `DEPLOYMENT_STATUS.md`); cloud needs your credentials |
+| 12 | Experiment design | ✅ drafts + power simulation (needs ethics approval) |
+| 13 | Pilot | ⛔ blocked: ethics approval, participants |
+| 14 | Main experiment | ⛔ blocked: ethics approval, participants |
+| 15 | Analysis | 🟡 pipeline ready, checked on synthetic data only; **no results exist** |
+| 16 | Improvement from findings | ⛔ blocked: needs results |
+| 17 | Dissertation | 🟡 Ch 1–5 drafted; Ch 6–8 need data |
+| 18 | Release | ✅ v0.1.0 prototype (tag); not the frozen experiment version |
+| 19 | Presentation & viva | 🟡 slides, demo script, viva Q&A; results slide pending |
 
 ## Phase 1 report
 

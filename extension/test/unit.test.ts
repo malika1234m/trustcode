@@ -117,3 +117,9 @@ test('cancellation stops polling and cancels the job', async () => {
   assert.strictEqual(r.status, 'cancelled');
   assert.match(calls[0].url, /\/verifications\/j1\/cancel$/);
 });
+
+test('security-sensitive settings cannot be overridden by workspace settings', () => {
+  const pkg = require('../../package.json');
+  const props = pkg.contributes.configuration.properties;
+  for (const k of ['trustcode.backendUrl', 'trustcode.mode', 'trustcode.useLlmExplanations']) assert.strictEqual(props[k].scope, 'application', k);
+});

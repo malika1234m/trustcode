@@ -3,12 +3,14 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ApiError, describeError, Tokens, TrustCodeApi } from './api';
-import { consentMessage, ConsentState, languageFor, needsPrompt, remember } from './consent';
+import { consentMessage, ConsentState, isLoopback, languageFor, needsPrompt, normaliseBackend, remember } from './consent';
 import { esc, Level, renderDecision, renderResult } from './render';
 import { shellHtml, submitFormHtml } from './panel';
 
-const TOKEN_KEY = 'trustcode.tokens';
-const PARTICIPANT_KEY = 'trustcode.participantToken';
+// Secrets are bound to the backend origin, so tokens are never sent to a different server.
+const backendUrl = () => vscode.workspace.getConfiguration('trustcode').get<string>('backendUrl')!;
+const TOKEN_KEY = () => `trustcode.tokens:${normaliseBackend(backendUrl())}`;
+const PARTICIPANT_KEY = () => `trustcode.participantToken:${normaliseBackend(backendUrl())}`;
 const CONSENT_KEY = 'trustcode.consent';
 
 interface Selection { code: string; language?: 'python' | 'javascript'; lines: number }
@@ -65,9 +67,13 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   }
 
   async ensureSignedIn(): Promise<boolean> {
-    if (await this.ctx.secrets.get(TOKEN_KEY)) return true;
+    if (await this.ctx.secrets.get(TOKEN_KEY())) return true;
     const cfg = vscode.workspace.getConfiguration('trustcode');
     if (cfg.get('mode') === 'local') {
+      if (!isLoopback(backendUrl())) {
+        vscode.window.showErrorMessage('TrustCode: local mode only works with a loopback backend (127.0.0.1, localhost, ::1). The local secret was not sent.');
+        return false;
+      }
       const secretFile = path.join(os.homedir(), '.trustcode', 'local-secret');
       if (!fs.existsSync(secretFile)) {
         vscode.window.showErrorMessage('TrustCode local mode: start the local backend first (it creates ~/.trustcode/local-secret).');
@@ -77,7 +83,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
       return true;
     }
     await vscode.commands.executeCommand('trustcode.signIn');
-    return !!(await this.ctx.secrets.get(TOKEN_KEY));
+    return !!(await this.ctx.secrets.get(TOKEN_KEY()));
   }
 
   async verify(task?: string, tests?: string) {
@@ -142,7 +148,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     if (!level || years === undefined) return;
     const r = await this.participantApi.request('POST', '/experiments/join',
       { participant_code: code.trim(), consent: true, experience_level: level, years_experience: Number(years) }, { auth: false });
-    await this.ctx.secrets.store(PARTICIPANT_KEY, JSON.stringify({ access: r.access_token }));
+    await this.ctx.secrets.store(PARTICIPANT_KEY(), JSON.stringify({ access: r.access_token }));
     await this.nextTrial();
   }
 
@@ -189,18 +195,18 @@ function tlxForm(): string {
     <button class="primary" data-action="tlx">Submit</button>`;
 }
 
-function secretStore(ctx: vscode.ExtensionContext, key: string) {
+function secretStore(ctx: vscode.ExtensionContext, key: () => string) {
   return {
-    async get(): Promise<Tokens | undefined> { const v = await ctx.secrets.get(key); return v ? JSON.parse(v) : undefined; },
-    async set(t: Tokens | undefined) { if (t) await ctx.secrets.store(key, JSON.stringify(t)); else await ctx.secrets.delete(key); },
+    async get(): Promise<Tokens | undefined> { const v = await ctx.secrets.get(key()); return v ? JSON.parse(v) : undefined; },
+    async set(t: Tokens | undefined) { if (t) await ctx.secrets.store(key(), JSON.stringify(t)); else await ctx.secrets.delete(key()); },
   };
 }
 
 export function activate(ctx: vscode.ExtensionContext) {
   const cfg = () => vscode.workspace.getConfiguration('trustcode');
   const timeout = () => cfg().get<number>('requestTimeoutSeconds', 30) * 1000;
-  const api = new TrustCodeApi(() => cfg().get<string>('backendUrl')!, secretStore(ctx, TOKEN_KEY), timeout);
-  const participantApi = new TrustCodeApi(() => cfg().get<string>('backendUrl')!, secretStore(ctx, PARTICIPANT_KEY), timeout);
+  const api = new TrustCodeApi(backendUrl, secretStore(ctx, TOKEN_KEY), timeout);
+  const participantApi = new TrustCodeApi(backendUrl, secretStore(ctx, PARTICIPANT_KEY), timeout);
   const view = new TrustCodeView(ctx, api, participantApi);
   const wrap = (fn: () => Promise<unknown>) => () => fn().catch((e) => view.error(e));
 
@@ -220,7 +226,7 @@ export function activate(ctx: vscode.ExtensionContext) {
       if (create === 'Create account') await api.register(email, password); else await api.login(email, password);
       vscode.window.showInformationMessage('TrustCode: signed in.');
     })),
-    vscode.commands.registerCommand('trustcode.signOut', wrap(async () => { await ctx.secrets.delete(TOKEN_KEY); vscode.window.showInformationMessage('TrustCode: signed out.'); })),
+    vscode.commands.registerCommand('trustcode.signOut', wrap(async () => { await ctx.secrets.delete(TOKEN_KEY()); vscode.window.showInformationMessage('TrustCode: signed out.'); })),
     vscode.commands.registerCommand('trustcode.setExperienceLevel', wrap(async () => {
       const lvl = await vscode.window.showQuickPick(['beginner', 'intermediate', 'advanced'], { placeHolder: 'How detailed should explanations be?' });
       if (!lvl || !(await view.ensureSignedIn())) return;

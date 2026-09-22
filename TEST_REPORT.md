@@ -7,7 +7,7 @@ Every result below was produced by an actual run in this session; commands are g
 |---|---|---|
 | Verification worker (unit + sandbox security) | `.venv/bin/python -m pytest verification-worker/tests` | **25 passed** |
 | Backend API (unit + integration, inline worker) | `cd backend && ../.venv/bin/python -m pytest tests` | **29 passed** |
-| Extension unit tests | `cd extension && npm test` | **12 passed** |
+| Extension unit tests | `cd extension && npm test` | **13 passed** |
 | Extension-host integration (real VS Code) | `cd extension && VSCODE_EXECUTABLE=… node out/test/integration/run.js` | **5 passed** |
 | Full-stack end-to-end (API + separate worker process + Docker sandbox, driven by the extension's API client) | `./scripts/e2e/run_e2e.sh` | **15/15 steps passed** (`docs/testing/e2e-results.json`) |
 | Benchmark validation (engine + hidden tests) | `.venv/bin/python scripts/dataset_validation/build_benchmark.py` | **20/20 items valid**, 0 duplicates, eval split balanced |
@@ -33,4 +33,5 @@ accessibility audit with a screen reader; Windows/Linux hosts.
 | D-1 | e2e run 1 (11/15) | Status polling exhausted the 60/min per-user rate limit, locking users out mid-session | General limit 300/min (submissions keep 10/min); extension polling backs off from 1 s to 3 s |
 | D-2 | backend test | Beginner guidance contained "the code is correct" (inside a negation) | Reworded; test forbids such phrasing |
 | D-3 | benchmark validation | Dev item JS-D1-D1's hidden test crashed the runner instead of demonstrating the defect | Hidden test rewritten to detect code execution |
+| S-7 | automated security review | A malicious workspace could redirect `backendUrl` and capture tokens, code and the local secret | Settings scoped to `application`; tokens keyed by backend origin; local secret sent only to loopback; test added |
 | S-1..S-6 | automated security review | Result spoofing / nonce theft via `/proc/1/fd/1`; unbounded host output buffering; researcher role granted at self-registration; local-mode DNS-rebinding; promotion of squatted accounts | Separate uid for untrusted tests + process-group kill + nonce; 1 MB output cap; admin-only provisioning; per-install secret + Host/Origin checks; `create-researcher` with interactive confirmation for existing accounts |

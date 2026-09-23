@@ -28,12 +28,23 @@ class Settings(BaseSettings):
     local_secret_file: str = "~/.trustcode/local-secret"  # per-install secret for local mode (mode 0600)
 
 
+PLACEHOLDER_MARKERS = ("change-me", "change_me", "generate-with", "dev-only", "example", "secret", "password")
+
+
+def strong_secret(value: str) -> bool:
+    v = value or ""
+    if len(v) < 32 or any(m in v.lower() for m in PLACEHOLDER_MARKERS):
+        return False
+    return len(set(v)) >= 12  # rejects low-entropy values such as "aaaa..." or "abababab..."
+
+
 @lru_cache
 def get_settings() -> Settings:
     s = Settings()
     if s.env == "production":
-        if s.jwt_secret == "dev-only-change-me" or len(s.jwt_secret) < 32:
-            raise RuntimeError("TRUSTCODE_JWT_SECRET must be set to >=32 random characters in production")
+        if not strong_secret(s.jwt_secret):
+            raise RuntimeError("TRUSTCODE_JWT_SECRET must be a random value (>=32 chars, not a placeholder); "
+                               "generate one with: openssl rand -hex 32")
         if s.worker_mode != "queue":
             raise RuntimeError("Production requires TRUSTCODE_WORKER_MODE=queue (API must never execute code)")
         if s.local_mode:

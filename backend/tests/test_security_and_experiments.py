@@ -122,3 +122,13 @@ def test_unauthenticated_endpoints_have_strict_ip_limit(client, monkeypatch):
              for i in range(7)]
     assert codes[:5] == [401] * 5 and codes[5] == 429
     limiter.reset()
+
+
+def test_production_rejects_placeholder_or_weak_jwt_secrets():
+    from app.config import strong_secret
+    assert not strong_secret("generate-with-openssl-rand-hex-32")
+    assert not strong_secret("dev-only-change-me")
+    assert not strong_secret("a" * 64)
+    assert not strong_secret("short")
+    import secrets
+    assert strong_secret(secrets.token_hex(32))

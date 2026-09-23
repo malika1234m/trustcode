@@ -15,6 +15,9 @@ services:
     environment:
       TRUSTCODE_DATABASE_URL: postgresql+psycopg2://trustcode:${POSTGRES_PASSWORD}@db:5432/trustcode
       TRUSTCODE_WORKER_MODE: queue
+      TRUSTCODE_ENV: production
+      TRUSTCODE_JWT_SECRET: ${TRUSTCODE_JWT_SECRET:?set TRUSTCODE_JWT_SECRET in .env (openssl rand -hex 32)}
+      TRUSTCODE_TRUSTED_PROXIES: ${TRUSTCODE_TRUSTED_PROXIES:-127.0.0.1}
     ports: ["127.0.0.1:8000:8000"]
     depends_on: { db: { condition: service_healthy } }
     read_only: true
@@ -27,6 +30,8 @@ services:
     environment:
       TRUSTCODE_DATABASE_URL: postgresql+psycopg2://trustcode:${POSTGRES_PASSWORD}@db:5432/trustcode
       TRUSTCODE_WORKER_MODE: queue
+      TRUSTCODE_ENV: production
+      TRUSTCODE_JWT_SECRET: ${TRUSTCODE_JWT_SECRET:?set TRUSTCODE_JWT_SECRET in .env}
       TRUSTCODE_SANDBOX_IMAGE: trustcode-sandbox:0.1
     volumes: ["/var/run/docker.sock:/var/run/docker.sock"]  # needed to start sandbox containers (threat T-9)
     depends_on: { db: { condition: service_healthy }, api: { condition: service_started } }

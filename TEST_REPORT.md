@@ -6,7 +6,7 @@ Every result below was produced by an actual run in this session; commands are g
 | Suite | Command | Result |
 |---|---|---|
 | Verification worker (unit + sandbox security) | `.venv/bin/python -m pytest verification-worker/tests` | **25 passed** |
-| Backend API (unit + integration, inline worker) | `cd backend && ../.venv/bin/python -m pytest tests` | **31 passed** |
+| Backend API (unit + integration, inline worker) | `cd backend && ../.venv/bin/python -m pytest tests` | **30 passed, 1 skipped** on the final run (the skipped `test_workflow_c_logical_defect` needs the Docker sandbox, which became unavailable when Docker Desktop failed — see DEPLOYMENT_STATUS; it passed in all earlier runs) |
 | Extension unit tests | `cd extension && npm test` | **13 passed** |
 | Extension-host integration (real VS Code) | `cd extension && VSCODE_EXECUTABLE=… node out/test/integration/run.js` | **5 passed** |
 | Full-stack end-to-end (API + separate worker process + Docker sandbox, driven by the extension's API client) | `./scripts/e2e/run_e2e.sh` | **15/15 steps passed** (`docs/testing/e2e-results.json`) |

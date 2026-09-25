@@ -132,3 +132,24 @@ def test_production_rejects_placeholder_or_weak_jwt_secrets():
     assert not strong_secret("short")
     import secrets
     assert strong_secret(secrets.token_hex(32))
+
+
+def test_production_requires_real_trusted_proxy(monkeypatch):
+    import secrets
+
+    import pytest
+
+    from app import config
+    monkeypatch.setenv("TRUSTCODE_ENV", "production")
+    monkeypatch.setenv("TRUSTCODE_WORKER_MODE", "queue")
+    monkeypatch.setenv("TRUSTCODE_JWT_SECRET", secrets.token_hex(32))
+    for bad in ("", "*", "127.0.0.1"):
+        monkeypatch.setenv("TRUSTCODE_TRUSTED_PROXIES", bad)
+        config.get_settings.cache_clear()
+        with pytest.raises(RuntimeError):
+            config.get_settings()
+    monkeypatch.setenv("TRUSTCODE_TRUSTED_PROXIES", "172.18.0.1")
+    config.get_settings.cache_clear()
+    assert config.get_settings().trusted_proxies == "172.18.0.1"
+    monkeypatch.undo()
+    config.get_settings.cache_clear()

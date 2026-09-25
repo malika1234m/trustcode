@@ -17,7 +17,9 @@ services:
       TRUSTCODE_WORKER_MODE: queue
       TRUSTCODE_ENV: production
       TRUSTCODE_JWT_SECRET: ${TRUSTCODE_JWT_SECRET:?set TRUSTCODE_JWT_SECRET in .env (openssl rand -hex 32)}
-      TRUSTCODE_TRUSTED_PROXIES: ${TRUSTCODE_TRUSTED_PROXIES:-127.0.0.1}
+      # Address/subnet of your reverse proxy as seen INSIDE the container (e.g. the bridge gateway 172.18.0.1,
+      # find it with: docker network inspect trustcode_default). Required: a wrong value makes all users share one rate-limit bucket.
+      TRUSTCODE_TRUSTED_PROXIES: ${TRUSTCODE_TRUSTED_PROXIES:?set TRUSTCODE_TRUSTED_PROXIES to the reverse proxy address seen from the api container}
     ports: ["127.0.0.1:8000:8000"]
     depends_on: { db: { condition: service_healthy } }
     read_only: true
@@ -32,6 +34,7 @@ services:
       TRUSTCODE_WORKER_MODE: queue
       TRUSTCODE_ENV: production
       TRUSTCODE_JWT_SECRET: ${TRUSTCODE_JWT_SECRET:?set TRUSTCODE_JWT_SECRET in .env}
+      TRUSTCODE_TRUSTED_PROXIES: ${TRUSTCODE_TRUSTED_PROXIES:?set TRUSTCODE_TRUSTED_PROXIES in .env}  # shared production settings validation
       TRUSTCODE_SANDBOX_IMAGE: trustcode-sandbox:0.1
     volumes: ["/var/run/docker.sock:/var/run/docker.sock"]  # needed to start sandbox containers (threat T-9)
     depends_on: { db: { condition: service_healthy }, api: { condition: service_started } }

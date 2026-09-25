@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     benchmark_dir: str = "../datasets/benchmark"
     cors_origins: str = ""
 
+    trusted_proxies: str = ""                      # mirrors uvicorn --forwarded-allow-ips; validated in production
     local_secret_file: str = "~/.trustcode/local-secret"  # per-install secret for local mode (mode 0600)
 
 
@@ -49,4 +50,8 @@ def get_settings() -> Settings:
             raise RuntimeError("Production requires TRUSTCODE_WORKER_MODE=queue (API must never execute code)")
         if s.local_mode:
             raise RuntimeError("local_mode is not allowed in production")
+        tp = {x.strip() for x in s.trusted_proxies.split(",") if x.strip()}
+        if not tp or tp & {"*", "127.0.0.1", "::1", "localhost"}:
+            raise RuntimeError("TRUSTCODE_TRUSTED_PROXIES must be the reverse proxy address seen from the API container "
+                               "(not empty, '*', or loopback); otherwise client IPs are spoofable or all users share one rate-limit bucket")
     return s

@@ -16,7 +16,10 @@ docker compose --profile build build sandbox-image
 docker compose up -d --build
 docker compose exec api python -m app.admin create-researcher you@uni.example
 ```
-Put a TLS reverse proxy (Caddy or nginx) in front of `127.0.0.1:8000`. The database is not published.
+Put a TLS reverse proxy (Caddy or nginx) in front of `127.0.0.1:8000`; it must **overwrite** (not append) `X-Forwarded-For`.
+Set `TRUSTCODE_TRUSTED_PROXIES` to the proxy's address as seen inside the api container (for a host proxy: the bridge gateway,
+`docker network inspect trustcode_default -f '{{(index .IPAM.Config 0).Gateway}}'`). The API refuses to start in production with an
+empty, `*` or loopback value. The database is not published.
 **Recommended host:** a university VM or small cloud VM (2 vCPU, 4 GB RAM). The worker needs the Docker socket (threat T-9):
 use a dedicated VM and ideally rootless Docker.
 

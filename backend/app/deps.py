@@ -17,7 +17,7 @@ bearer = HTTPBearer(auto_error=False)
 
 
 class RateLimiter:
-    """In-memory sliding window. Single-instance only; use a shared store if scaled out (KNOWN_ISSUES)."""
+    """In-memory sliding window. Single-instance only; use a shared store if scaled out (docs/project/known_issues.md)."""
 
     def __init__(self):
         self._hits: dict[str, deque] = defaultdict(deque)

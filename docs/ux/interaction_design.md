@@ -59,7 +59,7 @@ by left border **and** text label; focus ring `--vscode-focusBorder`; respects `
 - [x] Status conveyed by text, not colour alone (unit-tested)
 - [x] Buttons are real `<button>`s; level switch uses `aria-pressed`; regions have headings and `aria-labelledby`
 - [x] Live region (`aria-live="polite"`) for progress updates
-- [ ] Screen-reader walkthrough (NVDA/VoiceOver) — pending (KNOWN_ISSUES)
+- [ ] Screen-reader walkthrough (NVDA/VoiceOver) — pending (docs/project/known_issues.md)
 - [ ] Usability validation with users — Phase 13 pilot
 
 High-fidelity mockups: the implemented webview *is* the high-fidelity prototype; screenshots to be captured

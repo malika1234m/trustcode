@@ -14,7 +14,7 @@ from .analyzers.security import check_security
 from .analyzers.syntax import check_syntax
 from .analyzers.tests import check_tests
 from .languages import detect_language
-from .models import (Check, CheckKind, CheckStatus, Language, UnverifiedArea, VerificationRequest,
+from .models import (Check, CheckKind, CheckStatus, UnverifiedArea, VerificationRequest,
                      VerificationResult)
 
 ENGINE_VERSION = "trustcode-worker 0.1.0"

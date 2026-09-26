@@ -20,4 +20,4 @@ Assets: developers' source code; integrity of verification evidence; research da
 | T-14 | Hallucinated / typosquatted packages | Dependency check marks unknown packages "needs review", never OK | Registry lookup off by default (offline) |
 | T-15 | Research data re-identification | No FK to users; pseudonymous codes; export excludes unconsented sessions | Free-text rationales may contain identifiers — screen before sharing |
 
-Automated security reviews during development raised six issues (TEST_REPORT S-1…S-6); all were fixed and regression-tested.
+Automated security reviews during development raised six issues (test report S-1…S-6); all were fixed and regression-tested.

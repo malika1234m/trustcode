@@ -6,15 +6,15 @@ _Last updated: 2026-11-03_
 |---|---|---|
 | 1 | Literature review & gap | ✅ Draft complete (full texts of 12 key papers + Scopus search pending) |
 | 2 | Novelty & feasibility | ✅ Complete (supervisor sign-off pending) |
-| 3 | Requirements & architecture | ✅ `docs/requirements`, `docs/architecture`, `docs/security`, `docs/api/openapi.json`, `ARCHITECTURE_DECISIONS.md` |
+| 3 | Requirements & architecture | ✅ `docs/requirements`, `docs/architecture`, `docs/security`, `docs/api/openapi.json`, `docs/decisions/architecture_decisions.md` |
 | 4 | UX & interaction design | ✅ `docs/ux/interaction_design.md`; implemented in the webview (usability validation pending pilot) |
 | 5 | Benchmark | ✅ 20 items validated 20/20 (independent label review pending) |
 | 6 | Backend | ✅ 30 tests |
 | 7 | Verification engine | ✅ 25 tests incl. sandbox attacks |
 | 8 | Explanation engine | ✅ templates + validated optional LLM (real API untested) |
 | 9 | VS Code extension | ✅ 12 unit + 5 extension-host tests; VSIX built |
-| 10 | Integration & E2E | ✅ 15/15 e2e; `TEST_REPORT.md` |
-| 11 | Deployment | 🟡 local verified; compose partly verified (see `DEPLOYMENT_STATUS.md`); cloud needs your credentials |
+| 10 | Integration & E2E | ✅ 15/15 e2e; `docs/testing/test_report.md` |
+| 11 | Deployment | 🟡 local verified; compose partly verified (see `deployment/status.md`); cloud needs your credentials |
 | 12 | Experiment design | ✅ drafts + power simulation (needs ethics approval) |
 | 13 | Pilot | ⛔ blocked: ethics approval, participants |
 | 14 | Main experiment | ⛔ blocked: ethics approval, participants |

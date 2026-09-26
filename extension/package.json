@@ -64,6 +64,14 @@
       {
         "command": "trustcode.forgetConsent",
         "title": "TrustCode: Ask Before Sending Code Again"
+      },
+      {
+        "command": "trustcode.deleteMyData",
+        "title": "TrustCode: Delete My Account and Data"
+      },
+      {
+        "command": "trustcode.clearFindings",
+        "title": "TrustCode: Clear Findings from Editor"
       }
     ],
     "menus": {

@@ -1,11 +1,41 @@
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Node / VS Code extension
+node_modules/
+extension/out/
+*.vsix
+.vscode-test/
+
+# Local data and secrets (never commit)
 .env
 .env.*
 !.env.example
+*.db
+*.sqlite3
+local-secret
+
+# OS / editors
 .DS_Store
-node_modules/
-.venv/
-*.egg-info/
-build/
-trustcode.db
+Thumbs.db
+.idea/
+*.swp
+
+# Generated
+e2e-results.json
+!docs/testing/e2e-results.json
+
+# Local tool/plugin state
+.rune/
+.claude/
+.vercel

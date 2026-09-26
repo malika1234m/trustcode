@@ -47,7 +47,9 @@ def health(db: Session = Depends(get_db)):
     from trustcode_worker.sandbox.docker_runner import docker_available
     s = get_settings()
     return {"status": "ok" if db_ok else "degraded", "database": db_ok, "worker_mode": s.worker_mode,
-            "sandbox": docker_available()[0] if s.worker_mode == "inline" else "remote-worker",
+            "test_execution": ("disabled" if not s.run_tests else
+                               ("sandbox-ready" if docker_available()[0] else "sandbox-unavailable") if s.worker_mode == "inline"
+                               else "remote-worker"),
             "llm_configured": bool(s.anthropic_api_key), "local_mode": s.local_mode}
 
 

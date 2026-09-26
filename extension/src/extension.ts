@@ -13,7 +13,12 @@ const TOKEN_KEY = () => `trustcode.tokens:${normaliseBackend(backendUrl())}`;
 const PARTICIPANT_KEY = () => `trustcode.participantToken:${normaliseBackend(backendUrl())}`;
 const CONSENT_KEY = 'trustcode.consent';
 
-interface Selection { code: string; language?: 'python' | 'javascript'; lines: number }
+interface Selection { code: string; language?: 'python' | 'javascript'; lines: number; uri: vscode.Uri; startLine: number }
+
+const SEV: Record<string, vscode.DiagnosticSeverity> = {
+  critical: vscode.DiagnosticSeverity.Warning, high: vscode.DiagnosticSeverity.Warning,
+  medium: vscode.DiagnosticSeverity.Information, low: vscode.DiagnosticSeverity.Information, info: vscode.DiagnosticSeverity.Hint,
+};
 
 class TrustCodeView implements vscode.WebviewViewProvider {
   view?: vscode.WebviewView;
@@ -23,7 +28,29 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   trialId?: string;
   private lastTask = '';
 
+  readonly diagnostics = vscode.languages.createDiagnosticCollection('trustcode');
+
   constructor(private ctx: vscode.ExtensionContext, private api: TrustCodeApi, private participantApi: TrustCodeApi) {}
+
+  /** Show findings as editor hints at their real line (evidence, not verdicts: never "Error" severity). */
+  showDiagnostics(result: any) {
+    if (!this.selection) return;
+    const sel = this.selection;
+    const diags: vscode.Diagnostic[] = [];
+    for (const c of result?.checks ?? []) {
+      for (const f of c.findings ?? []) {
+        if (!f.location?.line) continue;
+        const line = sel.startLine + f.location.line - 1;
+        const end = sel.startLine + (f.location.end_line ?? f.location.line) - 1;
+        const d = new vscode.Diagnostic(new vscode.Range(line, 0, end, Number.MAX_SAFE_INTEGER),
+          `${f.title} (${f.id}) — ${f.message}`, SEV[f.severity] ?? vscode.DiagnosticSeverity.Information);
+        d.source = `TrustCode · ${f.tool}`;
+        d.code = f.rule_id ?? undefined;
+        diags.push(d);
+      }
+    }
+    this.diagnostics.set(sel.uri, diags);
+  }
 
   resolveWebviewView(view: vscode.WebviewView) {
     this.view = view;
@@ -47,7 +74,8 @@ class TrustCodeView implements vscode.WebviewViewProvider {
       return false;
     }
     const code = ed.document.getText(ed.selection);  // read-only access; the document is never modified
-    this.selection = { code, language: languageFor(ed.document.languageId), lines: code.split('\n').length };
+    this.selection = { code, language: languageFor(ed.document.languageId), lines: code.split('\n').length,
+      uri: ed.document.uri, startLine: ed.selection.start.line };
     return true;
   }
 
@@ -87,7 +115,17 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   }
 
   async verify(task?: string, tests?: string) {
+    // Prefer the editor's current selection so a stale capture is never sent by mistake.
+    const ed = vscode.window.activeTextEditor ?? vscode.window.visibleTextEditors.find((e) => !e.selection.isEmpty);
+    if (ed && !ed.selection.isEmpty) {
+      const current = ed.document.getText(ed.selection);
+      if (current !== this.selection?.code) {
+        this.selection = { code: current, language: languageFor(ed.document.languageId), lines: current.split('\n').length,
+          uri: ed.document.uri, startLine: ed.selection.start.line };
+      }
+    }
     if (!this.selection && !this.captureSelection()) return;
+    this.diagnostics.clear();
     const sel = this.selection!;
     const cfg = vscode.workspace.getConfiguration('trustcode');
     const backend = cfg.get<string>('backendUrl')!;
@@ -112,6 +150,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
         });
         if (done.status === 'cancelled') { this.render('<p>Verification cancelled.</p><button data-action="home">Back</button>'); return; }
         if (done.status !== 'done') throw new ApiError(500, 'failed', done.error ?? `verification ${done.status}`);
+        this.showDiagnostics(done.result);
         await this.showExplanation();
       });
   }
@@ -125,7 +164,9 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     const view = await this.api.request('GET', `/verifications/${this.jobId}/explanation?${q}`);
     this.render(`<h2>Verification evidence</h2>${renderResult(view)}${renderDecision('decide')}
       <label for="rationale">Optional note</label><textarea id="rationale"></textarea>
-      <div class="row"><button data-action="home">Verify something else</button></div>`);
+      <div class="row"><button data-action="home">Add tests / task and re-verify</button>
+      <button data-action="home">Verify something else</button></div>
+      <p class="note">Findings are also shown as hints in the editor (Problems panel, source “TrustCode”).</p>`);
   }
 
   async decide(m: any) {
@@ -248,6 +289,18 @@ export function activate(ctx: vscode.ExtensionContext) {
       vscode.window.showInformationMessage('TrustCode: privacy settings saved.');
     })),
     vscode.commands.registerCommand('trustcode.startExperiment', wrap(async () => { await vscode.commands.executeCommand('trustcode.panel.focus'); await view.startExperiment(); })),
+    view.diagnostics,
+    vscode.commands.registerCommand('trustcode.clearFindings', () => view.diagnostics.clear()),
+    vscode.commands.registerCommand('trustcode.deleteMyData', wrap(async () => {
+      const ok = await vscode.window.showWarningMessage(
+        'Delete your TrustCode account and all stored verification history, decisions and feedback on this server? This cannot be undone.',
+        { modal: true }, 'Delete everything');
+      if (ok !== 'Delete everything' || !(await view.ensureSignedIn())) return;
+      await api.request('DELETE', '/me/data');
+      await ctx.secrets.delete(TOKEN_KEY());
+      view.diagnostics.clear();
+      vscode.window.showInformationMessage('TrustCode: your account and data were deleted.');
+    })),
     vscode.commands.registerCommand('trustcode.forgetConsent', wrap(async () => { await ctx.globalState.update(CONSENT_KEY, { trustedBackends: [] }); vscode.window.showInformationMessage('TrustCode will ask before sending code again.'); })),
   );
 }

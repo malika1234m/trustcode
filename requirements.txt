@@ -1,0 +1,11 @@
+# Runtime dependencies for the Vercel deployment (api/index.py). Local dev: backend/requirements-dev.txt
+fastapi>=0.115
+sqlalchemy>=2.0
+pydantic>=2.7
+pydantic-settings>=2.3
+pyjwt>=2.8
+psycopg2-binary>=2.9
+anthropic>=0.40
+ruff==0.6.9
+pyflakes>=3.2   # pure-Python lint fallback (ruff's binary is not bundled on Vercel)
+semgrep==1.79.0

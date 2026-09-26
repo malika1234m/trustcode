@@ -17,7 +17,7 @@ bearer = HTTPBearer(auto_error=False)
 
 
 class RateLimiter:
-    """In-memory sliding window. Single-instance only; use a shared store if scaled out (KNOWN_ISSUES)."""
+    """In-memory sliding window. Single-instance only; use a shared store if scaled out (docs/project/known_issues.md)."""
 
     def __init__(self):
         self._hits: dict[str, deque] = defaultdict(deque)
@@ -42,9 +42,18 @@ class RateLimiter:
 limiter = RateLimiter()
 
 
+def client_ip(request: Request) -> str:
+    from .config import ON_VERCEL
+    if ON_VERCEL:  # set by Vercel's edge and not client-controllable
+        v = request.headers.get("x-vercel-forwarded-for") or request.headers.get("x-real-ip")
+        if v:
+            return v.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
 def rate_limit(request: Request):
     """Strict per-IP limit for unauthenticated endpoints (brute-force / enumeration guard)."""
-    limiter.check(f"ip-auth:{request.client.host if request.client else 'unknown'}", get_settings().auth_rate_limit_per_minute)
+    limiter.check(f"ip-auth:{client_ip(request)}", get_settings().auth_rate_limit_per_minute)
 
 
 def _credentials_error():

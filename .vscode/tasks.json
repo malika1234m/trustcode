@@ -1,0 +1,12 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    { "label": "extension: compile", "type": "shell", "command": "npm run compile", "options": { "cwd": "${workspaceFolder}/extension" }, "problemMatcher": "$tsc" },
+    { "label": "backend: start (local mode)", "type": "shell", "isBackground": true,
+      "command": "TRUSTCODE_LOCAL_MODE=true TRUSTCODE_WORKER_MODE=inline ../.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000",
+      "options": { "cwd": "${workspaceFolder}/backend" }, "problemMatcher": [] },
+    { "label": "test: backend", "type": "shell", "command": "../.venv/bin/python -m pytest tests -q", "options": { "cwd": "${workspaceFolder}/backend" }, "group": "test" },
+    { "label": "test: worker", "type": "shell", "command": ".venv/bin/python -m pytest verification-worker/tests -q", "group": "test" },
+    { "label": "test: extension", "type": "shell", "command": "npm test", "options": { "cwd": "${workspaceFolder}/extension" }, "group": "test" }
+  ]
+}

@@ -14,7 +14,7 @@ from .analyzers.security import check_security
 from .analyzers.syntax import check_syntax
 from .analyzers.tests import check_tests
 from .languages import detect_language
-from .models import (Check, CheckKind, CheckStatus, Language, UnverifiedArea, VerificationRequest,
+from .models import (Check, CheckKind, CheckStatus, UnverifiedArea, VerificationRequest,
                      VerificationResult)
 
 ENGINE_VERSION = "trustcode-worker 0.1.0"
@@ -36,10 +36,13 @@ def verify(req: VerificationRequest, run_tests: bool = True) -> VerificationResu
         wd = Path(d)
         syntax = _safe(check_syntax, CheckKind.SYNTAX, req.code, lang, wd)
         parses = syntax.details.get("parses", False)
-        lint = _safe(check_lint, CheckKind.LINT, req.code, lang, wd) if parses else Check(
+        # A syntax check that could not run (tool unavailable) is "unknown", not a parse error:
+        # still run the static analyzers, which have their own parsers and report their own failures.
+        analysable = parses or syntax.status == CheckStatus.CHECK_FAILED
+        lint = _safe(check_lint, CheckKind.LINT, req.code, lang, wd) if analysable else Check(
             kind=CheckKind.LINT, tool="ruff", status=CheckStatus.NOT_RUN, summary="Skipped: code does not parse.",
             scope="Not run.")
-        security = _safe(check_security, CheckKind.SECURITY, req.code, lang, wd) if parses else Check(
+        security = _safe(check_security, CheckKind.SECURITY, req.code, lang, wd) if analysable else Check(
             kind=CheckKind.SECURITY, tool="semgrep", status=CheckStatus.NOT_RUN, summary="Skipped: code does not parse.",
             scope="Not run: security patterns were NOT checked.")
     deps = _safe(check_dependencies, CheckKind.DEPENDENCIES, req.code, lang)

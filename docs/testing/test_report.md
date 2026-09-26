@@ -12,6 +12,16 @@ Every result below was produced by an actual run in this session; commands are g
 | Full-stack end-to-end (API + separate worker process + Docker sandbox, driven by the extension's API client) | `./scripts/e2e/run_e2e.sh` | **15/15 steps passed** (`docs/testing/e2e-results.json`) |
 | Benchmark validation (engine + hidden tests) | `.venv/bin/python scripts/dataset_validation/build_benchmark.py` | **20/20 items valid**, 0 duplicates, eval split balanced |
 
+## Continuous integration (GitHub Actions, Ubuntu, real Docker)
+Run 41824679342 on `main`: **all steps passed** — Semgrep rules valid (21), worker tests **25 passed** (sandbox tests executed, none skipped),
+backend tests **32 passed**, Alembic upgrade/downgrade clean, benchmark validation **20/20**, lint clean, extension **13 passed**, VSIX packaged.
+
+## Production smoke test (Vercel, 2026-11-09)
+Live API https://trustcode-api.vercel.app: health OK (database connected); register; Python SQL-injection snippet → pyflakes F401 + Semgrep CWE-89;
+JavaScript `eval` → Semgrep CWE-95; beginner explanations; account deletion. Found and fixed during deployment: catch-all rewrite broke routing;
+Semgrep child process could not import its package (PYTHONPATH); unavailable JS syntax tool wrongly skipped Semgrep; **ruff missing binary was
+reported as "passed"** (now check_failed, with pyflakes fallback) — each covered by a new regression test.
+
 ## Brief workflows (Phase 10) → evidence
 | Workflow | Covered by |
 |---|---|

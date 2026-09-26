@@ -16,4 +16,4 @@ For each candidate contribution the brief proposed (A–E): the comparable work,
 
 > TrustCode contributes (1) an interaction design for AI-generated-code verification that presents tool-grounded evidence with explicit epistemic status and keeps evidence invariant under expertise-adapted presentation, and (2) the first controlled evaluation, on a ground-truth benchmark with tool-detectable and tool-blind defects, of how such evidence affects the correctness and calibration of developers' accept/reject decisions.
 
-Claim (2) holds only if the full-text checks listed in `KNOWN_ISSUES.md` (KI-001, KI-002) do not reveal an equivalent study. **Re-run the search before submitting the proposal.**
+Claim (2) holds only if the full-text checks listed in `docs/project/known_issues.md` (KI-001, KI-002) do not reveal an equivalent study. **Re-run the search before submitting the proposal.**

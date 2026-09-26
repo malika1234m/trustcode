@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run TrustCode Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/extension"],
+      "outFiles": ["${workspaceFolder}/extension/out/**/*.js"],
+      "preLaunchTask": "extension: compile"
+    },
+    {
+      "name": "Backend API (local mode)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "uvicorn",
+      "args": ["app.main:app", "--host", "127.0.0.1", "--port", "8000"],
+      "cwd": "${workspaceFolder}/backend",
+      "env": { "TRUSTCODE_LOCAL_MODE": "true", "TRUSTCODE_WORKER_MODE": "inline" },
+      "python": "${workspaceFolder}/.venv/bin/python"
+    }
+  ]
+}

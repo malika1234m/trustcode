@@ -6,7 +6,7 @@ resolve is reported and excluded (exit code 1), so nothing unverified is cited.
 
 Usage: python3 scripts/literature/build_outputs.py
 """
-import csv, json, os, re, sys, time, urllib.parse, urllib.request
+import csv, json, os, sys, time, urllib.parse, urllib.request
 import xml.etree.ElementTree as ET  # parses arXiv API responses only; expat >= 2.4.1 blocks entity expansion attacks
 
 sys.path.insert(0, os.path.dirname(__file__))

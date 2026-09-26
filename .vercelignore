@@ -1,0 +1,17 @@
+.venv
+**/node_modules
+extension
+research
+dissertation
+presentation
+docs
+scripts
+deployment
+demo
+.github
+backend/tests
+verification-worker/tests
+**/__pycache__
+*.db
+.env
+.env.*

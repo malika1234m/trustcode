@@ -153,3 +153,50 @@ def test_production_requires_real_trusted_proxy(monkeypatch):
     assert config.get_settings().trusted_proxies == "172.18.0.1"
     monkeypatch.undo()
     config.get_settings.cache_clear()
+
+
+def test_local_mode_creates_secret_at_startup(monkeypatch, tmp_path):
+    from app import local_secret
+    from app.main import create_app
+    target = tmp_path / "local-secret"
+    monkeypatch.setattr(get_settings(), "local_mode", True)
+    monkeypatch.setattr(get_settings(), "local_secret_file", str(target))
+    create_app()
+    assert target.exists() and len(target.read_text()) > 30
+    assert local_secret.check_local_secret(target.read_text())
+
+
+def test_database_url_normalisation():
+    from app.config import _normalise_db_url
+    assert _normalise_db_url("postgres://u:p@h/db?sslmode=require") == "postgresql+psycopg2://u:p@h/db?sslmode=require"
+    assert _normalise_db_url("sqlite:///x.db") == "sqlite:///x.db"
+
+
+def test_sync_mode_requires_tests_disabled(monkeypatch):
+    import secrets
+
+    import pytest
+
+    from app import config
+    for k, v in {"TRUSTCODE_ENV": "production", "TRUSTCODE_WORKER_MODE": "sync", "TRUSTCODE_RUN_TESTS": "true",
+                 "TRUSTCODE_JWT_SECRET": secrets.token_hex(32), "TRUSTCODE_TRUSTED_PROXIES": "10.0.0.1"}.items():
+        monkeypatch.setenv(k, v)
+    config.get_settings.cache_clear()
+    with pytest.raises(RuntimeError):
+        config.get_settings()
+    monkeypatch.setenv("TRUSTCODE_RUN_TESTS", "false")
+    config.get_settings.cache_clear()
+    assert config.get_settings().worker_mode == "sync"
+    monkeypatch.undo()
+    config.get_settings.cache_clear()
+
+
+def test_sync_mode_returns_finished_job(client, auth, monkeypatch):
+    monkeypatch.setattr(get_settings(), "worker_mode", "sync")
+    monkeypatch.setattr(get_settings(), "run_tests", False)
+    r = client.post(f"{V}/verifications", headers=auth, json={"code": "import os\ndef f(c):\n    os.system(c)\n", "client_consent": True})
+    assert r.status_code == 202
+    j = client.get(f"{V}/verifications/{r.json()['id']}", headers=auth).json()
+    assert j["status"] == "done"
+    tests = next(c for c in j["result"]["checks"] if c["kind"] == "tests")
+    assert tests["status"] == "not_run"

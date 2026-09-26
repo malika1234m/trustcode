@@ -23,6 +23,9 @@ def create_app() -> FastAPI:
                   description="Evidence-grounded verification of AI-generated code. Never returns an aggregate correctness verdict.")
     if s.env != "production":
         Base.metadata.create_all(engine)  # production uses Alembic migrations
+    if s.local_mode:
+        from .local_secret import ensure_local_secret
+        ensure_local_secret()  # create ~/.trustcode/local-secret at startup so the extension can sign in
     if s.cors_origins:
         app.add_middleware(CORSMiddleware, allow_origins=[o.strip() for o in s.cors_origins.split(",")],
                            allow_methods=["GET", "POST", "PATCH", "DELETE"], allow_headers=["Authorization", "Content-Type"])

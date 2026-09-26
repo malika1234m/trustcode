@@ -1,7 +1,8 @@
 from sqlalchemy import create_engine, event
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import NullPool
 
-from .config import get_settings
+from .config import ON_VERCEL, get_settings
 
 
 class Base(DeclarativeBase):
@@ -12,6 +13,8 @@ def make_engine(url: str):
     kwargs = {"pool_pre_ping": True}
     if url.startswith("sqlite"):
         kwargs["connect_args"] = {"check_same_thread": False}
+    elif ON_VERCEL:
+        kwargs["poolclass"] = NullPool  # serverless: no long-lived pool; Neon pools server-side
     eng = create_engine(url, **kwargs)
     if url.startswith("sqlite"):
         @event.listens_for(eng, "connect")

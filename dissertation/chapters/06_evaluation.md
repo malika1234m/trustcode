@@ -1,7 +1,7 @@
 # Chapter 6 — Testing and Evaluation
 
 ## 6.1 Functional and security testing (complete — real results)
-From `TEST_REPORT.md`: worker 25 tests, backend 30, extension 12 unit + 5 extension-host, full-stack e2e 15/15,
+From `docs/testing/test_report.md`: worker 25 tests, backend 30, extension 12 unit + 5 extension-host, full-stack e2e 15/15,
 benchmark validation 20/20. Defects found by testing (D-1 rate-limit lockout, D-2 wording, D-3 benchmark item) and six
 security-review findings were fixed and regression-tested. Untested areas are listed in the report.
 

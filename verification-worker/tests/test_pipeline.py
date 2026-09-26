@@ -184,3 +184,37 @@ def test_tampering_code_flagged_for_review():
     code = "import sys\ndef f():\n    sys.modules['pytest'] = None\n"
     r = verify(VerificationRequest(code=code, language="python"), run_tests=False)
     assert any(f.rule_id == "runtime-or-test-tampering" for f in r.check(CheckKind.SECURITY).findings)
+
+
+def test_unavailable_syntax_tool_does_not_skip_security(monkeypatch):
+    import trustcode_worker.analyzers.syntax as syn
+    monkeypatch.setattr(syn, "node_cmd", lambda: None)
+    r = verify(VerificationRequest(code="function run(c){ return eval(c); }\n", language="javascript"), run_tests=False)
+    assert r.check(CheckKind.SYNTAX).status == CheckStatus.CHECK_FAILED
+    assert r.check(CheckKind.SECURITY).status == CheckStatus.ISSUES_FOUND
+    assert any(f.rule_id == "js-eval" for f in r.check(CheckKind.SECURITY).findings)
+
+
+def test_child_tools_receive_python_path():
+    import sys
+
+    from trustcode_worker.tools import run
+    out = run([sys.executable, "-c", "import os; print(os.environ.get('PYTHONPATH',''))"])
+    assert any(p and p in out.stdout for p in sys.path)
+
+
+def test_silent_linter_failure_is_never_reported_as_passed(monkeypatch):
+    import trustcode_worker.analyzers.lint as lint
+    monkeypatch.setattr(lint, "ruff_cmd", lambda: ["true"])  # exits 0, prints nothing
+    monkeypatch.setattr(lint, "_pyflakes", lambda code, t0: None)  # and no fallback available
+    r = verify(VerificationRequest(code="import os\n", language="python"), run_tests=False)
+    assert r.check(CheckKind.LINT).status == CheckStatus.CHECK_FAILED
+
+
+def test_pyflakes_fallback_when_ruff_binary_missing(monkeypatch):
+    import trustcode_worker.analyzers.lint as lint
+    monkeypatch.setattr(lint, "ruff_cmd", lambda: ["true"])
+    r = verify(VerificationRequest(code="import os\ndef f():\n    return undefined_name\n", language="python"), run_tests=False)
+    lc = r.check(CheckKind.LINT)
+    assert lc.tool == "pyflakes" and {f.rule_id for f in lc.findings} == {"F401", "F821"}
+    assert "NOT checked" in lc.scope

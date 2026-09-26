@@ -23,7 +23,12 @@ class ToolRun:
 
 
 def run(cmd: list[str], cwd: str | None = None, timeout: float = 60, env: dict | None = None) -> ToolRun:
-    base_env = {"PATH": os.environ.get("PATH", ""), "HOME": os.environ.get("HOME", "/tmp"),
+    home = os.environ.get("HOME", "/tmp")
+    if not os.access(home, os.W_OK):
+        home = "/tmp"  # read-only filesystems (serverless): tools need a writable HOME for caches
+    base_env = {"PATH": os.environ.get("PATH", ""), "HOME": home, "XDG_CACHE_HOME": f"{home}/.cache",
+                # child Python processes must see the same packages (serverless runtimes inject them via sys.path)
+                "PYTHONPATH": os.pathsep.join(p for p in sys.path if p),
                 "LANG": "C.UTF-8", "SEMGREP_SEND_METRICS": "off", "SEMGREP_ENABLE_VERSION_CHECK": "0"}
     if env:
         base_env.update(env)
@@ -54,13 +59,25 @@ def semgrep_cmd() -> list[str] | None:
     if py:
         return [sys.executable, py]
     exe = shutil.which("semgrep")
-    return [exe] if exe else None
+    if exe:
+        return [exe]
+    try:  # installed as a library without console scripts on PATH (e.g. serverless)
+        import semgrep.main  # noqa: F401
+        return [sys.executable, "-c", "import sys, semgrep.main; sys.exit(semgrep.main.main())"]
+    except ImportError:
+        return None
 
 
 @functools.lru_cache
 def ruff_cmd() -> list[str] | None:
     exe = _venv_script("ruff") or shutil.which("ruff")
-    return [exe] if exe else None
+    if exe:
+        return [exe]
+    try:
+        import ruff  # noqa: F401
+        return [sys.executable, "-m", "ruff"]
+    except ImportError:
+        return None
 
 
 @functools.lru_cache

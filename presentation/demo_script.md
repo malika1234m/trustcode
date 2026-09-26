@@ -1,5 +1,5 @@
 # Demo script (≈ 6 min)
-1. (Pre-start the backend: deployment/README.md §A with the worker in queue mode.) Open `demo/average.py` containing the PY-D2-02 code.
+1. Start the backend (VS Code task **backend: start (local mode)**) and open `demo/average.py` (PY-D2-02).
 2. Select it → Verify. Point out the consent dialog: nothing is sent before you confirm.
 3. Add the task "average, 0.0 for empty list" and the visible tests → result: tests ✓, security ✓, **Matches the task? ? Requires human review**.
    Ask the audience: accept? Show that the empty-list defect is invisible to the tools: this is the D2/complacency case.

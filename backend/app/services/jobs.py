@@ -27,7 +27,10 @@ def enqueue(db: Session, user_id: str, code: str, language: str | None, task: st
                           code_sha256=hashlib.sha256(code.encode()).hexdigest(), code_lines=len(code.splitlines()))
     db.add(job)
     db.commit()
-    if get_settings().worker_mode == "inline":
+    if get_settings().worker_mode == "sync":
+        process_job_id(job.id)  # serverless: analyse before responding (static checks only; run_tests is false)
+        db.refresh(job)
+    elif get_settings().worker_mode == "inline":
         threading.Thread(target=process_job_id, args=(job.id,), daemon=True).start()
     return job
 

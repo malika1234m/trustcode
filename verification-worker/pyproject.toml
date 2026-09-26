@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 dependencies = ["pydantic>=2.7"]
 
 [project.optional-dependencies]
-tools = ["ruff>=0.6", "semgrep>=1.70"]
+tools = ["ruff>=0.6", "semgrep>=1.70", "pyflakes>=3.2"]
 
 [build-system]
 requires = ["setuptools>=68"]

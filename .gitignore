@@ -39,3 +39,7 @@ e2e-results.json
 .rune/
 .claude/
 .vercel
+
+# Agent skill bundles installed locally
+web/.agents/
+skills-lock.json

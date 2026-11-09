@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 228 48" width="228" height="48">
+  <g><path d="M6 17V10a4 4 0 0 1 4-4h7M42 31v7a4 4 0 0 1-4 4h-7" fill="none" stroke="#8E96FF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/><path d="M14 25l7 7 6.3-7.65" fill="none" stroke="#4FD1B5" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M29.2 21.9l2.3-2.8" fill="none" stroke="#4FD1B5" stroke-width="4.5" stroke-opacity=".55"/><path d="M33.4 16.8l1.6-1.95" fill="none" stroke="#4FD1B5" stroke-width="4.5" stroke-opacity=".28"/></g>
+  <text x="60" y="33" font-family="'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="-0.4" fill="#E7ECF5">TrustCode</text>
+</svg>

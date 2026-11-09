@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field
 class Language(str, Enum):
     PYTHON = "python"
     JAVASCRIPT = "javascript"
+    TYPESCRIPT = "typescript"
 
 
 class CheckKind(str, Enum):

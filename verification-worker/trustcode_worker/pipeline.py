@@ -47,7 +47,14 @@ def verify(req: VerificationRequest, run_tests: bool = True) -> VerificationResu
             scope="Not run: security patterns were NOT checked.")
     deps = _safe(check_dependencies, CheckKind.DEPENDENCIES, req.code, lang)
     unverified: list[UnverifiedArea] = []
-    if run_tests:
+    if syntax.details.get("declarations_only"):
+        # Type declarations (e.g. .d.ts) have no behaviour: testing is not applicable, not "missing".
+        tests = Check(kind=CheckKind.TESTS, tool="sandbox", status=CheckStatus.NOT_RUN,
+                      summary="Not applicable: type declarations contain no runnable code.",
+                      scope="Declarations describe types only; there is no behaviour to test.")
+        unverified.append(UnverifiedArea(id="", description="Whether the declared types match the real implementation",
+                                         reason="Type declarations only (e.g. a .d.ts file): the implementation is elsewhere and was not checked."))
+    elif run_tests:
         try:
             tests, gaps = check_tests(req.code, req.tests, lang, parses)
         except Exception as e:

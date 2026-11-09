@@ -23,6 +23,12 @@ def check_tests(code: str, tests: str | None, lang: Language, parses: bool) -> t
                       scope="Not run: runtime behaviour was NOT tested."),
                 [UnverifiedArea(id="", description="Runtime behaviour of the whole snippet",
                                 reason="No tests were supplied, so no input was ever executed.")])
+    if lang == Language.TYPESCRIPT:
+        return (Check(kind=CheckKind.TESTS, tool="sandbox", status=CheckStatus.NOT_RUN,
+                      summary="Test execution for TypeScript is not supported in this version.",
+                      scope="Not run: runtime behaviour was NOT tested."),
+                [UnverifiedArea(id="", description="Runtime behaviour of the whole snippet",
+                                reason="TypeScript tests cannot be executed in this version.")])
     if not parses:
         return (Check(kind=CheckKind.TESTS, tool=tool, status=CheckStatus.NOT_RUN,
                       summary="Skipped because the code does not parse.", scope=SCOPE),

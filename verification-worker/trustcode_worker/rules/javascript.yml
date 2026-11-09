@@ -1,7 +1,7 @@
-# TrustCode frozen Semgrep ruleset - JavaScript (v1). Do not modify during an experiment.
+# TrustCode frozen Semgrep ruleset - JavaScript and TypeScript (v1.1). Do not modify during an experiment.
 rules:
   - id: js-eval
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: ERROR
     message: eval()/new Function() executes arbitrary code.
     pattern-either:
@@ -16,7 +16,7 @@ rules:
       why: Evaluating strings as code allows arbitrary code execution when input is attacker-influenced.
       fix: Use JSON.parse for data, or explicit parsing logic.
   - id: js-child-process-exec
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: ERROR
     message: child_process.exec runs a shell command string.
     pattern-either:
@@ -38,7 +38,7 @@ rules:
       fix: Use execFile/spawn with an argument array and no shell.
       confidence: medium - flagged even when the command string is constant.
   - id: js-sql-concat
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: ERROR
     message: SQL query built with string concatenation or template literal.
     pattern-either:
@@ -59,7 +59,7 @@ rules:
       why: Interpolating input into SQL text allows injection.
       fix: Use placeholders, e.g. db.prepare("SELECT * FROM t WHERE id = ?").get(id).
   - id: js-innerhtml
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: WARNING
     message: Assignment to innerHTML/outerHTML or document.write with dynamic content.
     pattern-either:
@@ -75,7 +75,7 @@ rules:
       why: Writing untrusted strings as HTML enables XSS.
       fix: Use textContent, or sanitise with a vetted library.
   - id: js-insecure-random
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: WARNING
     message: Math.random() is not cryptographically secure.
     pattern: Math.random()
@@ -89,7 +89,7 @@ rules:
       fix: Use crypto.randomBytes / crypto.randomUUID for secrets. Math.random is fine for non-secret uses.
       confidence: low - frequently a false positive when randomness is not security-relevant.
   - id: js-weak-hash
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: WARNING
     message: Weak hash algorithm (MD5/SHA-1).
     pattern-either:
@@ -107,7 +107,7 @@ rules:
       fix: Use crypto.scrypt for passwords or SHA-256+ for integrity.
       confidence: medium - acceptable for non-security checksums.
   - id: js-hardcoded-secret
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: WARNING
     message: Possible hard-coded credential.
     patterns:
@@ -130,7 +130,7 @@ rules:
       why: Credentials in source are exposed via repositories and builds.
       fix: Read secrets from process.env or a secrets manager.
   - id: js-path-traversal
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: WARNING
     message: File path built from input without containment check.
     patterns:
@@ -150,7 +150,7 @@ rules:
       why: Joining unvalidated input to a base path allows traversal.
       fix: path.resolve the result and check it startsWith the resolved base directory.
   - id: js-prototype-pollution-merge
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: WARNING
     message: Recursive property copy without guarding __proto__/constructor keys.
     patterns:
@@ -168,7 +168,7 @@ rules:
       fix: Skip __proto__, constructor and prototype keys, or use Object.create(null)/structuredClone.
       confidence: medium
   - id: js-runtime-or-test-tampering
-    languages: [javascript]
+    languages: [javascript, typescript]
     severity: ERROR
     message: Code exits the process, signals other processes or patches the test framework; test results may be unreliable.
     pattern-either:

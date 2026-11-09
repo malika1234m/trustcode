@@ -188,7 +188,7 @@ def test_tampering_code_flagged_for_review():
 
 def test_unavailable_syntax_tool_does_not_skip_security(monkeypatch):
     import trustcode_worker.analyzers.syntax as syn
-    monkeypatch.setattr(syn, "node_cmd", lambda: None)
+    monkeypatch.setattr(syn, "parse_tree", lambda code, lang: None)  # parser unavailable
     r = verify(VerificationRequest(code="function run(c){ return eval(c); }\n", language="javascript"), run_tests=False)
     assert r.check(CheckKind.SYNTAX).status == CheckStatus.CHECK_FAILED
     assert r.check(CheckKind.SECURITY).status == CheckStatus.ISSUES_FOUND
@@ -218,3 +218,101 @@ def test_pyflakes_fallback_when_ruff_binary_missing(monkeypatch):
     lc = r.check(CheckKind.LINT)
     assert lc.tool == "pyflakes" and {f.rule_id for f in lc.findings} == {"F401", "F821"}
     assert "NOT checked" in lc.scope
+
+
+# ---------- regression: Node 20 `--check` skips parsing for ES-module syntax in .js files ----------
+def test_broken_es_module_code_is_not_reported_as_parsing():
+    code = "/**\n * doc\n */\nexport declare function f(a: any): asserts a;\n"   # TypeScript, invalid JavaScript
+    r = verify(VerificationRequest(code=code, language="javascript"), run_tests=False)
+    assert r.check(CheckKind.SYNTAX).status == CheckStatus.ISSUES_FOUND
+
+
+def test_valid_es_module_code_still_parses():
+    code = "import fs from 'fs';\nexport function size(p) { return fs.statSync(p).size; }\n"
+    r = verify(VerificationRequest(code=code, language="javascript"), run_tests=False)
+    assert r.check(CheckKind.SYNTAX).status == CheckStatus.PASSED
+
+
+def test_commonjs_dynamic_import_is_not_treated_as_module():
+    code = "async function load() { return import('fs'); }\nmodule.exports = { load };\n"
+    r = verify(VerificationRequest(code=code, language="javascript"), run_tests=False)
+    assert r.check(CheckKind.SYNTAX).status == CheckStatus.PASSED
+
+
+# ---------- languages identified separately and correctly (TypeScript, declarations, partial selections) ----------
+DTS = """/**
+ * Test if condition is truthy.
+ * @param {any} expression to be evaluated
+ */
+export declare function invariant(condition: any, message?: string): asserts condition;
+"""
+
+
+def test_typescript_is_detected_without_a_hint():
+    lang, how = detect_language("interface User { id: number; name: string }\nexport function f(u: User): string { return u.name; }\n")
+    assert lang == Language.TYPESCRIPT and "TypeScript" in how
+
+
+def test_typescript_hints_from_editor():
+    assert detect_language("x", "typescriptreact")[0] == Language.TYPESCRIPT
+
+
+def test_valid_typescript_parses_with_typescript_parser():
+    code = "export function add(a: number, b: number): number {\n  return a + b;\n}\n"
+    r = verify(VerificationRequest(code=code, language="typescript"), run_tests=False)
+    syn = r.check(CheckKind.SYNTAX)
+    assert syn.status == CheckStatus.PASSED and "typescript" in syn.tool
+    assert syn.details["functions"] == ["add"]
+
+
+def test_declaration_file_is_identified_and_tests_not_applicable():
+    r = verify(VerificationRequest(code=DTS, language="typescript"))
+    syn = r.check(CheckKind.SYNTAX)
+    assert syn.status == CheckStatus.PASSED and syn.details["declarations_only"] is True
+    assert "type declarations only" in syn.summary
+    t = r.check(CheckKind.TESTS)
+    assert t.status == CheckStatus.NOT_RUN and "Not applicable" in t.summary
+    assert any("declared types match the real implementation" in u.description for u in r.unverified)
+
+
+def test_runnable_typescript_is_not_declarations_only():
+    r = verify(VerificationRequest(code="interface A { x: number }\nexport const a: A = { x: 1 };\n", language="typescript"), run_tests=False)
+    assert r.check(CheckKind.SYNTAX).details["declarations_only"] is False
+
+
+def test_partial_selection_inside_comment_gets_a_clear_hint():
+    partial = DTS.split("\n", 1)[1]  # drop the opening /** like the real-world selection
+    r = verify(VerificationRequest(code=partial, language="typescript"), run_tests=False)
+    syn = r.check(CheckKind.SYNTAX)
+    assert syn.status == CheckStatus.ISSUES_FOUND and syn.details["partial_selection"] is True
+    assert "include the opening /**" in syn.findings[0].message
+
+
+def test_python_selection_starting_mid_block_gets_a_hint():
+    r = verify(VerificationRequest(code="    return x + 1\n", language="python"), run_tests=False)
+    f = r.check(CheckKind.SYNTAX).findings[0]
+    assert "middle of an indented block" in f.message and f.metadata["hint"]
+
+
+def test_typescript_sent_as_javascript_is_explained():
+    r = verify(VerificationRequest(code="let total: number = 0;\n", language="javascript"), run_tests=False)
+    assert "valid TypeScript, not JavaScript" in r.check(CheckKind.SYNTAX).findings[0].message
+
+
+def test_security_rules_apply_to_typescript():
+    code = "export function run(input: string): unknown {\n  return eval(input);\n}\n"
+    r = verify(VerificationRequest(code=code, language="typescript"), run_tests=False)
+    assert any(f.rule_id == "js-eval" for f in r.check(CheckKind.SECURITY).findings)
+
+
+def test_typescript_tests_reported_as_not_supported():
+    r = verify(VerificationRequest(code="export const x: number = 1;\n", language="typescript", tests="test('x', () => {});"))
+    t = r.check(CheckKind.TESTS)
+    assert t.status == CheckStatus.NOT_RUN and "TypeScript" in t.summary
+
+
+def test_typescript_third_party_imports_are_checked():
+    r = verify(VerificationRequest(code="import express from 'express';\nimport fs from 'node:fs';\nexport const app = express();\n",
+                                   language="typescript"), run_tests=False)
+    d = r.check(CheckKind.DEPENDENCIES)
+    assert "express" in d.details["third_party"] and "fs" not in d.details["third_party"]

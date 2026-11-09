@@ -20,7 +20,7 @@ def check_lint(code: str, lang: Language, workdir: Path) -> Check:
     t0 = time.monotonic()
     if lang != Language.PYTHON:
         return Check(kind=CheckKind.LINT, tool="none", status=CheckStatus.NOT_RUN,
-                     summary="No linter configured for JavaScript in this version.",
+                     summary=f"No linter configured for {'TypeScript' if lang == Language.TYPESCRIPT else 'JavaScript'} in this version.",
                      scope="Not run: undefined variables, unused code and common bug patterns were NOT checked.")
     scope = (f"ruff rules {RUFF_SELECT}: undefined names, unused imports/variables and common bug patterns. "
              "Does not check logic, requirements or runtime behaviour.")

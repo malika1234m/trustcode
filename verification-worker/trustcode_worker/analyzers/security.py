@@ -27,7 +27,7 @@ def ruleset_digest() -> str:
 
 def check_security(code: str, lang: Language, workdir: Path) -> Check:
     t0 = time.monotonic()
-    rules = RULES_DIR / f"{lang.value}.yml"
+    rules = RULES_DIR / ("python.yml" if lang == Language.PYTHON else "javascript.yml")  # JS rules also cover TypeScript
     n_rules = sum(1 for ln in rules.read_text().splitlines() if ln.startswith("  - id:"))
     scope = (f"Semgrep pattern matching with {n_rules} TrustCode {lang.value} rules (ruleset {ruleset_digest()}). "
              "Detects only the listed insecure patterns; absence of findings does NOT mean the code is secure.")
@@ -35,7 +35,7 @@ def check_security(code: str, lang: Language, workdir: Path) -> Check:
     if not sg:
         return Check(kind=CheckKind.SECURITY, tool="semgrep", status=CheckStatus.CHECK_FAILED,
                      summary="Semgrep not available; security patterns not checked.", scope=scope, error="semgrep not found")
-    ext = "py" if lang == Language.PYTHON else "js"
+    ext = {Language.PYTHON: "py", Language.JAVASCRIPT: "js", Language.TYPESCRIPT: "ts"}[lang]
     src = workdir / f"solution.{ext}"
     src.write_text(code)
     r = run(sg + ["scan", "--metrics=off", "--disable-version-check", "--quiet", "--json", "--config", str(rules), str(src)],

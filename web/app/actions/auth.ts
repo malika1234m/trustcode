@@ -10,7 +10,16 @@ type Tokens = { access_token: string; refresh_token?: string | null; expires_in:
 /** Only same-site relative paths; anything else falls back to the dashboard (no open redirects). */
 function safeNext(v: FormDataEntryValue | null): string {
   const s = typeof v === 'string' ? v : '';
-  return s.startsWith('/') && !s.startsWith('//') && !s.startsWith('/\\') ? s : '/dashboard';
+  // Reject control characters and whitespace (browsers strip tabs/newlines, turning "/\t/evil" into "//evil"),
+  // then let the URL parser decide: only a path on our own origin is accepted.
+  if (!s.startsWith('/') || /[\u0000-\u0020\u007f\\]/.test(s)) return '/dashboard';
+  try {
+    const u = new URL(s, 'http://local.invalid');
+    if (u.origin !== 'http://local.invalid') return '/dashboard';
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return '/dashboard';
+  }
 }
 
 async function authenticate(kind: 'login' | 'register', form: FormData): Promise<AuthState> {

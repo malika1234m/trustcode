@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { Suspense } from 'react';
 import { PageTitle, Skeleton, StatusBadge } from '@/components/app/shell';
 import { adminUserAction } from '@/app/actions/account';
 import { load, fmtDate } from '@/lib/data';
+import { Pagination, pageFrom } from '@/components/app/pagination';
 
 export const metadata: Metadata = { title: 'Users' };
 type U = { id: string; email: string | null; role: string; suspended: boolean; created_at: string; plan: string; verifications_this_month: number };
@@ -11,12 +11,10 @@ type SP = Promise<{ q?: string; page?: string }>;
 
 async function Table({ searchParams }: { searchParams: SP }) {
   const { q = '', page = '1' } = await searchParams;
-  const p = Math.max(1, Number.parseInt(page, 10) || 1);
+  const p = pageFrom(page);
   const data = await load<{ total: number; items: U[] }>(`/admin/users?limit=25&offset=${(p - 1) * 25}${q ? `&q=${encodeURIComponent(q.slice(0, 254))}` : ''}`, '/admin/users');
-  const qs = (n: number) => `/admin/users?${new URLSearchParams({ ...(q ? { q } : {}), page: String(n) })}`;
   return (
     <>
-      <p className="mb-3 text-sm text-dim">{data.total} user{data.total === 1 ? '' : 's'}</p>
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead className="border-b border-line text-xs uppercase tracking-wide text-dim"><tr>{['Email', 'Role', 'Plan', 'This month', 'Joined', 'Status', ''].map((h) => <th key={h} className="p-4 font-medium">{h}</th>)}</tr></thead>
@@ -36,10 +34,7 @@ async function Table({ searchParams }: { searchParams: SP }) {
         </table>
         {!data.items.length && <p className="p-6 text-center text-sm text-muted">No users match.</p>}
       </div>
-      <div className="mt-4 flex gap-4 text-sm">
-        {p > 1 && <Link href={qs(p - 1)} className="text-brand">← Previous</Link>}
-        {p * 25 < data.total && <Link href={qs(p + 1)} className="text-brand">Next →</Link>}
-      </div>
+      <Pagination basePath="/admin/users" params={{ q }} page={p} pageSize={25} total={data.total} label="users" />
     </>
   );
 }

@@ -54,6 +54,10 @@ def enforce_quota(db: Session, user: User):
                                  f"it resets on {e['usage']['resets_at'][:10]}")
 
 
+def _count(db: Session, stmt) -> int:
+    return db.scalar(select(func.count()).select_from(stmt.order_by(None).subquery())) or 0
+
+
 def audit(db: Session, request: Request, action: str, user_id: str | None, **meta):
     db.add(AuditLog(user_id=user_id, action=action, request_id=getattr(request.state, "request_id", None), meta=meta or None))
 
@@ -137,9 +141,11 @@ def create_ticket(body: TicketIn, request: Request, user: User | None = Depends(
 
 
 @router.get("/support/tickets", tags=["support"])
-def my_tickets(user: User = Depends(current_user), db: Session = Depends(get_db)):
-    rows = db.scalars(select(SupportTicket).where(SupportTicket.user_id == user.id).order_by(SupportTicket.created_at.desc()).limit(100))
-    return {"items": [_ticket_out(t) for t in rows]}
+def my_tickets(limit: int = Query(20, ge=1, le=100), offset: int = Query(0, ge=0),
+               user: User = Depends(current_user), db: Session = Depends(get_db)):
+    stmt = select(SupportTicket).where(SupportTicket.user_id == user.id)
+    rows = db.scalars(stmt.order_by(SupportTicket.created_at.desc(), SupportTicket.id).offset(offset).limit(limit))
+    return {"total": _count(db, stmt), "limit": limit, "offset": offset, "items": [_ticket_out(t) for t in rows]}
 
 
 def _own_ticket(db: Session, user: User, ticket_id: str) -> SupportTicket:
@@ -199,8 +205,8 @@ def admin_users(q: str | None = Query(None, max_length=254), limit: int = Query(
     stmt = select(User).where(User.is_local.is_(False))
     if q:
         stmt = stmt.where(or_(User.email.ilike(f"%{q.strip().lower()}%"), User.id == q.strip()))
-    total = db.scalar(select(func.count()).select_from(stmt.subquery())) or 0
-    rows = list(db.scalars(stmt.order_by(User.created_at.desc()).offset(offset).limit(limit)))
+    total = _count(db, stmt)
+    rows = list(db.scalars(stmt.order_by(User.created_at.desc(), User.id).offset(offset).limit(limit)))
     return {"total": total, "items": [{"id": u.id, "email": u.email, "role": u.role, "suspended": u.suspended,
                                        "created_at": u.created_at, "plan": plan_for(u)["id"],
                                        "verifications_this_month": usage_this_month(db, u.id)} for u in rows]}
@@ -222,12 +228,14 @@ def admin_user_action(user_id: str, action: Literal["suspend", "restore"], reque
 
 @router.get("/admin/tickets", tags=["admin"])
 def admin_tickets(status: str | None = Query(None, pattern="^(open|pending|resolved|closed)$"),
+                  limit: int = Query(25, ge=1, le=100), offset: int = Query(0, ge=0),
                   admin: User = Depends(current_admin), db: Session = Depends(get_db)):
     stmt = select(SupportTicket)
     if status:
         stmt = stmt.where(SupportTicket.status == status)
-    rows = db.scalars(stmt.order_by(SupportTicket.updated_at.desc()).limit(200))
-    return {"items": [_ticket_out(t) | {"assignee_id": t.assignee_id} for t in rows]}
+    rows = db.scalars(stmt.order_by(SupportTicket.updated_at.desc(), SupportTicket.id).offset(offset).limit(limit))
+    return {"total": _count(db, stmt), "limit": limit, "offset": offset,
+            "items": [_ticket_out(t) | {"assignee_id": t.assignee_id} for t in rows]}
 
 
 class TicketUpdate(BaseModel):
@@ -252,6 +260,8 @@ def admin_update_ticket(ticket_id: str, body: TicketUpdate, request: Request, ad
 
 
 @router.get("/admin/audit", tags=["admin"])
-def admin_audit(limit: int = Query(50, ge=1, le=200), admin: User = Depends(current_admin), db: Session = Depends(get_db)):
-    rows = db.scalars(select(AuditLog).order_by(AuditLog.created_at.desc()).limit(limit))
-    return {"items": [{"action": a.action, "user_id": a.user_id, "created_at": a.created_at, "request_id": a.request_id} for a in rows]}
+def admin_audit(limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0),
+                admin: User = Depends(current_admin), db: Session = Depends(get_db)):
+    stmt = select(AuditLog)
+    rows = db.scalars(stmt.order_by(AuditLog.created_at.desc(), AuditLog.id).offset(offset).limit(limit))
+    return {"total": _count(db, stmt), "limit": limit, "offset": offset, "items": [{"action": a.action, "user_id": a.user_id, "created_at": a.created_at, "request_id": a.request_id} for a in rows]}

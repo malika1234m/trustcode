@@ -96,3 +96,21 @@ def test_admin_overview_users_search_and_suspension(client):
 def test_api_root_redirects_to_website(client):
     r = client.get("/", follow_redirects=False)
     assert r.status_code == 307 and r.headers["location"].startswith("https://")
+
+
+def test_ticket_and_audit_lists_are_paginated(client):
+    h = _reg(client, "pager@uni.example")
+    for i in range(5):
+        r = client.post(f"{V}/support/tickets", headers=h,
+                        json={"category": "question", "subject": f"Question {i}", "message": "A long enough message."})
+        assert r.status_code == 201
+    p1 = client.get(f"{V}/support/tickets?limit=2&offset=0", headers=h).json()
+    p3 = client.get(f"{V}/support/tickets?limit=2&offset=4", headers=h).json()
+    assert p1["total"] == 5 and len(p1["items"]) == 2 and len(p3["items"]) == 1
+    assert {t["id"] for t in p1["items"]}.isdisjoint({t["id"] for t in p3["items"]})
+    assert client.get(f"{V}/support/tickets?limit=500", headers=h).status_code == 422
+    a = _admin(client, "pager-ops@uni.example")
+    t = client.get(f"{V}/admin/tickets?limit=3&offset=3", headers=a).json()
+    assert t["total"] >= 5 and len(t["items"]) == min(3, t["total"] - 3)
+    au = client.get(f"{V}/admin/audit?limit=2&offset=0", headers=a).json()
+    assert au["total"] >= 2 and len(au["items"]) == 2

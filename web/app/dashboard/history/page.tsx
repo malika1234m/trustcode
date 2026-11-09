@@ -25,10 +25,15 @@ async function Rows({ searchParams }: { searchParams: Promise<{ cursor?: string 
           </tbody>
         </table>
       </div>
-      <div className="mt-4 flex gap-4 text-sm">
-        {cursor && <Link href="/dashboard/history" className="text-brand">← Newest</Link>}
-        {page.next_cursor && <Link href={`/dashboard/history?cursor=${page.next_cursor}`} className="text-brand">Older →</Link>}
-      </div>
+      <nav aria-label="Pagination" className="mt-4 flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-dim">{cursor ? 'Older results' : 'Most recent first'}</p>
+        <div className="flex gap-1.5 text-sm">
+          {cursor ? <Link href="/dashboard/history" className="flex min-h-10 items-center rounded-lg border border-line px-3 text-muted hover:border-brand hover:text-fg">Back to newest</Link> : null}
+          {page.next_cursor
+            ? <Link href={`/dashboard/history?cursor=${page.next_cursor}`} rel="next" className="flex min-h-10 items-center rounded-lg border border-line px-3 text-muted hover:border-brand hover:text-fg">Older</Link>
+            : <span aria-disabled="true" className="flex min-h-10 items-center rounded-lg border border-line px-3 text-dim opacity-50">Older</span>}
+        </div>
+      </nav>
     </>
   );
 }

@@ -28,6 +28,7 @@ from real analysis tools, says exactly **what each check can and cannot tell you
 
 ## Features
 
+- **Languages** — Python, JavaScript and TypeScript, each identified and parsed with its own parser; type-declaration files and partial selections are recognised and explained.
 - **Independent checks** — syntax, static analysis (ruff), security patterns (Semgrep, 21 frozen rules with CWE/OWASP mapping),
   sandboxed unit tests with coverage gaps, and a dependency-existence check against package hallucination.
 - **Isolated execution** — tests run only in a throw-away Docker container: no network, read-only filesystem, separate unprivileged
@@ -77,7 +78,7 @@ cd extension && npm install && npm run compile && npx vsce package --no-dependen
 code --install-extension trustcode-0.1.0.vsix
 ```
 
-Select AI-generated Python or JavaScript → right-click → **TrustCode: Verify Selected Code**.
+Select AI-generated Python, JavaScript or TypeScript → right-click → **TrustCode: Verify Selected Code**.
 Full guide: [`docs/user_guide/user_guide.md`](docs/user_guide/user_guide.md) · Deployment (Docker Compose, PaaS): [`deployment/README.md`](deployment/README.md)
 
 ## Testing
@@ -114,11 +115,12 @@ calibration of developers' accept/reject decisions on AI-generated code? Does it
 
 ```
 extension/             VS Code extension (TypeScript)
+web/                   Website and dashboard (Next.js 16, Tailwind 4, Three.js / React Three Fiber hero; see web/DESIGN.md)
 backend/               FastAPI API, worker process, migrations, tests
 verification-worker/   Verification engine, Semgrep rules, Docker sandbox
 datasets/              Benchmark items, metadata and validation report
 research/              Literature, methodology, protocol, analysis scripts
-docs/                  Architecture, API, security, UX, testing, project status
+docs/                  Architecture, API, security, UX, testing, project status, brand guidelines (docs/brand)
 deployment/            Dockerfiles, deployment guide and status
 dissertation/          Dissertation draft (chapters needing data are marked pending)
 presentation/          Slides, demo script, viva preparation

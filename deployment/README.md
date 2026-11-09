@@ -38,7 +38,7 @@ vercel deploy --prod
 ```
 Do **not** add a catch-all rewrite: Vercel routes all paths to the FastAPI app, and a rewrite to `/api/index` breaks routing.
 Behaviour differences on Vercel: unit tests are **not run** (no sandbox — a Vercel Sandbox integration is future work);
-JavaScript syntax check reports *check failed* (no Node in the Python runtime) while Semgrep still scans; lint uses the
+JavaScript/TypeScript syntax checks use tree-sitter (no Node needed); lint uses the
 pyflakes fallback (ruff's native binary is not bundled); rate limits are per function instance.
 Researchers: run `python -m app.admin create-researcher EMAIL` locally with `TRUSTCODE_DATABASE_URL` set to the Neon URL.
 

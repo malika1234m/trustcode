@@ -12,21 +12,28 @@ There is deliberately **no overall "safe" score**. You decide: accept, modify or
 TrustCode never edits your files.
 
 ## Use
-1. Start a backend (see the repository's `deployment/README.md`; local mode needs no account).
-2. Select AI-generated Python or JavaScript in the editor → right-click → **TrustCode: Verify Selected Code**.
+1. Click **Sign In with browser** in the TrustCode panel (or run **TrustCode: Sign In**). Log in or create an account on the
+   TrustCode website; your browser returns you to VS Code (choose **Open** if asked).
+2. Select AI-generated Python, JavaScript or TypeScript in the editor → right-click → **TrustCode: Verify Selected Code**.
 3. Optionally describe the task and paste unit tests (`from solution import ...` / `require('./solution')`).
 4. Confirm the consent prompt (nothing is sent before you confirm).
 
 ## Settings
 | Setting | Default | Meaning |
 |---|---|---|
-| `trustcode.backendUrl` | `http://127.0.0.1:8000` | Where code is sent after you confirm |
-| `trustcode.mode` | `local` | `local` (reads `~/.trustcode/local-secret`) or `account` (sign in) |
+| `trustcode.backendUrl` | `https://trustcode-api.vercel.app` | Where code is sent after you confirm |
+| `trustcode.mode` | `account` | `account` (sign in) or `local` (own backend on this machine, reads `~/.trustcode/local-secret`) |
 | `trustcode.requestTimeoutSeconds` | 30 | Per-request timeout |
 | `trustcode.useLlmExplanations` | false | Ask for LLM-worded explanations (also needs the server and your profile to allow it) |
 
 Commands: Verify Selected Code · Sign In/Out · Set Experience Level · Privacy & History Settings · Join Research Study · Ask Before Sending Code Again.
 
 ## Privacy
+- **Nothing is sent until you confirm** in a dialog that shows how many lines will be sent and where.
+- The hosted server runs static checks only (it never executes your code). To keep code entirely on your machine,
+  run your own backend and set `trustcode.mode` to `local` (see the GitHub repository).
 Code is sent only after explicit confirmation, is deleted on the server as soon as analysis ends, and results expire
 (24 h by default, 30 days if you enable history). Research-study data uses a pseudonymous participant code.
+
+## Feedback
+Issues and feature requests: https://github.com/malika1234m/trustcode/issues

@@ -63,6 +63,8 @@ test('language mapping', () => {
   assert.strictEqual(languageFor('python'), 'python');
   assert.strictEqual(languageFor('javascriptreact'), 'javascript');
   assert.strictEqual(languageFor('rust'), undefined);
+  assert.strictEqual(languageFor('typescript'), 'typescript');
+  assert.strictEqual(languageFor('typescriptreact'), 'typescript');
 });
 
 function fakeFetch(responses: Array<{ status: number; body: any; headers?: Record<string, string> }>, calls: any[] = []) {
@@ -122,4 +124,14 @@ test('security-sensitive settings cannot be overridden by workspace settings', (
   const pkg = require('../../package.json');
   const props = pkg.contributes.configuration.properties;
   for (const k of ['trustcode.backendUrl', 'trustcode.mode', 'trustcode.useLlmExplanations']) assert.strictEqual(props[k].scope, 'application', k);
+});
+
+test('third-party library paths are identified on every platform', async () => {
+  const { thirdPartyKind } = await import('../src/consent');
+  assert.match(thirdPartyKind('/p/app/node_modules/@secretlint/core/module/helper/invariant.d.ts')!, /npm package/);
+  assert.match(thirdPartyKind('C:\\proj\\node_modules\\x\\index.js')!, /npm package/);
+  assert.match(thirdPartyKind('/p/.venv/lib/python3.12/site-packages/requests/api.py')!, /Python package/);
+  assert.match(thirdPartyKind('/p/vendor/lib.js')!, /vendored/);
+  assert.strictEqual(thirdPartyKind('/p/app/src/user_service.ts'), undefined);
+  assert.strictEqual(thirdPartyKind('/p/app/node_modules_backup.md'), undefined);
 });

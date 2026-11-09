@@ -34,9 +34,21 @@ export async function run(): Promise<void> {
     assert.strictEqual(doc.getText(), 'def g():\n    return 2\n');
   });
   await t('default settings are privacy-preserving', async () => {
+    await vscode.workspace.getConfiguration('trustcode').update('backendUrl', undefined, vscode.ConfigurationTarget.Global);
+    await vscode.workspace.getConfiguration('trustcode').update('mode', undefined, vscode.ConfigurationTarget.Global);
     const cfg = vscode.workspace.getConfiguration('trustcode');
     assert.strictEqual(cfg.get('useLlmExplanations'), false);
-    assert.strictEqual(cfg.get('mode'), 'local');
+    assert.strictEqual(cfg.get('mode'), 'account');
+    assert.ok(String(cfg.get('backendUrl')).startsWith('https://'), 'remote default must use HTTPS');
   });
+  const backend = process.env.TRUSTCODE_TEST_BACKEND;
+  if (backend) {
+    const hook = (ext as any)?.exports?.__test;
+    console.log(`  activation: ${hook?.activationMs} ms`);
+    const { runE2E } = await import('./e2e');
+    for (const r of await runE2E(hook, backend)) if (!r.ok) failures.push(r.name);
+  } else {
+    console.log('  (TRUSTCODE_TEST_BACKEND not set: end-to-end journey skipped)');
+  }
   if (failures.length) throw new Error(`${failures.length} integration test(s) failed: ${failures.join(', ')}`);
 }

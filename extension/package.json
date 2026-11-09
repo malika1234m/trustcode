@@ -1,8 +1,8 @@
 {
   "name": "trustcode",
-  "displayName": "TrustCode",
-  "description": "Evidence-grounded verification of AI-generated code: see what was checked, what was found, and what was NOT verified.",
-  "version": "0.1.0",
+  "displayName": "TrustCode — Verify AI-Generated Code",
+  "description": "Check AI-generated Python, JavaScript and TypeScript with real evidence: security patterns, lint, dependency checks and tests. See what was checked, what was found, and what was NOT verified.",
+  "version": "0.4.1",
   "publisher": "trustcode-research",
   "license": "MIT",
   "private": true,
@@ -12,17 +12,20 @@
   "categories": [
     "Linters",
     "Testing",
+    "Programming Languages",
     "Other"
   ],
   "main": "./out/src/extension.js",
-  "activationEvents": [],
+  "activationEvents": [
+    "onUri"
+  ],
   "contributes": {
     "viewsContainers": {
       "activitybar": [
         {
           "id": "trustcode",
           "title": "TrustCode",
-          "icon": "media/icon.svg"
+          "icon": "media/activity.svg"
         }
       ]
     },
@@ -88,8 +91,8 @@
       "properties": {
         "trustcode.backendUrl": {
           "type": "string",
-          "default": "http://127.0.0.1:8000",
-          "description": "TrustCode backend URL. Code is only sent here after you confirm.",
+          "default": "https://trustcode-api.vercel.app",
+          "description": "TrustCode server URL. Code is only sent here after you confirm. Use http://127.0.0.1:8000 with mode 'local' to keep code on your machine.",
           "scope": "application"
         },
         "trustcode.mode": {
@@ -98,8 +101,8 @@
             "local",
             "account"
           ],
-          "default": "local",
-          "description": "local: single-user backend on this machine (no account). account: sign in to a shared backend.",
+          "default": "account",
+          "description": "account: sign in to a TrustCode server (default). local: single-user backend on this machine, no account (reads ~/.trustcode/local-secret).",
           "scope": "application"
         },
         "trustcode.requestTimeoutSeconds": {
@@ -126,12 +129,42 @@
   "devDependencies": {
     "@types/node": "20.14.10",
     "@types/vscode": "1.90.0",
-    "@vscode/vsce": "3.2.1",
-    "typescript": "5.6.3",
-    "@vscode/test-electron": "2.4.1"
+    "@vscode/test-electron": "^3.1.0",
+    "@vscode/vsce": "^4.1.0",
+    "typescript": "5.6.3"
   },
   "repository": {
     "type": "git",
-    "url": "https://example.invalid/trustcode.git"
+    "url": "https://github.com/malika1234m/trustcode.git"
+  },
+  "icon": "media/icon.png",
+  "homepage": "https://github.com/malika1234m/trustcode#readme",
+  "bugs": {
+    "url": "https://github.com/malika1234m/trustcode/issues"
+  },
+  "keywords": [
+    "ai",
+    "chatgpt",
+    "code review",
+    "copilot",
+    "javascript",
+    "llm",
+    "python",
+    "security",
+    "semgrep",
+    "trust",
+    "typescript",
+    "verification"
+  ],
+  "galleryBanner": {
+    "color": "#0C1322",
+    "theme": "dark"
+  },
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": true,
+      "description": "TrustCode never executes workspace code locally, and its security-relevant settings are application-scoped."
+    },
+    "virtualWorkspaces": true
   }
 }

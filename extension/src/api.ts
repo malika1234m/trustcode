@@ -92,7 +92,7 @@ export class TrustCodeApi {
   }
 
   /** Poll until finished, cancelled, or `isCancelled()` returns true. */
-  async waitForResult(jobId: string, isCancelled: () => boolean, onTick?: (status: string) => void, intervalMs = 1000, maxMs = 180000) {
+  async waitForResult(jobId: string, isCancelled: () => boolean, onTick?: (status: string) => void, intervalMs = 500, maxMs = 180000) {
     const t0 = Date.now();
     while (Date.now() - t0 < maxMs) {
       if (isCancelled()) {
@@ -103,7 +103,7 @@ export class TrustCodeApi {
       onTick?.(j.status);
       if (!['queued', 'running'].includes(j.status)) return j;
       await new Promise(r => setTimeout(r, intervalMs));
-      intervalMs = Math.min(intervalMs * 1.5, 3000);  // back off to limit load on the server
+      intervalMs = Math.min(intervalMs * 1.25, 2000);  // gentle back-off: results noticed within <=2 s, <=~35 polls/min
     }
     throw new ApiError(0, 'timeout', 'verification is taking too long; try again later');
   }

@@ -36,8 +36,21 @@ export function remember(state: ConsentState, backendUrl: string): ConsentState 
   return state.trustedBackends.includes(b) ? state : { trustedBackends: [...state.trustedBackends, b] };
 }
 
-export function languageFor(vscodeLanguageId: string): 'python' | 'javascript' | undefined {
+export type SupportedLanguage = 'python' | 'javascript' | 'typescript';
+
+export function languageFor(vscodeLanguageId: string): SupportedLanguage | undefined {
   if (vscodeLanguageId === 'python') return 'python';
   if (['javascript', 'javascriptreact'].includes(vscodeLanguageId)) return 'javascript';
+  if (['typescript', 'typescriptreact'].includes(vscodeLanguageId)) return 'typescript';
+  return undefined;
+}
+
+/** Third-party library code (installed packages, virtual environments, vendored code) is not AI-generated. */
+export function thirdPartyKind(fsPath: string): string | undefined {
+  const p = fsPath.replace(/\\/g, '/');
+  if (/\/node_modules\//.test(p)) return 'an installed npm package (node_modules)';
+  if (/\/(site-packages|dist-packages)\//.test(p)) return 'an installed Python package (site-packages)';
+  if (/\/(\.venv|venv|\.tox|env)\/(lib|Lib)\//.test(p)) return 'a Python virtual environment';
+  if (/\/(bower_components|vendor|third_party)\//.test(p)) return 'vendored third-party code';
   return undefined;
 }

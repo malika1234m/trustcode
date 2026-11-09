@@ -4,3 +4,8 @@ out/test/**
 tsconfig.json
 **/*.map
 node_modules/**
+.rune/**
+.vscode-test/**
+.claude/**
+**/.DS_Store
+*.vsix

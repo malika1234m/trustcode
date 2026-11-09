@@ -8,6 +8,7 @@ async function main() {
   const extensionDevelopmentPath = path.resolve(__dirname, '../../..');
   const extensionTestsPath = path.resolve(__dirname, './suite');
   await runTests({ vscodeExecutablePath: process.env.VSCODE_EXECUTABLE, extensionDevelopmentPath, extensionTestsPath,
+    extensionTestsEnv: { TRUSTCODE_TEST: '1', TRUSTCODE_TEST_BACKEND: process.env.TRUSTCODE_TEST_BACKEND ?? '' },
     launchArgs: ['--disable-extensions', '--user-data-dir', path.join(os.tmpdir(), 'trustcode-vscode-test')] });
 }
 main().catch((e) => { console.error('Integration tests failed:', e); process.exit(1); });

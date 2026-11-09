@@ -16,7 +16,9 @@ function safeNext(v: FormDataEntryValue | null): string {
   try {
     const u = new URL(s, 'http://local.invalid');
     if (u.origin !== 'http://local.invalid') return '/dashboard';
-    return u.pathname + u.search + u.hash;
+    const out = u.pathname + u.search + u.hash;
+    // Dot segments can normalise into a protocol-relative URL ("/.//evil.com" -> "//evil.com"): check the result too.
+    return out.startsWith('//') || out.startsWith('/\\') ? '/dashboard' : out;
   } catch {
     return '/dashboard';
   }

@@ -237,3 +237,10 @@ def test_delete_my_data(client):
     h = {"Authorization": f"Bearer {r.json()['access_token']}"}
     assert client.delete(f"{V}/me/data", headers=h).status_code == 204
     assert client.get(f"{V}/profile", headers=h).status_code == 401
+
+
+def test_unknown_routes_and_methods_use_standard_error_format(client):
+    r = client.get("/api/v1/nope")
+    assert r.status_code == 404 and r.json()["error"]["code"] == "not_found" and r.json()["error"]["request_id"]
+    r = client.delete("/api/v1/health")
+    assert r.status_code == 405 and r.json()["error"]["code"] == "method_not_allowed"

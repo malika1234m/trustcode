@@ -1,0 +1,44 @@
+"""Single source of truth for plans and entitlements (the website and the extension both read this via the API).
+
+Prices are intentionally absent: billing is not live yet. When a Merchant of Record (Paddle / Lemon Squeezy) is
+connected, a plan gains `prices` and a `provider_price_ids` mapping, and subscriptions (verified by webhook on the
+backend) map users to paid plans. See docs/saas/billing_plan.md.
+"""
+from __future__ import annotations
+
+PLANS: dict[str, dict] = {
+    "free": {
+        "id": "free", "name": "Free", "status": "available", "tagline": "Everything you need to check AI-generated code.",
+        "prices": None,
+        "limits": {"verifications_per_month": 300, "max_code_chars": 50_000, "history_days": 30},
+        "features": {
+            "languages": ["python", "javascript", "typescript"],
+            "syntax_lint_security_dependencies": True,
+            "sandboxed_tests": "self-hosted",      # hosted service never executes code
+            "explanation_levels": True,
+            "history": True,
+            "llm_explanations": False,
+            "support": "community",
+        },
+    },
+    "pro": {
+        "id": "pro", "name": "Pro", "status": "planned", "tagline": "For professionals who verify AI code every day.",
+        "prices": None,
+        "limits": {"verifications_per_month": None, "max_code_chars": 50_000, "history_days": 365},
+        "features": {"languages": ["python", "javascript", "typescript"], "syntax_lint_security_dependencies": True,
+                     "sandboxed_tests": "hosted (planned)", "explanation_levels": True, "history": True,
+                     "llm_explanations": True, "support": "email"},
+    },
+    "team": {
+        "id": "team", "name": "Team", "status": "planned", "tagline": "Shared billing and administration for teams.",
+        "prices": None, "limits": {"verifications_per_month": None, "max_code_chars": 50_000, "history_days": 365},
+        "features": {"languages": ["python", "javascript", "typescript"], "syntax_lint_security_dependencies": True,
+                     "sandboxed_tests": "hosted (planned)", "explanation_levels": True, "history": True,
+                     "llm_explanations": True, "support": "priority email", "seats": "per seat"},
+    },
+}
+
+
+def plan_for(user) -> dict:
+    """Billing is not live, so every account is on Free. Later: look up the active, webhook-verified subscription."""
+    return PLANS["free"]

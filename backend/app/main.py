@@ -4,12 +4,17 @@ import logging
 import secrets
 import time
 
-from fastapi import FastAPI, HTTPException, Request
+import os
+
+from fastapi import FastAPI, Request
+from starlette.exceptions import HTTPException  # base class: also covers routing 404/405 raised by Starlette
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, RedirectResponse
 
 from .api.routes import router
+from .api.saas import router as saas_router
+from .api.web_auth import router as web_auth_router
 from .config import get_settings
 from .db import Base, engine
 
@@ -51,8 +56,8 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(HTTPException)
     async def http_exc(request: Request, exc: HTTPException):
-        code = {400: "bad_request", 401: "unauthorized", 403: "forbidden", 404: "not_found", 409: "conflict",
-                429: "rate_limited"}.get(exc.status_code, "error")
+        code = {400: "bad_request", 401: "unauthorized", 403: "forbidden", 404: "not_found", 405: "method_not_allowed",
+                409: "conflict", 429: "rate_limited"}.get(exc.status_code, "error")
         return _err(request, exc.status_code, code, exc.detail, getattr(exc, "headers", None))
 
     @app.exception_handler(RequestValidationError)
@@ -67,6 +72,13 @@ def create_app() -> FastAPI:
         return _err(request, 500, "internal_error", "internal server error")
 
     app.include_router(router)
+    app.include_router(web_auth_router)
+    app.include_router(saas_router)
+
+    @app.get("/", include_in_schema=False)
+    def root():
+        # The API has no landing page of its own; send people to the website.
+        return RedirectResponse(os.environ.get("TRUSTCODE_SITE_URL", "https://trustcode-app.vercel.app"), status_code=307)
     return app
 
 

@@ -22,7 +22,8 @@ class User(Base):
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
     email: Mapped[str | None] = mapped_column(String(254), unique=True)
     password_hash: Mapped[str | None] = mapped_column(String(300))
-    role: Mapped[str] = mapped_column(String(20), default="developer")      # developer | researcher
+    role: Mapped[str] = mapped_column(String(20), default="developer")      # developer | researcher | admin
+    suspended: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     is_local: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
@@ -44,6 +45,18 @@ class RefreshToken(Base):
     token_hash: Mapped[str] = mapped_column(String(64), unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class AuthCode(Base):
+    """One-time authorization code for browser sign-in (OAuth-style, PKCE). Only a hash is stored."""
+    __tablename__ = "auth_codes"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    code_hash: Mapped[str] = mapped_column(String(64), unique=True)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    code_challenge: Mapped[str] = mapped_column(String(128))
+    redirect_uri: Mapped[str] = mapped_column(String(300))
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    used: Mapped[bool] = mapped_column(Boolean, default=False)
 
 
 class VerificationJob(Base):
@@ -85,6 +98,29 @@ class Feedback(Base):
     finding_id: Mapped[str | None] = mapped_column(String(20))
     rating: Mapped[str] = mapped_column(String(20))       # helpful | not_helpful | too_technical | too_simple | incorrect
     comment: Mapped[str | None] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class SupportTicket(Base):
+    __tablename__ = "support_tickets"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"), index=True)
+    email: Mapped[str] = mapped_column(String(254))
+    category: Mapped[str] = mapped_column(String(20))       # bug | feature | account | billing | question
+    subject: Mapped[str] = mapped_column(String(200))
+    status: Mapped[str] = mapped_column(String(20), default="open", index=True)   # open | pending | resolved | closed
+    assignee_id: Mapped[str | None] = mapped_column(String(32))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+    resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class TicketMessage(Base):
+    __tablename__ = "ticket_messages"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    ticket_id: Mapped[str] = mapped_column(ForeignKey("support_tickets.id", ondelete="CASCADE"), index=True)
+    author: Mapped[str] = mapped_column(String(10))         # customer | staff
+    body: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 

@@ -73,7 +73,7 @@ def current_user(payload: dict = Depends(get_token_payload), db: Session = Depen
     if payload.get("scope") != "user":
         raise HTTPException(403, detail="token not valid for this endpoint")
     user = db.get(User, payload["sub"])
-    if not user:
+    if not user or user.suspended:
         raise _credentials_error()
     limiter.check(f"user:{user.id}", get_settings().rate_limit_per_minute)
     return user

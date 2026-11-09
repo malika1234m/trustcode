@@ -74,7 +74,7 @@ def register(body: RegisterIn, request: Request, db: Session = Depends(get_db)):
 def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
     limiter.check(f"login:{body.email}", 10)  # brute-force guard per account
     user = db.scalar(select(User).where(User.email == body.email))
-    if not user or not verify_password(body.password, user.password_hash):
+    if not user or not verify_password(body.password, user.password_hash) or user.suspended:
         audit(db, request, "login_failed")
         db.commit()
         raise HTTPException(401, "invalid email or password")
@@ -85,6 +85,10 @@ def login(body: LoginIn, request: Request, db: Session = Depends(get_db)):
 @router.post("/auth/refresh", response_model=TokenOut, tags=["auth"], dependencies=[Depends(rate_limit)])
 def refresh(body: RefreshIn, db: Session = Depends(get_db)):
     rt = db.scalar(select(RefreshToken).where(RefreshToken.token_hash == hash_refresh(body.refresh_token)))
+    if rt and db.get(User, rt.user_id).suspended:
+        rt.revoked = True
+        db.commit()
+        raise HTTPException(401, "invalid refresh token")
     if not rt or rt.revoked or rt.expires_at.replace(tzinfo=rt.expires_at.tzinfo or now().tzinfo) < now():
         raise HTTPException(401, "invalid refresh token")
     rt.revoked = True  # rotation: each refresh token is single-use
@@ -161,6 +165,8 @@ def _own_job(db: Session, user: User, job_id: str) -> VerificationJob:
 @router.post("/verifications", response_model=JobOut, status_code=202, tags=["verification"])
 def create_verification(body: VerifyIn, request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
     limiter.check(f"verify:{user.id}", get_settings().verify_rate_limit_per_minute)
+    from .saas import enforce_quota
+    enforce_quota(db, user)
     j = jobs.enqueue(db, user.id, body.code, body.language, body.task, body.tests)
     audit(db, request, "verification_submitted", user.id, job_id=j.id, lines=j.code_lines, has_tests=bool(body.tests))
     db.commit()

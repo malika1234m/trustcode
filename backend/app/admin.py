@@ -1,6 +1,7 @@
 """Server-side admin commands (run on the server, never exposed over HTTP).
 
     python -m app.admin create-researcher EMAIL   (preferred: creates the account, prints a one-time password)
+    python -m app.admin create-admin EMAIL        (operator/administrator account for the admin dashboard)
     python -m app.admin grant-researcher EMAIL    (existing account: interactive confirmation required)
     python -m app.admin revoke-researcher EMAIL
 
@@ -20,18 +21,18 @@ from .security import hash_password
 from .services.jobs import purge_expired
 
 
-def create_researcher(db, email: str) -> str:
+def create_researcher(db, email: str, role: str = "researcher") -> str:
     email = email.strip().lower()
     if db.scalar(select(User).where(User.email == email)):
         raise ValueError("an account with this email already exists; it may have been registered by someone else. "
                          "Delete it (DELETE /api/v1/me/data by its owner) or use grant-researcher after checking ownership.")
     password = secrets.token_urlsafe(15)
-    user = User(email=email, password_hash=hash_password(password), role="researcher")
+    user = User(email=email, password_hash=hash_password(password), role=role)
     db.add(user)
     db.flush()
     from .models import Profile
     db.add(Profile(user_id=user.id))
-    db.add(AuditLog(user_id=user.id, action="create_researcher", meta={"via": "admin-cli"}))
+    db.add(AuditLog(user_id=user.id, action=f"create_{role}", meta={"via": "admin-cli"}))
     db.commit()
     return password
 
@@ -44,13 +45,13 @@ def main(argv: list[str]) -> int:
     db = SessionLocal()
     try:
         cmd = argv[0]
-        if cmd == "create-researcher" and len(argv) == 2:
+        if cmd in ("create-researcher", "create-admin") and len(argv) == 2:
             try:
-                pw = create_researcher(db, argv[1])
+                pw = create_researcher(db, argv[1], "admin" if cmd == "create-admin" else "researcher")
             except ValueError as e:
                 print(e)
                 return 1
-            print(f"created researcher {argv[1]}; one-time password (share securely): {pw}")
+            print(f"created {cmd.split('-')[1]} {argv[1]}; one-time password (share securely): {pw}")
             return 0
         if cmd in ("grant-researcher", "revoke-researcher") and len(argv) == 2:
             user = db.scalar(select(User).where(User.email == argv[1].strip().lower()))

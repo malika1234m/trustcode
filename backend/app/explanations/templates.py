@@ -89,6 +89,8 @@ def _next(f: dict, level: str) -> str:
         return ("Search the package registry yourself and confirm the exact name before installing anything."
                 if level == "beginner" else "Confirm the distribution name/owner on the registry before installing.")
     if check == "syntax":
+        if md.get("hint"):
+            return md["hint"]
         return "Fix the reported line before trusting any other result." if level != "advanced" else "Fix parse error."
     return "Review manually."
 

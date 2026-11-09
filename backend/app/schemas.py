@@ -52,7 +52,7 @@ class ProfileOut(BaseModel):
 
 class VerifyIn(BaseModel):
     code: str = Field(min_length=1, max_length=50_000)
-    language: Literal["python", "javascript"] | None = None
+    language: Literal["python", "javascript", "typescript"] | None = None
     task: str | None = Field(default=None, max_length=10_000)
     tests: str | None = Field(default=None, max_length=50_000)
     client_consent: bool = Field(description="Client confirms the user explicitly approved sending this code")

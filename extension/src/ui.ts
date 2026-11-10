@@ -63,17 +63,18 @@ export function waitingForBrowser(mode: 'login' | 'register'): string {
   </section>`;
 }
 
-export function verifyForm(sel: { lines: number; language?: string; file?: string } | undefined, lastTask = ''): string {
+export function verifyForm(sel: { lines: number; language?: string; file?: string; whole?: boolean } | undefined, lastTask = ''): string {
   const selBox = sel
-    ? `<div class="card selection ok">${ICON.code}<div><strong>${sel.lines} line(s) selected</strong>
+    ? `<div class="card selection ok">${ICON.code}<div><strong>${sel.whole ? `Whole file (${sel.lines} lines)` : `${sel.lines} line(s) selected`}</strong>
          <div class="muted">${esc(sel.language ?? 'unsupported language')}${sel.file ? ` · ${esc(sel.file)}` : ''}</div></div></div>`
     : `<div class="card onboarding"><div class="card-title">Get started</div>
          <ol class="steps-onboard">
            <li><strong>Select</strong> AI-generated Python, JavaScript or TypeScript in the editor</li>
            <li><strong>Describe</strong> what it should do (optional, below)</li>
-           <li><strong>Verify</strong> — or right-click the selection → “TrustCode: Verify Selected Code”</li>
+           <li><strong>Verify</strong> — or right-click → “TrustCode: Verify Selected Code” / “Verify Current File”</li>
          </ol></div>`;
   return `<button class="primary wide" data-action="verify">${ICON.shield} Verify selection</button>
+  <button class="secondary wide" data-action="verifyFile">${ICON.code} Verify current file</button>
   ${selBox}
   <section class="card">
     <label for="task" class="card-title">What should the code do? <span class="badge">recommended</span></label>
@@ -97,11 +98,11 @@ export function errorCard(message: string): string {
 }
 
 export function progress(status: string): string {
-  const steps = ['Syntax', 'Static analysis', 'Security patterns', 'Unit tests', 'Dependencies'];
+  const steps = ['Syntax', 'Static analysis', 'Type checking', 'Security patterns', 'Hardcoded secrets', 'Unit tests', 'Dependencies'];
   return `<section class="card progress" aria-busy="true">
     <div class="spinner" aria-hidden="true"></div>
     <div><strong>Verification ${esc(status)}…</strong>
-    <div class="muted small">Running independent checks:</div>
+    <div class="muted small">Independent checks (each reports its own result; some may not be available on this server):</div>
     <ul class="steps">${steps.map((s) => `<li>${s}</li>`).join('')}</ul>
     <div class="muted small">You can cancel from the notification.</div></div></section>`;
 }

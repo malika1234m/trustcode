@@ -22,7 +22,45 @@ LINT_WHY = {
              "Call in default argument evaluated once at definition time."),
 }
 
+JS_LINT_WHY = {
+    "nan-comparison": ("NaN never equals anything - not even itself - so this test always gives the same answer and the "
+                       "'missing value' case is never caught.", "Comparison with NaN is constant; use Number.isNaN()."),
+    "const-reassignment": ("The code changes a value that was declared as constant. JavaScript stops with an error when this line runs.",
+                           "Assignment to a const binding -> TypeError at runtime on this path."),
+    "duplicate-object-key": ("The same key is written twice in one object, so the first value is silently thrown away.",
+                             "Duplicate key: the later value overrides the earlier one."),
+    "duplicate-case": ("Two branches of the switch have the same label, so the second one can never run.",
+                       "Duplicate case label: second branch is dead code."),
+    "assignment-in-condition": ("A single = stores a value instead of comparing. The 'if' then checks the stored value, "
+                                "so it is probably always true - and the variable has been changed.",
+                                "Assignment in condition: tests the assigned value and mutates the operand."),
+    "self-assignment": ("A variable is set to its own value, which does nothing - a step was probably left out.",
+                        "Self-assignment has no effect; likely a missing operation."),
+    "unreachable-code": ("This code comes after a return/throw in the same block, so it never runs.",
+                         "Statement after return/throw/break/continue is unreachable."),
+    "empty-catch": ("If something goes wrong in the 'try' part, the error is thrown away and the program carries on as if it worked.",
+                    "Empty catch discards the error; failures become silent."),
+    "unused-import": ("Something is imported but never used in the code you selected. Harmless, but it can hint that the code is unfinished.",
+                      "Unused import in the submitted code; possible leftover or missing usage."),
+}
+LINT_WHY_EXTENDED = {
+    "S110": ("Any error inside the 'try' is ignored, so the code can report success even when it failed.",
+             "Exception swallowed (try/except/pass): failures become silent."),
+    "E722": ("A bare 'except:' catches everything, including Ctrl-C and programming mistakes, which hides real bugs.",
+             "Bare except catches BaseException; masks unrelated errors."),
+    "F601": ("The same key appears twice in one dictionary, so the first value is silently thrown away.",
+             "Duplicate dict key: later value overrides the earlier one."),
+    "B012": ("A return inside 'finally' always wins: it replaces any other return value and hides errors.",
+             "return/break/continue in finally overrides the try result and swallows exceptions."),
+    "B023": ("Each function created in the loop uses the loop variable's final value, not the value it had when it was created.",
+             "Closure captures loop variable by reference (late binding)."),
+    "PLW0127": ("A variable is set to its own value, which does nothing - a step was probably left out.",
+                "Self-assignment has no effect."),
+}
+
 CHECK_LIMITS = {
+    "secrets": "Whether the credential is real and still active was not checked.",
+    "types": "Only type consistency inside the submitted code was checked; imported code was not followed.",
     "security": "Whether untrusted input can actually reach this line was not traced.",
     "lint": "Static analysis cannot tell whether this affects the program's results.",
     "tests": "Only the inputs used by this test were checked; other inputs remain untested.",
@@ -32,7 +70,8 @@ CHECK_LIMITS = {
 }
 
 METHOD = {
-    "security": "Semgrep pattern rule", "lint": "ruff static analysis", "tests": "sandboxed test execution",
+    "secrets": "credential-format scan", "types": "static type checker",
+    "security": "Semgrep pattern rule", "lint": "static analysis", "tests": "sandboxed test execution",
     "dependencies": "package registry lookup", "syntax": "parser", "requirements": "none (human review)",
 }
 
@@ -51,10 +90,14 @@ def _where(f: dict, level: str) -> str:
 
 def _why(f: dict, level: str) -> str:
     md, check = f.get("metadata") or {}, f["check"]
-    if check == "security":
-        return md.get("why_beginner") if level == "beginner" else md.get("why", f["message"])
+    if check in ("security", "secrets"):
+        return (md.get("why_beginner") or f["message"]) if level == "beginner" else md.get("why", f["message"])
+    if check == "types":
+        return ("The code uses a value as one kind of thing (for example text) where another kind (for example a number) "
+                "is declared. When this line runs it can crash or produce a wrong result." if level == "beginner"
+                else "Static type mismatch inside the submitted code; likely TypeError or wrong value at runtime.")
     if check == "lint":
-        b, t = LINT_WHY.get(f.get("rule_id"), ("This pattern often signals a bug or unfinished code.",
+        b, t = ({**LINT_WHY, **LINT_WHY_EXTENDED, **JS_LINT_WHY}).get(f.get("rule_id"), ("This pattern often signals a bug or unfinished code.",
                                                "Lint rule violation; may indicate a defect."))
         return b if level == "beginner" else t
     if check == "tests":
@@ -75,7 +118,10 @@ def _why(f: dict, level: str) -> str:
 
 def _next(f: dict, level: str) -> str:
     md, check = f.get("metadata") or {}, f["check"]
-    if check == "security":
+    if check == "types":
+        return ("Compare the type the function promises with what this line really produces, then fix whichever is wrong."
+                if level != "advanced" else "Fix the annotation or the expression.")
+    if check in ("security", "secrets"):
         fix = md.get("fix", "Review how input reaches this line.")
         if level == "beginner":
             return f"Ask: can a user or another system control the data used here? If yes, change it. Suggested fix: {fix}"
@@ -116,6 +162,8 @@ def explain_finding(f: dict, level: str) -> dict:
         "next_step": _next(f, level),
         "source": "template",
     }
+    if (f.get("metadata") or {}).get("also_reported_by"):
+        item["also_reported_by"] = list(f["metadata"]["also_reported_by"])  # merged duplicate reports (same line + weakness)
     if level == "beginner" and (f.get("metadata") or {}).get("confidence"):
         item["why"] += " Note: this rule often produces false alarms - " + f["metadata"]["confidence"].split(" - ")[-1]
     elif (f.get("metadata") or {}).get("confidence"):

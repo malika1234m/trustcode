@@ -104,13 +104,62 @@ export async function runE2E(hook: any, backend: string): Promise<R[]> {
     await vscode.commands.executeCommand('trustcode.clearFindings');
     assert.strictEqual(vscode.languages.getDiagnostics(view.selection.uri).length, 0);
   });
-  await t('edge: editing the document clears stale diagnostics', async () => {
+  await t('edge: evidence follows edits above it and is removed when its own line is edited', async () => {
     const { ed } = await openSelect('python', sqli, 1);
     await view.onMessage({ action: 'verify', task: '' }).catch((e: unknown) => view.error(e));
-    assert.ok(vscode.languages.getDiagnostics(ed.document.uri).length > 0, 'precondition: diagnostics present');
-    await ed.edit((e) => e.insert(new vscode.Position(0, 0), '\n'));
+    const at = () => vscode.languages.getDiagnostics(ed.document.uri).find((d) => String(d.message).includes('SEC-1'))?.range.start.line;
+    assert.strictEqual(at(), 3, 'precondition: SQL finding on line index 3');
+    await ed.edit((e) => e.insert(new vscode.Position(0, 0), '# new first line\n'));
     await sleep(200);
-    assert.strictEqual(vscode.languages.getDiagnostics(ed.document.uri).length, 0, 'stale diagnostics remain after edit');
+    assert.strictEqual(at(), 4, 'finding did not move with the code');
+    assert.ok(ed.document.lineAt(4).text.includes('conn.execute'), 'diagnostic no longer points at the flagged code');
+    await ed.edit((e) => e.insert(new vscode.Position(4, 4), 'x = '));
+    await sleep(200);
+    assert.strictEqual(at(), undefined, 'stale evidence remains on an edited line');
+  });
+  await t('performance: identical input is answered from the cache; "run again" really re-runs', async () => {
+    await openSelect('python', 'import pickle\ndef load(b):\n    return pickle.loads(b)\n');
+    const n = submits;
+    await view.onMessage({ action: 'verify', task: 'cache me' }).catch((e: unknown) => view.error(e));
+    await view.onMessage({ action: 'verify', task: 'cache me' }).catch((e: unknown) => view.error(e));
+    assert.strictEqual(submits - n, 1, 'identical code was submitted twice');
+    assert.match(last(), /nothing was sent again/);
+    assert.match(last(), /Unsafe deserial|pickle/i);
+    await view.onMessage({ action: 'rerun' }).catch((e: unknown) => view.error(e));
+    assert.strictEqual(submits - n, 2, '"run again" did not re-run');
+    assert.ok(!/nothing was sent again/.test(last()));
+    assert.match(last(), /Since the last verification/);
+    assert.match(last(), /Same findings as before/);
+  });
+  await t('interaction: verify current file, compare after a change, hover and quick action', async () => {
+    const doc = await vscode.workspace.openTextDocument({ language: 'javascript', content: 'function run(code) {\n  return eval(code);\n}\nfunction isMissing(v) {\n  return v === NaN;\n}\n' });
+    const ed = await vscode.window.showTextDocument(doc);
+    ed.selection = new vscode.Selection(0, 0, 0, 0);
+    const n = submits;
+    await vscode.commands.executeCommand('trustcode.verifyFile');
+    assert.strictEqual(submits - n, 1, 'file was not submitted');
+    const diags = vscode.languages.getDiagnostics(doc.uri);
+    assert.ok(diags.some((d) => d.range.start.line === 1 && /eval|Dynamic code/i.test(d.message)), 'no security finding on the eval line');
+    assert.ok(diags.some((d) => d.range.start.line === 4 && /NaN/.test(d.message)), 'no static-analysis finding on the NaN line');
+    assert.ok(diags.every((d) => d.severity !== vscode.DiagnosticSeverity.Error), 'findings must never be shown as errors');
+    const hovers = await vscode.commands.executeCommand<vscode.Hover[]>('vscode.executeHoverProvider', doc.uri, new vscode.Position(4, 10));
+    const text = hovers.flatMap((h) => h.contents).map((c: any) => (typeof c === 'string' ? c : c.value)).join('\n');
+    assert.match(text, /TrustCode/);
+    assert.match(text, /Evidence/);
+    assert.match(text, /command:trustcode\.showFinding/);
+    const actions = await vscode.commands.executeCommand<vscode.CodeAction[]>('vscode.executeCodeActionProvider', doc.uri, new vscode.Range(4, 0, 4, 5));
+    const explain = actions.find((a) => /TrustCode: explain LINT-\d/.test(a.title));
+    assert.ok(explain?.command, 'no explain quick action');
+    await vscode.commands.executeCommand(explain!.command!.command, ...(explain!.command!.arguments ?? []));
+    assert.match(last(), /data-fid="LINT-1"/);
+    // remove the NaN comparison and run again: the comparison must report it as no longer reported, never as "fixed"
+    await ed.edit((e) => e.replace(new vscode.Range(4, 0, 4, 100), '  return Number.isNaN(v);'));
+    await vscode.commands.executeCommand('trustcode.rerun');
+    assert.strictEqual(submits - n, 2);
+    assert.match(last(), /1 no longer reported/);
+    assert.match(last(), /not confirmation of a fix/);
+    assert.ok(!vscode.languages.getDiagnostics(doc.uri).some((d) => /NaN/.test(d.message)));
+    assert.strictEqual(doc.getText().includes('eval(code)'), true, 'document changed by TrustCode');
   });
   await t('edge: same code selected in a different file maps findings to that file', async () => {
     const a = await openSelect('python', sqli, 1);

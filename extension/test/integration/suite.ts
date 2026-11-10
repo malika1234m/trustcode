@@ -16,7 +16,7 @@ export async function run(): Promise<void> {
     const cmds = await vscode.commands.getCommands(true);
     for (const c of ['trustcode.verifySelection', 'trustcode.signIn', 'trustcode.signOut', 'trustcode.setExperienceLevel',
                      'trustcode.privacySettings', 'trustcode.startExperiment', 'trustcode.forgetConsent',
-                     'trustcode.deleteMyData', 'trustcode.clearFindings']) {
+                     'trustcode.deleteMyData', 'trustcode.clearFindings', 'trustcode.verifyFile', 'trustcode.rerun', 'trustcode.showFinding']) {
       assert.ok(cmds.includes(c), `missing ${c}`);
     }
   });

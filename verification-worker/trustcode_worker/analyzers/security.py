@@ -6,6 +6,7 @@ CWE/OWASP metadata and explanation hints used by the deterministic explanation e
 """
 from __future__ import annotations
 
+import functools
 import hashlib
 import json
 import time
@@ -18,6 +19,7 @@ RULES_DIR = Path(__file__).resolve().parent.parent / "rules"
 _SEV = {"ERROR": Severity.HIGH, "WARNING": Severity.MEDIUM, "INFO": Severity.LOW}
 
 
+@functools.lru_cache
 def ruleset_digest() -> str:
     h = hashlib.sha256()
     for p in sorted(RULES_DIR.glob("*.yml")):
@@ -25,11 +27,15 @@ def ruleset_digest() -> str:
     return h.hexdigest()[:12]
 
 
-def check_security(code: str, lang: Language, workdir: Path) -> Check:
+def check_security(code: str, lang: Language, workdir: Path, extended: bool = False) -> Check:
     t0 = time.monotonic()
-    rules = RULES_DIR / ("python.yml" if lang == Language.PYTHON else "javascript.yml")  # JS rules also cover TypeScript
-    n_rules = sum(1 for ln in rules.read_text().splitlines() if ln.startswith("  - id:"))
-    scope = (f"Semgrep pattern matching with {n_rules} TrustCode {lang.value} rules (ruleset {ruleset_digest()}). "
+    name = "python.yml" if lang == Language.PYTHON else "javascript.yml"  # JS rules also cover TypeScript
+    rules = RULES_DIR / name
+    extra = RULES_DIR / "extended" / name
+    configs = [rules] + ([extra] if extended and extra.exists() else [])
+    n_rules = sum(_rule_count(c) for c in configs)
+    scope = (f"Semgrep pattern matching with {n_rules} TrustCode {lang.value} rules (ruleset {ruleset_digest()}"
+             f"{' + extended' if len(configs) > 1 else ''}). "
              "Detects only the listed insecure patterns; absence of findings does NOT mean the code is secure.")
     sg = semgrep_cmd()
     if not sg:
@@ -38,7 +44,8 @@ def check_security(code: str, lang: Language, workdir: Path) -> Check:
     ext = {Language.PYTHON: "py", Language.JAVASCRIPT: "js", Language.TYPESCRIPT: "ts"}[lang]
     src = workdir / f"solution.{ext}"
     src.write_text(code)
-    r = run(sg + ["scan", "--metrics=off", "--disable-version-check", "--quiet", "--json", "--config", str(rules), str(src)],
+    r = run(sg + ["scan", "--metrics=off", "--disable-version-check", "--quiet", "--json",
+                 *[a for c in configs for a in ("--config", str(c))], str(src)],
             timeout=120)
     if r.timed_out:
         return Check(kind=CheckKind.SECURITY, tool="semgrep", status=CheckStatus.CHECK_FAILED, summary="Semgrep timed out.",
@@ -68,6 +75,11 @@ def check_security(code: str, lang: Language, workdir: Path) -> Check:
                           "Semgrep reported errors" if errors else "No listed insecure patterns matched."),
                  scope=scope, findings=findings, duration_ms=_ms(t0), error="; ".join(errors) or None,
                  details={"ruleset": ruleset_digest(), "rules": n_rules})
+
+
+@functools.lru_cache
+def _rule_count(rules: Path) -> int:
+    return sum(1 for ln in rules.read_text().splitlines() if ln.startswith("  - id:"))
 
 
 def _as_list(v):

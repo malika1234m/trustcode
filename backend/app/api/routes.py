@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from ..adaptation.engine import decide
+from ..adaptation.engine import decide, rule_history
 from ..config import get_settings
 from ..db import get_db
 from ..deps import (current_researcher, current_user, limiter, participant_session, profile_of, rate_limit)
@@ -213,10 +213,14 @@ def get_explanation(job_id: str, level: str | None = Query(None, pattern="^(begi
     ratings = list(db.scalars(select(Feedback.rating).where(Feedback.user_id == user.id).order_by(Feedback.created_at)))
     n = sum(len(c["findings"]) for c in j.result["checks"])
     adaptation = decide(p.experience_level, n, ratings, p.adaptive_suggestions, override=level)
+    learned = None
+    if p.adaptive_suggestions:  # same opt-in as level suggestions; uses only this user's own ratings
+        learned = rule_history([tuple(r) for r in db.execute(
+            select(Feedback.rule, Feedback.rating).where(Feedback.user_id == user.id, Feedback.rule.is_not(None)))])
     s = get_settings()
     use_llm = llm and p.allow_llm and bool(s.anthropic_api_key)
     return build_explanation(j.result, adaptation, use_llm=use_llm, api_key=s.anthropic_api_key, model=s.llm_model,
-                             code=None, task=j.task)
+                             code=None, task=j.task, rule_feedback=learned)
 
 
 @router.post("/verifications/{job_id}/decision", status_code=201, tags=["verification"])
@@ -230,9 +234,14 @@ def record_decision(job_id: str, body: DecisionIn, user: User = Depends(current_
 
 @router.post("/feedback", status_code=201, tags=["feedback"])
 def feedback(body: FeedbackIn, user: User = Depends(current_user), db: Session = Depends(get_db)):
+    rule = None
     if body.job_id:
-        _own_job(db, user, body.job_id)
-    f = Feedback(user_id=user.id, **body.model_dump())
+        j = _own_job(db, user, body.job_id)
+        if body.finding_id and j.result:  # resolve the rule now: the result itself expires, the lesson should not
+            hit = next((x for c in j.result.get("checks", []) for x in c.get("findings", []) if x.get("id") == body.finding_id), None)
+            if hit:
+                rule = f"{hit.get('tool')}:{hit.get('rule_id')}"[:120]
+    f = Feedback(user_id=user.id, rule=rule, **body.model_dump())
     db.add(f)
     db.commit()
     return {"id": f.id}

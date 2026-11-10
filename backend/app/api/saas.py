@@ -15,7 +15,6 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from ..billing.plans import PLANS, plan_for
-from ..config import get_settings
 from ..db import get_db
 from ..deps import bearer, client_ip, current_user, limiter
 from ..models import AuditLog, SupportTicket, TicketMessage, User, VerificationJob, now

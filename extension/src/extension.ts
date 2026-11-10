@@ -4,7 +4,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ApiError, describeError, Tokens, TrustCodeApi } from './api';
 import { consentMessage, ConsentState, isLoopback, languageFor, needsPrompt, normaliseBackend, remember, SupportedLanguage, thirdPartyKind } from './consent';
-import { DecisionState, esc, Level, renderDecision, renderHeadline, renderResult } from './render';
+import { DecisionState, esc, Level, renderCachedNotice, renderComparison, renderDecision, renderHeadline, renderResult } from './render';
+import { ageText, cacheKey, compareResults, Comparison, findingIdFromMessage, flatFindings, FlatFinding, hoverMarkdown, LineRange, ResultCache, shiftRange, toLineEdit } from './findings';
 import { authorizeUrl, callbackUri, newPkce, parseCallback, Pending } from './auth';
 import { shellHtml } from './panel';
 import { account, errorCard, history, page, progress as progressCard, summaryTiles, Tab, TABS, verifyForm, waitingForBrowser, welcome } from './ui';
@@ -15,7 +16,11 @@ const TOKEN_KEY = () => `trustcode.tokens:${normaliseBackend(backendUrl())}`;
 const PARTICIPANT_KEY = () => `trustcode.participantToken:${normaliseBackend(backendUrl())}`;
 const CONSENT_KEY = 'trustcode.consent';
 
-interface Selection { code: string; language?: SupportedLanguage; lines: number; uri: vscode.Uri; startLine: number }
+interface Selection { code: string; language?: SupportedLanguage; lines: number; uri: vscode.Uri; startLine: number; whole?: boolean }
+/** A finding or unverified area pinned to document lines; kept in step with edits (see onDocumentChanged). */
+interface Mark { range: LineRange; finding?: FlatFinding; unverified?: { description: string; reason: string } }
+const FINDING_ID = /^[A-Z]{2,5}-\d{1,4}$/;
+const LANGUAGE_IDS = ['python', 'javascript', 'javascriptreact', 'typescript', 'typescriptreact'];
 
 const LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 const DECISIONS = ['accept', 'modify', 'reject'] as const;
@@ -44,24 +49,96 @@ class TrustCodeView implements vscode.WebviewViewProvider {
 
   constructor(private ctx: vscode.ExtensionContext, private api: TrustCodeApi, private participantApi: TrustCodeApi) {}
 
+  /** Lines with unverified areas (e.g. never executed by the tests): a quiet marker, not a warning. */
+  readonly unverifiedDecoration = vscode.window.createTextEditorDecorationType({
+    isWholeLine: true, borderWidth: '0 0 0 2px', borderStyle: 'dotted', borderColor: new vscode.ThemeColor('editorInfo.foreground'),
+    overviewRulerColor: new vscode.ThemeColor('editorInfo.foreground'), overviewRulerLane: vscode.OverviewRulerLane.Left,
+  });
+  private marks: Mark[] = [];
+  private marksUri?: vscode.Uri;
+
   /** Show findings as editor hints at their real line (evidence, not verdicts: never "Error" severity). */
   showDiagnostics(result: any) {
     if (!this.selection) return;
     const sel = this.selection;
-    const diags: vscode.Diagnostic[] = [];
-    for (const c of result?.checks ?? []) {
-      for (const f of c.findings ?? []) {
-        if (!f.location?.line) continue;
-        const line = sel.startLine + f.location.line - 1;
-        const end = sel.startLine + (f.location.end_line ?? f.location.line) - 1;
-        const d = new vscode.Diagnostic(new vscode.Range(line, 0, end, Number.MAX_SAFE_INTEGER),
-          `${f.title} (${f.id}) — ${f.message}`, SEV[f.severity] ?? vscode.DiagnosticSeverity.Information);
-        d.source = `TrustCode · ${f.tool}`;
-        d.code = f.rule_id ?? undefined;
-        diags.push(d);
-      }
+    this.marks = [];
+    this.marksUri = sel.uri;
+    for (const f of flatFindings(result)) {
+      if (!f.line) continue;
+      this.marks.push({ finding: f, range: { start: sel.startLine + f.line - 1, end: sel.startLine + (f.endLine ?? f.line) - 1 } });
     }
-    this.diagnostics.set(sel.uri, diags);
+    for (const u of result?.unverified ?? []) {
+      if (!u?.location?.line) continue;
+      this.marks.push({ unverified: { description: String(u.description ?? ''), reason: String(u.reason ?? '') },
+        range: { start: sel.startLine + u.location.line - 1, end: sel.startLine + (u.location.end_line ?? u.location.line) - 1 } });
+    }
+    this.refreshMarks();
+  }
+
+  /** Re-draws diagnostics and decorations from the tracked marks. */
+  refreshMarks() {
+    const uri = this.marksUri;
+    if (!uri) return;
+    const diags = this.marks.filter((m) => m.finding).map((m) => {
+      const f = m.finding!;
+      const d = new vscode.Diagnostic(new vscode.Range(m.range.start, 0, m.range.end, Number.MAX_SAFE_INTEGER),
+        `${f.title} (${f.id}) — ${f.message}`, SEV[f.severity] ?? vscode.DiagnosticSeverity.Information);
+      d.source = `TrustCode · ${f.tool}`;
+      d.code = f.rule;
+      return d;
+    });
+    this.diagnostics.set(uri, diags);
+    const unverified = this.marks.filter((m) => m.unverified).map((m) => ({
+      range: new vscode.Range(m.range.start, 0, m.range.end, 0),
+      hoverMessage: new vscode.MarkdownString().appendText(`TrustCode — not verified: ${m.unverified!.description}. ${m.unverified!.reason}`),
+    }));
+    for (const ed of vscode.window.visibleTextEditors) {
+      if (ed.document.uri.toString() === uri.toString()) ed.setDecorations(this.unverifiedDecoration, unverified);
+    }
+  }
+
+  clearMarks() {
+    this.marks = [];
+    this.diagnostics.clear();
+    for (const ed of vscode.window.visibleTextEditors) ed.setDecorations(this.unverifiedDecoration, []);
+  }
+
+  /**
+   * Keeps evidence attached to the right lines while the user edits. Marks above an edit stay, marks below it
+   * move with the text, and marks on edited lines are removed: that evidence described the old text.
+   */
+  onDocumentChanged(e: vscode.TextDocumentChangeEvent) {
+    if (!e.contentChanges.length || !this.marksUri || e.document.uri.toString() !== this.marksUri.toString() || !this.marks.length) return;
+    const before = this.marks.filter((m) => m.finding).length;
+    // All ranges refer to the document before the change, so apply edits bottom-up.
+    const edits = [...e.contentChanges].sort((x, y) => y.range.start.line - x.range.start.line)
+      .map((c) => toLineEdit(c.range.start.line, c.range.start.character, c.range.end.line, c.text));
+    for (const edit of edits) {
+      this.marks = this.marks.flatMap((m) => { const r = shiftRange(m.range, edit); return r ? [{ ...m, range: r }] : []; });
+    }
+    this.refreshMarks();
+    const dropped = before - this.marks.filter((m) => m.finding).length;
+    if (dropped) vscode.window.setStatusBarMessage(`TrustCode: ${dropped} finding${dropped === 1 ? '' : 's'} on edited lines hidden — re-verify to check the new code`, 5000);
+  }
+
+  markAt(uri: vscode.Uri, line: number): Mark | undefined {
+    if (!this.marksUri || uri.toString() !== this.marksUri.toString()) return undefined;
+    return this.marks.find((m) => m.finding && m.range.start <= line && line <= m.range.end);
+  }
+  explained(findingId: string): any {
+    if (!this.lastResult || this.lastResult.jobId !== this.jobId) return undefined;
+    return (this.lastView?.findings ?? []).find((x: any) => x?.finding_id === findingId);
+  }
+
+  /** Opens the panel on the current result and scrolls to one finding. */
+  async showFinding(findingId: unknown) {
+    if (typeof findingId !== 'string' || !FINDING_ID.test(findingId)) return;
+    await vscode.commands.executeCommand('trustcode.panel.focus');
+    if (this.lastResult && this.jobId !== this.lastResult.jobId) { this.jobId = this.lastResult.jobId; this.lastView = undefined; }
+    if (!this.jobId) return;
+    this.activeTab = 'verify';
+    if (this.lastView) this.renderResultPage(); else await this.showExplanation();
+    this.view?.webview.postMessage({ type: 'focus', finding: findingId });
   }
 
   resolveWebviewView(view: vscode.WebviewView) {
@@ -92,7 +169,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     await this.refreshAuth();
     if (!this.signedIn) return this.renderRaw(welcome(backendUrl()));
     this.activeTab = 'verify';
-    const sel = this.selection && { lines: this.selection.lines, language: this.selection.language, file: path.basename(this.selection.uri.path) };
+    const sel = this.selection && { lines: this.selection.lines, language: this.selection.language, file: path.basename(this.selection.uri.path), whole: this.selection.whole };
     this.render(verifyForm(sel, this.lastTask));
   }
   async showTab(tab: Tab) {
@@ -126,12 +203,28 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     return true;
   }
 
+  /** Captures the whole active (or only visible) document. Read-only. */
+  captureFile(): boolean {
+    const ed = vscode.window.activeTextEditor ?? vscode.window.visibleTextEditors[0];
+    if (!ed) {
+      vscode.window.showInformationMessage('TrustCode: open the file you want to verify first.');
+      return false;
+    }
+    const code = ed.document.getText();
+    if (!code.trim()) {
+      vscode.window.showInformationMessage('TrustCode: this file is empty — there is nothing to verify.');
+      return false;
+    }
+    this.selection = { code, language: languageFor(ed.document.languageId), lines: ed.document.lineCount, uri: ed.document.uri, startLine: 0, whole: true };
+    return true;
+  }
+
   /** Webview messages are untrusted input: every field is validated against an allow-list before use. */
   async onMessage(m: any) {
     if (!m || typeof m !== 'object') return;
     switch (m.action) {
       case 'ready': return this.showForm();
-      case 'home': this.jobId = undefined; return this.showForm();
+      case 'home': this.jobId = undefined; this.comparison = undefined; this.cachedAge = undefined; return this.showForm();
       case 'refresh': return this.showTab(this.activeTab);
       case 'tab': { const tab = oneOf(m.tab, TABS); return tab ? this.showTab(tab) : undefined; }
       case 'signIn': return void vscode.commands.executeCommand('trustcode.signIn');  // shows "continue in your browser"
@@ -144,11 +237,14 @@ class TrustCodeView implements vscode.WebviewViewProvider {
         return this.showForm();
       }
       case 'reveal': return this.reveal(m.finding);
+      case 'verifyFile': this.lastTask = textOf(m.task, 10_000) ?? ''; this.lastTests = textOf(m.tests, MAX_CODE_CHARS);
+        return this.verify(this.lastTask, this.lastTests, { file: true });
+      case 'rerun': return this.verify(this.lastTask, this.lastTests, { force: true, keepSelection: true });
       case 'changeDecision': if (this.jobId) { this.decisions.delete(this.jobId); this.renderResultPage(); } return;
       case 'openSettings': return void vscode.commands.executeCommand('workbench.action.openSettings', 'trustcode');
       case 'openJob': {
         if (typeof m.job !== 'string' || !/^[a-f0-9]{32}$/.test(m.job)) return;
-        this.jobId = m.job; this.activeTab = 'verify';
+        this.jobId = m.job; this.activeTab = 'verify'; this.comparison = undefined; this.cachedAge = undefined;
         return this.showExplanation();
       }
       case 'setLevel': {
@@ -167,7 +263,8 @@ class TrustCodeView implements vscode.WebviewViewProvider {
       case 'signOut': await vscode.commands.executeCommand('trustcode.signOut'); return this.showForm();
       case 'forgetConsent': return void vscode.commands.executeCommand('trustcode.forgetConsent');
       case 'deleteData': await vscode.commands.executeCommand('trustcode.deleteMyData'); return this.showForm();
-      case 'verify': this.lastTask = textOf(m.task, 10_000) ?? ''; return this.verify(textOf(m.task, 10_000), textOf(m.tests, MAX_CODE_CHARS));
+      case 'verify': this.lastTask = textOf(m.task, 10_000) ?? ''; this.lastTests = textOf(m.tests, MAX_CODE_CHARS);
+        return this.verify(this.lastTask, this.lastTests);
       case 'level': {
         const level = oneOf(m.level, LEVELS);
         if (!level) return;  // ignore malformed values instead of persisting them
@@ -210,28 +307,44 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   }
 
   private busy = false;
+  private lastTests?: string;
+  private comparison?: Comparison;
+  private cachedAge?: string;
+  /** Finished results for identical input (same server, language, code, task, tests): avoids sending code twice. */
+  readonly cache = new ResultCache<{ jobId: string; result: any }>();
+  /** Last result per document, for "what changed since the last verification". */
+  private previousByDoc = new Map<string, any>();
 
-  async verify(task?: string, tests?: string) {
+  async verify(task?: string, tests?: string, opts: { force?: boolean; file?: boolean; keepSelection?: boolean } = {}) {
     if (this.busy) {
       vscode.window.setStatusBarMessage('TrustCode: a verification is already running', 3000);
       return;
     }
     this.busy = true;
     try {
-      await this.verifyOnce(task, tests);
+      await this.verifyOnce(task, tests, opts);
     } finally {
       this.busy = false;
+      if (this.statusItem?.text.includes('sync~spin')) this.updateStatus(this.jobId ? this.lastView : undefined);
     }
   }
 
-  private async verifyOnce(task?: string, tests?: string) {
-    // Prefer the editor's current selection so a stale capture is never sent by mistake.
-    const ed = vscode.window.activeTextEditor ?? vscode.window.visibleTextEditors.find((e) => !e.selection.isEmpty);
-    if (ed && !ed.selection.isEmpty) {
-      // Always refresh: identical text in another file or position must map findings to the right document/lines.
-      const current = ed.document.getText(ed.selection);
-      this.selection = { code: current, language: languageFor(ed.document.languageId), lines: current.split('\n').length,
-        uri: ed.document.uri, startLine: ed.selection.start.line };
+  private async verifyOnce(task: string | undefined, tests: string | undefined, opts: { force?: boolean; file?: boolean; keepSelection?: boolean }) {
+    if (opts.file) {
+      if (!this.captureFile()) return;
+    } else if (!(opts.keepSelection && this.selection?.whole)) {
+      // Prefer the editor's current selection so a stale capture is never sent by mistake.
+      const ed = vscode.window.activeTextEditor ?? vscode.window.visibleTextEditors.find((e) => !e.selection.isEmpty);
+      if (ed && !ed.selection.isEmpty) {
+        // Always refresh: identical text in another file or position must map findings to the right document/lines.
+        const current = ed.document.getText(ed.selection);
+        this.selection = { code: current, language: languageFor(ed.document.languageId), lines: current.split('\n').length,
+          uri: ed.document.uri, startLine: ed.selection.start.line };
+      }
+    } else {
+      // Re-running a whole-file verification: read the file again so edits since the last run are included.
+      const doc = await vscode.workspace.openTextDocument(this.selection.uri);
+      this.selection = { ...this.selection, code: doc.getText(), lines: doc.lineCount };
     }
     if (!this.selection && !this.captureSelection()) return;
     if (!this.selection) return;
@@ -254,13 +367,32 @@ class TrustCodeView implements vscode.WebviewViewProvider {
       if (go !== 'Verify anyway') return;
     }
     if (this.selection.code.length > MAX_CODE_CHARS || (tests?.length ?? 0) > MAX_CODE_CHARS) {
-      vscode.window.showWarningMessage(`TrustCode: the selection or tests exceed ${MAX_CODE_CHARS.toLocaleString()} characters. Select a smaller part. Nothing was sent.`);
+      const what = this.selection.whole ? 'This file is' : 'The selection or tests are';
+      vscode.window.showWarningMessage(`TrustCode: ${what} larger than ${MAX_CODE_CHARS.toLocaleString()} characters. Select a smaller part. Nothing was sent.`);
       return;
     }
-    this.diagnostics.clear();
     const sel = this.selection!;
     const cfg = vscode.workspace.getConfiguration('trustcode');
     const backend = cfg.get<string>('backendUrl')!;
+    const key = cacheKey([normaliseBackend(backend), sel.language, sel.code, task, tests]);
+    const docKey = sel.uri.toString();
+    const cached = opts.force ? undefined : this.cache.get(key);
+    if (cached && await this.refreshAuth()) {
+      // Identical input was verified moments ago: show that result. No code leaves the machine, so no consent prompt.
+      try {
+        this.jobId = cached.value.jobId;
+        this.lastResult = { jobId: cached.value.jobId, result: cached.value.result, selection: sel };
+        this.cachedAge = ageText(cached.ageMs);
+        this.comparison = undefined;
+        this.showDiagnostics(cached.value.result);
+        await this.showExplanation();
+        return;
+      } catch {
+        this.cache.delete(key);  // e.g. the result expired on the server: fall through to a real run
+        this.cachedAge = undefined;
+      }
+    }
+    this.clearMarks();
     const consent = this.ctx.globalState.get<ConsentState>(CONSENT_KEY, { trustedBackends: [] });
     if (needsPrompt(consent, backend)) {
       const choice = await vscode.window.showWarningMessage(
@@ -270,23 +402,33 @@ class TrustCodeView implements vscode.WebviewViewProvider {
       if (choice !== 'Send') await this.ctx.globalState.update(CONSENT_KEY, remember(consent, backend));
     }
     if (!(await this.ensureSignedIn())) return;
+    if (this.statusItem) { this.statusItem.text = '$(sync~spin) TrustCode: verifying…'; this.statusItem.tooltip = 'TrustCode: verification running'; }
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: 'TrustCode', cancellable: true },
       async (progress, token) => {
         progress.report({ message: 'submitting…' });
         this.render(progressCard('submitting'));
         const job = await this.api.submit(sel.code, sel.language, task, tests);
         this.jobId = job.id;
+        this.lastView = undefined;
         const done = await this.api.waitForResult(job.id, () => token.isCancellationRequested, (s) => {
-          progress.report({ message: s === 'running' ? 'running checks (syntax, lint, security, tests)…' : `${s}…` });
+          progress.report({ message: s === 'running' ? 'running checks…' : `${s}…` });
           this.render(progressCard(s));
         });
         if (done.status === 'cancelled') {
+          this.jobId = undefined;
           this.render('<section class="card"><h3>Verification cancelled</h3><p class="muted">Nothing was recorded.</p><button class="primary" data-action="home">Back</button></section>');
           return;
         }
         if (done.status !== 'done') throw new ApiError(500, 'failed', done.error ?? `verification ${done.status}`);
+        const jobId = done.id ?? job.id;
+        this.cachedAge = undefined;
+        const previous = this.previousByDoc.get(docKey);
+        this.comparison = previous ? compareResults(previous, done.result) : undefined;
+        this.previousByDoc.set(docKey, done.result);
+        if (this.previousByDoc.size > 30) this.previousByDoc.delete(this.previousByDoc.keys().next().value as string);
+        this.cache.set(key, { jobId, result: done.result });
         this.showDiagnostics(done.result);
-        this.lastResult = { jobId: done.id ?? job.id, result: done.result, selection: this.selection };
+        this.lastResult = { jobId, result: done.result, selection: this.selection };
         await this.showExplanation();
       });
   }
@@ -310,11 +452,11 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     const view = this.lastView;
     if (!view || !this.jobId) return;
     const decided = this.decisions.get(this.jobId);
-    this.render(`${renderHeadline(view)}${summaryTiles(view)}${renderResult(view)}${renderDecision('decide', decided)}
+    const current = this.lastResult?.jobId === this.jobId;
+    this.render(`${current ? renderCachedNotice(this.cachedAge) : ''}${renderHeadline(view)}${summaryTiles(view)}${current ? renderComparison(this.comparison) : ''}${renderResult(view)}${renderDecision('decide', decided)}
       ${decided ? '' : '<section class="card"><label class="card-title" for="rationale">Note <span class="badge">optional</span></label><textarea id="rationale" placeholder="Why did you decide this?"></textarea></section>'}
-      <button class="primary wide" data-action="verify">Re-verify current selection</button>
-      <div class="row"><button data-action="home">Add tests / task and re-verify</button>
-      <button data-action="home">Verify something else</button></div>
+      <button class="primary wide" data-action="rerun">Run the checks again</button>
+      <div class="row"><button data-action="home">Add tests / task, or verify something else</button></div>
       <p class="note">Findings are also shown in the editor and the Problems panel (source “TrustCode”).</p>`);
     this.updateStatus(view);
   }
@@ -324,8 +466,9 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     if (!view) { this.statusItem.text = '$(checklist) TrustCode'; this.statusItem.tooltip = 'Open TrustCode'; return; }
     const f = (view.findings ?? []).length;
     const u = (view.unverified ?? []).length;
-    this.statusItem.text = `$(checklist) ${f} finding${f === 1 ? '' : 's'} · ${u} not verified`;
-    this.statusItem.tooltip = 'TrustCode: last verification result — click to open';
+    const failed = (view.checks ?? []).filter((c: any) => c.status === 'check_failed').length;
+    this.statusItem.text = `$(checklist) ${f} finding${f === 1 ? '' : 's'} · ${u} not verified${failed ? ` · ${failed} check${failed === 1 ? '' : 's'} failed` : ''}`;
+    this.statusItem.tooltip = 'TrustCode: last verification result — click to open. Counts describe evidence, not correctness.';
   }
 
   /** Jump to a finding in the editor, using the selection offset of the verification that produced it. */
@@ -336,14 +479,18 @@ class TrustCodeView implements vscode.WebviewViewProvider {
       vscode.window.showInformationMessage('TrustCode: re-verify the code to link findings to lines in the editor.');
       return;
     }
-    const f = (lr.result?.checks ?? []).flatMap((c: any) => c.findings ?? []).find((x: any) => x.id === findingId);
-    if (!f?.location?.line) return;
-    const line = lr.selection.startLine + f.location.line - 1;
-    const doc = await vscode.workspace.openTextDocument(lr.selection.uri);
+    const mark = this.marks.find((m) => m.finding?.id === findingId);
+    if (!mark || !this.marksUri) {
+      vscode.window.showInformationMessage('TrustCode: this line was edited after the verification — run the checks again to locate the finding.');
+      return;
+    }
+    const doc = await vscode.workspace.openTextDocument(this.marksUri);
     const ed = await vscode.window.showTextDocument(doc, { preserveFocus: false });
-    const range = doc.lineAt(Math.min(line, doc.lineCount - 1)).range;
+    const first = Math.min(mark.range.start, doc.lineCount - 1), last = Math.min(mark.range.end, doc.lineCount - 1);
+    const range = new vscode.Range(doc.lineAt(first).range.start, doc.lineAt(last).range.end);
     ed.selection = new vscode.Selection(range.start, range.end);
     ed.revealRange(range, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+    this.refreshMarks();
   }
 
   async decide(m: any) {
@@ -474,6 +621,47 @@ export function activate(ctx: vscode.ExtensionContext) {
       await vscode.commands.executeCommand('trustcode.panel.focus');
       view.showForm();
     })),
+    vscode.commands.registerCommand('trustcode.verifyFile', wrap(async () => {
+      if (!view.captureFile()) return;
+      await vscode.commands.executeCommand('trustcode.panel.focus');
+      await view.verify(undefined, undefined, { file: true });
+    })),
+    vscode.commands.registerCommand('trustcode.rerun', wrap(async () => {
+      if (!view.selection) { vscode.window.showInformationMessage('TrustCode: nothing has been verified yet in this window.'); return; }
+      await vscode.commands.executeCommand('trustcode.panel.focus');
+      await view.onMessage({ action: 'rerun' });
+    })),
+    vscode.commands.registerCommand('trustcode.showFinding', (id?: unknown) => view.showFinding(id).catch((e) => view.error(e))),
+    vscode.languages.registerHoverProvider(LANGUAGE_IDS.map((language) => ({ language })), {
+      provideHover(doc, pos) {
+        const mark = view.markAt(doc.uri, pos.line);
+        if (!mark?.finding) return undefined;
+        const md = new vscode.MarkdownString(hoverMarkdown(mark.finding, view.explained(mark.finding.id)));
+        md.isTrusted = { enabledCommands: ['trustcode.showFinding'] };  // the only link the hover can run
+        return new vscode.Hover(md, new vscode.Range(mark.range.start, 0, mark.range.end, Number.MAX_SAFE_INTEGER));
+      },
+    }),
+    vscode.languages.registerCodeActionsProvider(LANGUAGE_IDS.map((language) => ({ language })), {
+      provideCodeActions(_doc, _range, context) {
+        const actions: vscode.CodeAction[] = [];
+        for (const d of context.diagnostics) {
+          const id = typeof d.source === 'string' && d.source.startsWith('TrustCode') ? findingIdFromMessage(d.message) : undefined;
+          if (!id) continue;
+          const explain = new vscode.CodeAction(`TrustCode: explain ${id} (why, evidence, next step)`, vscode.CodeActionKind.QuickFix);
+          explain.command = { command: 'trustcode.showFinding', title: 'Explain in TrustCode', arguments: [id] };
+          explain.diagnostics = [d];
+          actions.push(explain);
+        }
+        if (actions.length) {
+          const rerun = new vscode.CodeAction('TrustCode: run the checks again', vscode.CodeActionKind.QuickFix);
+          rerun.command = { command: 'trustcode.rerun', title: 'Run the checks again' };
+          actions.push(rerun);
+        }
+        return actions;
+      },
+    }, { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] }),
+    view.unverifiedDecoration,
+    vscode.window.onDidChangeVisibleTextEditors(() => view.refreshMarks()),
     vscode.commands.registerCommand('trustcode.signIn', (intent?: unknown) => wrap(async () => {
       await browserAuth.begin(intent === 'create' ? 'register' : 'login');
     })()),
@@ -481,6 +669,8 @@ export function activate(ctx: vscode.ExtensionContext) {
     vscode.commands.registerCommand('trustcode.signOut', wrap(async () => {
       await ctx.secrets.delete(TOKEN_KEY());
       view.jobId = undefined;
+      view.cache.clear();  // results belong to the signed-in account
+      view.clearMarks();
       vscode.window.showInformationMessage('TrustCode: signed out.');
       await view.showForm();
     })),
@@ -514,11 +704,8 @@ export function activate(ctx: vscode.ExtensionContext) {
       item.show();
       return item;
     })(),
-    vscode.workspace.onDidChangeTextDocument((e) => {
-      // line numbers of earlier evidence no longer match edited code: remove stale hints for that document
-      if (e.contentChanges.length && view.diagnostics.has(e.document.uri)) view.diagnostics.delete(e.document.uri);
-    }),
-    vscode.commands.registerCommand('trustcode.clearFindings', () => view.diagnostics.clear()),
+    vscode.workspace.onDidChangeTextDocument((e) => view.onDocumentChanged(e)),
+    vscode.commands.registerCommand('trustcode.clearFindings', () => view.clearMarks()),
     vscode.commands.registerCommand('trustcode.deleteMyData', wrap(async () => {
       const ok = await vscode.window.showWarningMessage(
         'Delete your TrustCode account and all stored verification history, decisions and feedback on this server? This cannot be undone.',
@@ -526,7 +713,9 @@ export function activate(ctx: vscode.ExtensionContext) {
       if (ok !== 'Delete everything' || !(await view.ensureSignedIn())) return;
       await api.request('DELETE', '/me/data');
       await ctx.secrets.delete(TOKEN_KEY());
-      view.diagnostics.clear();
+      view.clearMarks();
+      view.cache.clear();
+      view.jobId = undefined;
       vscode.window.showInformationMessage('TrustCode: your account and data were deleted.');
     })),
     vscode.commands.registerCommand('trustcode.forgetConsent', wrap(async () => { await ctx.globalState.update(CONSENT_KEY, { trustedBackends: [] }); vscode.window.showInformationMessage('TrustCode will ask before sending code again.'); })),

@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     local_mode: bool = False                       # single-user, no registration; bind to 127.0.0.1 only
     worker_mode: str = "inline"                    # inline (dev/test) | queue (worker process) | sync (serverless: analyse in-request, static checks only)
     run_tests: bool = True                         # sandboxed test execution enabled
+    engine_profile: str = "extended"  # "study-v1" pins the frozen research check set (ADR-005)
     rate_limit_per_minute: int = 300                # general authenticated limit (status polling included)
     verify_rate_limit_per_minute: int = 10
     auth_rate_limit_per_minute: int = 20            # per-IP limit on unauthenticated endpoints (login, register, refresh, join)

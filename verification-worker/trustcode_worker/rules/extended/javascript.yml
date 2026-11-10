@@ -1,0 +1,26 @@
+# Extended-profile rules (product only). NOT part of the frozen study ruleset (ADR-005): the files in the
+# parent directory are never changed by additions here, and the "study-v1" profile does not load this file.
+rules:
+  - id: js-sql-concat-any-position
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: SQL query text is built by concatenating a value into a string and passed to a query method.
+    patterns:
+      - pattern: $DB.$METHOD($QUERY, ...)
+      - metavariable-regex:
+          metavariable: $METHOD
+          regex: ^(query|run|all|get|prepare|execute|exec|raw)$
+      - metavariable-pattern:
+          metavariable: $QUERY
+          patterns:
+            - pattern-either:
+                - pattern: $LEFT + $RIGHT
+            - pattern-regex: (?i)\b(select|insert\s+into|update|delete\s+from)\b
+    metadata:
+      title: SQL injection risk
+      trustcode_severity: high
+      cwe: ["CWE-89"]
+      owasp: ["A03:2021 Injection"]
+      why_beginner: Typing special characters into a form could change what the database command does.
+      why: Interpolating input into SQL text allows injection.
+      fix: Use placeholders, e.g. db.query("SELECT * FROM t WHERE id = ?", [id]).

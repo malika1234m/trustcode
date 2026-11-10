@@ -1,0 +1,2223 @@
+{
+ "profile": "study-v1",
+ "stage_execution": "sequential",
+ "registry_lookup": false,
+ "overall": {
+  "cases": 89,
+  "tp": 28,
+  "fp": 1,
+  "tn": 30,
+  "fn": 30,
+  "precision": 0.966,
+  "recall": 0.483,
+  "f1": 0.644,
+  "false_positive_rate": 0.032,
+  "false_negative_rate": 0.517,
+  "targeted_recall": 0.5,
+  "noise_findings_on_clean_code": 0,
+  "tool_failure_rate": 0.0,
+  "time_ms": {
+   "median": 748.4,
+   "p95": 1064.3,
+   "max": 1434.5,
+   "total_s": 68.2
+  }
+ },
+ "by_category": {
+  "ai_subtle": {
+   "cases": 13,
+   "defective": 13,
+   "flagged": 1,
+   "detected_labelled_defect": 2
+  },
+  "correct": {
+   "cases": 16,
+   "defective": 0,
+   "flagged": 1,
+   "detected_labelled_defect": 0
+  },
+  "edge_case": {
+   "cases": 6,
+   "defective": 0,
+   "flagged": 0,
+   "detected_labelled_defect": 0
+  },
+  "logic_error": {
+   "cases": 11,
+   "defective": 11,
+   "flagged": 3,
+   "detected_labelled_defect": 3
+  },
+  "missing_dependency": {
+   "cases": 4,
+   "defective": 4,
+   "flagged": 1,
+   "detected_labelled_defect": 1
+  },
+  "secret": {
+   "cases": 6,
+   "defective": 6,
+   "flagged": 2,
+   "detected_labelled_defect": 2
+  },
+  "security": {
+   "cases": 18,
+   "defective": 18,
+   "flagged": 15,
+   "detected_labelled_defect": 15
+  },
+  "syntax_error": {
+   "cases": 6,
+   "defective": 6,
+   "flagged": 6,
+   "detected_labelled_defect": 6
+  },
+  "unusual_valid": {
+   "cases": 9,
+   "defective": 0,
+   "flagged": 0,
+   "detected_labelled_defect": 0
+  }
+ },
+ "false_positives": [
+  {
+   "id": "OK-PY-07",
+   "rules": [
+    "insecure-random"
+   ]
+  }
+ ],
+ "false_negatives": [
+  "SEC-PY-10",
+  "SEC-JS-01",
+  "SEC-JS-06",
+  "SCR-PY-02",
+  "SCR-JS-01",
+  "SCR-JS-02",
+  "SCR-TS-01",
+  "LOG-PY-01",
+  "LOG-PY-02",
+  "LOG-PY-03",
+  "LOG-JS-01",
+  "LOG-JS-02",
+  "LOG-JS-03",
+  "LOG-JS-04",
+  "LOG-TS-01",
+  "DEP-PY-01",
+  "DEP-JS-01",
+  "DEP-JS-02",
+  "AI-PY-02",
+  "AI-PY-03",
+  "AI-PY-04",
+  "AI-PY-05",
+  "AI-PY-06",
+  "AI-PY-07",
+  "AI-JS-01",
+  "AI-JS-02",
+  "AI-JS-03",
+  "AI-JS-04",
+  "AI-TS-01",
+  "AI-TS-02"
+ ],
+ "missed_but_expected": [
+  "SEC-JS-01",
+  "SCR-PY-02",
+  "SCR-JS-01",
+  "SCR-JS-02",
+  "SCR-TS-01",
+  "LOG-JS-01",
+  "LOG-JS-02",
+  "LOG-TS-01",
+  "DEP-PY-01",
+  "DEP-JS-01",
+  "AI-PY-02",
+  "AI-PY-03",
+  "AI-PY-05",
+  "AI-PY-06",
+  "AI-JS-01",
+  "AI-JS-02",
+  "AI-JS-03",
+  "AI-TS-01"
+ ],
+ "cases": [
+  {
+   "id": "OK-PY-01",
+   "lang": "python",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 732.9,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-PY-02",
+   "lang": "python",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 710.8,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-PY-03",
+   "lang": "python",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 709.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-PY-04",
+   "lang": "python",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 741.5,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-PY-05",
+   "lang": "python",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 747.4,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-PY-06",
+   "lang": "python",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 741.0,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-PY-07",
+   "lang": "python",
+   "category": "correct",
+   "defective": false,
+   "flagged": true,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [
+    "insecure-random"
+   ],
+   "strong_rules": [
+    "insecure-random"
+   ],
+   "noise": 0,
+   "ms": 941.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-PY-08",
+   "lang": "python",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 797.9,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-JS-01",
+   "lang": "javascript",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 717.2,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-JS-02",
+   "lang": "javascript",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 691.6,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-JS-03",
+   "lang": "javascript",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 716.0,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-JS-04",
+   "lang": "javascript",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 716.5,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-JS-05",
+   "lang": "javascript",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 740.6,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-TS-01",
+   "lang": "typescript",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 951.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-TS-02",
+   "lang": "typescript",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 738.5,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "OK-TS-03",
+   "lang": "typescript",
+   "category": "correct",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 739.4,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "UN-PY-01",
+   "lang": "python",
+   "category": "unusual_valid",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 770.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "UN-PY-02",
+   "lang": "python",
+   "category": "unusual_valid",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 852.4,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "UN-PY-03",
+   "lang": "python",
+   "category": "unusual_valid",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 970.6,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "UN-PY-04",
+   "lang": "python",
+   "category": "unusual_valid",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 1064.3,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "UN-JS-01",
+   "lang": "javascript",
+   "category": "unusual_valid",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 719.9,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "UN-JS-02",
+   "lang": "javascript",
+   "category": "unusual_valid",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 722.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "UN-JS-03",
+   "lang": "javascript",
+   "category": "unusual_valid",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 713.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "UN-JS-04",
+   "lang": "javascript",
+   "category": "unusual_valid",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 788.9,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "UN-TS-01",
+   "lang": "typescript",
+   "category": "unusual_valid",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 787.5,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SYN-PY-01",
+   "lang": "python",
+   "category": "syntax_error",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "syntax-error"
+   ],
+   "strong_rules": [
+    "syntax-error"
+   ],
+   "noise": 0,
+   "ms": 2.0,
+   "checks": {
+    "syntax": "issues_found",
+    "lint": "not_run",
+    "security": "not_run",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SYN-PY-02",
+   "lang": "python",
+   "category": "syntax_error",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "syntax-error"
+   ],
+   "strong_rules": [
+    "syntax-error"
+   ],
+   "noise": 0,
+   "ms": 3.2,
+   "checks": {
+    "syntax": "issues_found",
+    "lint": "not_run",
+    "security": "not_run",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SYN-PY-03",
+   "lang": "python",
+   "category": "syntax_error",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "syntax-error"
+   ],
+   "strong_rules": [
+    "syntax-error"
+   ],
+   "noise": 0,
+   "ms": 4.4,
+   "checks": {
+    "syntax": "issues_found",
+    "lint": "not_run",
+    "security": "not_run",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SYN-JS-01",
+   "lang": "javascript",
+   "category": "syntax_error",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "syntax-error"
+   ],
+   "strong_rules": [
+    "syntax-error"
+   ],
+   "noise": 0,
+   "ms": 7.5,
+   "checks": {
+    "syntax": "issues_found",
+    "lint": "not_run",
+    "security": "not_run",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SYN-JS-02",
+   "lang": "javascript",
+   "category": "syntax_error",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "syntax-error"
+   ],
+   "strong_rules": [
+    "syntax-error"
+   ],
+   "noise": 0,
+   "ms": 4.2,
+   "checks": {
+    "syntax": "issues_found",
+    "lint": "not_run",
+    "security": "not_run",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SYN-TS-01",
+   "lang": "typescript",
+   "category": "syntax_error",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "syntax-error"
+   ],
+   "strong_rules": [
+    "syntax-error"
+   ],
+   "noise": 0,
+   "ms": 3.2,
+   "checks": {
+    "syntax": "issues_found",
+    "lint": "not_run",
+    "security": "not_run",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-01",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "sql-string-formatting"
+   ],
+   "strong_rules": [
+    "sql-string-formatting"
+   ],
+   "noise": 0,
+   "ms": 1434.5,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-02",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "shell-command-injection"
+   ],
+   "strong_rules": [
+    "shell-command-injection"
+   ],
+   "noise": 0,
+   "ms": 953.3,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-03",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "shell-command-injection"
+   ],
+   "strong_rules": [
+    "shell-command-injection"
+   ],
+   "noise": 0,
+   "ms": 1012.9,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-04",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "eval-exec-use"
+   ],
+   "strong_rules": [
+    "eval-exec-use"
+   ],
+   "noise": 0,
+   "ms": 1408.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-05",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "unsafe-deserialization"
+   ],
+   "strong_rules": [
+    "unsafe-deserialization"
+   ],
+   "noise": 0,
+   "ms": 1149.6,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-06",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "weak-password-hash"
+   ],
+   "strong_rules": [
+    "weak-password-hash"
+   ],
+   "noise": 0,
+   "ms": 1067.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-07",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "tls-verification-disabled"
+   ],
+   "strong_rules": [
+    "tls-verification-disabled"
+   ],
+   "noise": 0,
+   "ms": 990.6,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-08",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "path-traversal-open"
+   ],
+   "strong_rules": [
+    "path-traversal-open"
+   ],
+   "noise": 0,
+   "ms": 951.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-09",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "unsafe-deserialization"
+   ],
+   "strong_rules": [
+    "unsafe-deserialization"
+   ],
+   "noise": 0,
+   "ms": 932.2,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-10",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 802.6,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-PY-11",
+   "lang": "python",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "F401",
+    "insecure-random"
+   ],
+   "strong_rules": [
+    "insecure-random"
+   ],
+   "noise": 1,
+   "ms": 1115.0,
+   "checks": {
+    "syntax": "passed",
+    "lint": "issues_found",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-JS-01",
+   "lang": "javascript",
+   "category": "security",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 791.8,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-JS-02",
+   "lang": "javascript",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "js-child-process-exec"
+   ],
+   "strong_rules": [
+    "js-child-process-exec"
+   ],
+   "noise": 0,
+   "ms": 911.2,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-JS-03",
+   "lang": "javascript",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "js-innerhtml"
+   ],
+   "strong_rules": [
+    "js-innerhtml"
+   ],
+   "noise": 0,
+   "ms": 840.9,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-JS-04",
+   "lang": "javascript",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "js-eval"
+   ],
+   "strong_rules": [
+    "js-eval"
+   ],
+   "noise": 0,
+   "ms": 836.4,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-JS-05",
+   "lang": "javascript",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "js-prototype-pollution-merge"
+   ],
+   "strong_rules": [
+    "js-prototype-pollution-merge"
+   ],
+   "noise": 0,
+   "ms": 824.8,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-TS-01",
+   "lang": "typescript",
+   "category": "security",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "js-weak-hash"
+   ],
+   "strong_rules": [
+    "js-weak-hash"
+   ],
+   "noise": 0,
+   "ms": 1012.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SEC-JS-06",
+   "lang": "javascript",
+   "category": "security",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 703.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SCR-PY-01",
+   "lang": "python",
+   "category": "secret",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "hardcoded-secret"
+   ],
+   "strong_rules": [
+    "hardcoded-secret"
+   ],
+   "noise": 0,
+   "ms": 920.9,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SCR-PY-02",
+   "lang": "python",
+   "category": "secret",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 783.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SCR-PY-03",
+   "lang": "python",
+   "category": "secret",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "hardcoded-secret"
+   ],
+   "strong_rules": [
+    "hardcoded-secret"
+   ],
+   "noise": 0,
+   "ms": 846.3,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "issues_found",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SCR-JS-01",
+   "lang": "javascript",
+   "category": "secret",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 709.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SCR-JS-02",
+   "lang": "javascript",
+   "category": "secret",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 809.0,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "SCR-TS-01",
+   "lang": "typescript",
+   "category": "secret",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 745.0,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-PY-01",
+   "lang": "python",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 712.8,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-PY-02",
+   "lang": "python",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 711.6,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-PY-03",
+   "lang": "python",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 838.4,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-PY-04",
+   "lang": "python",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "B006"
+   ],
+   "strong_rules": [
+    "B006"
+   ],
+   "noise": 0,
+   "ms": 713.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "issues_found",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-PY-05",
+   "lang": "python",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "B012"
+   ],
+   "strong_rules": [
+    "B012"
+   ],
+   "noise": 0,
+   "ms": 731.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "issues_found",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-PY-06",
+   "lang": "python",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "B023"
+   ],
+   "strong_rules": [
+    "B023"
+   ],
+   "noise": 0,
+   "ms": 715.3,
+   "checks": {
+    "syntax": "passed",
+    "lint": "issues_found",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-JS-01",
+   "lang": "javascript",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 716.0,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-JS-02",
+   "lang": "javascript",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 791.2,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-JS-03",
+   "lang": "javascript",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 702.3,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-JS-04",
+   "lang": "javascript",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 872.0,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "LOG-TS-01",
+   "lang": "typescript",
+   "category": "logic_error",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 819.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "DEP-PY-01",
+   "lang": "python",
+   "category": "missing_dependency",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 847.4,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "DEP-JS-01",
+   "lang": "javascript",
+   "category": "missing_dependency",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 708.9,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "needs_review",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "DEP-PY-02",
+   "lang": "python",
+   "category": "missing_dependency",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "F821"
+   ],
+   "strong_rules": [
+    "F821"
+   ],
+   "noise": 0,
+   "ms": 876.8,
+   "checks": {
+    "syntax": "passed",
+    "lint": "issues_found",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "DEP-JS-02",
+   "lang": "javascript",
+   "category": "missing_dependency",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 765.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-PY-01",
+   "lang": "python",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": true,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "F821"
+   ],
+   "strong_rules": [
+    "F821"
+   ],
+   "noise": 0,
+   "ms": 740.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "issues_found",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-PY-02",
+   "lang": "python",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 749.4,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-PY-03",
+   "lang": "python",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 912.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-PY-04",
+   "lang": "python",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": true,
+   "expected_detectable": true,
+   "rules": [
+    "F601"
+   ],
+   "strong_rules": [],
+   "noise": 1,
+   "ms": 820.3,
+   "checks": {
+    "syntax": "passed",
+    "lint": "issues_found",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-PY-05",
+   "lang": "python",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 721.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-PY-06",
+   "lang": "python",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 748.4,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-PY-07",
+   "lang": "python",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [
+    "F401"
+   ],
+   "strong_rules": [],
+   "noise": 1,
+   "ms": 728.5,
+   "checks": {
+    "syntax": "passed",
+    "lint": "issues_found",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-JS-01",
+   "lang": "javascript",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 738.2,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-JS-02",
+   "lang": "javascript",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 758.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-JS-03",
+   "lang": "javascript",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 926.1,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-JS-04",
+   "lang": "javascript",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 853.2,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-TS-01",
+   "lang": "typescript",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": true,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 725.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "AI-TS-02",
+   "lang": "typescript",
+   "category": "ai_subtle",
+   "defective": true,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 708.8,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "EDGE-PY-01",
+   "lang": "python",
+   "category": "edge_case",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 741.3,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "EDGE-PY-02",
+   "lang": "python",
+   "category": "edge_case",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 722.3,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "EDGE-PY-03",
+   "lang": "python",
+   "category": "edge_case",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 719.8,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "EDGE-JS-01",
+   "lang": "javascript",
+   "category": "edge_case",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 802.6,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "EDGE-PY-04",
+   "lang": "python",
+   "category": "edge_case",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 728.7,
+   "checks": {
+    "syntax": "passed",
+    "lint": "passed",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  },
+  {
+   "id": "EDGE-TS-01",
+   "lang": "typescript",
+   "category": "edge_case",
+   "defective": false,
+   "flagged": false,
+   "detected": false,
+   "expected_detectable": false,
+   "rules": [],
+   "strong_rules": [],
+   "noise": 0,
+   "ms": 701.2,
+   "checks": {
+    "syntax": "passed",
+    "lint": "not_run",
+    "security": "passed",
+    "tests": "not_run",
+    "dependencies": "passed",
+    "requirements": "not_run"
+   },
+   "failed_checks": []
+  }
+ ]
+}

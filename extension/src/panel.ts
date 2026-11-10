@@ -148,6 +148,13 @@ export function shellHtml(webview: vscode.Webview): string {
   .alert-head { display: flex; align-items: center; gap: 8px; } .alert-head h3 { margin: 0; }
   .alert-icon { width: 20px; height: 20px; border-radius: 50%; background: var(--vscode-errorForeground); color: var(--vscode-editor-background, #000);
                 display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
+  .sev-group { font-size: .85em; margin: 10px 0 6px; font-weight: 600; } .sev-group:first-of-type { margin-top: 0; }
+  .learned { border-left: 2px solid var(--vscode-editorInfo-foreground); padding: 2px 8px; margin: 6px 0; color: var(--vscode-descriptionForeground); }
+  .cmp-counts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; } .compare ul { margin: 4px 0; } .compare details { margin: 4px 0; }
+  .cached { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 var(--gap); font-size: .9em; }
+  .finding { transition: box-shadow .25s ease, border-color .25s ease; }
+  .finding.flash { border-color: var(--vscode-focusBorder); box-shadow: 0 0 0 2px var(--vscode-focusBorder); }
+  .card, .tile, .headline { animation: rise .16s ease-out; } @keyframes rise { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style></head><body>
 <div id="root" aria-live="polite"><p class="muted" style="padding:10px">Loading…</p></div>
@@ -157,6 +164,13 @@ export function shellHtml(webview: vscode.Webview): string {
   window.addEventListener('message', (e) => {
     const m = e.data;
     if (m.type === 'render') { root.innerHTML = m.html; wire(); }  // html is produced by escaping renderers
+    if (m.type === 'focus' && /^[A-Z]{2,5}-\\d{1,4}$/.test(String(m.finding))) {
+      const el = root.querySelector('[data-fid="' + m.finding + '"]');
+      if (!el) return;
+      el.querySelectorAll('details').forEach((d) => { if (!d.classList.contains('f-more')) d.open = true; });
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 1600);
+    }
   });
   function conf() { const c = document.getElementById('conf'); return c ? Number(c.value) : null; }
   function val(id) { const el = document.getElementById(id); return el ? el.value : undefined; }

@@ -96,6 +96,7 @@ class Feedback(Base):
     user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
     job_id: Mapped[str | None] = mapped_column(ForeignKey("verification_jobs.id", ondelete="SET NULL"))
     finding_id: Mapped[str | None] = mapped_column(String(20))
+    rule: Mapped[str | None] = mapped_column(String(120))  # "tool:rule_id" the rating was about (survives result expiry)
     rating: Mapped[str] = mapped_column(String(20))       # helpful | not_helpful | too_technical | too_simple | incorrect
     comment: Mapped[str | None] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)

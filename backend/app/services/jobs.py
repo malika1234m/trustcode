@@ -55,7 +55,7 @@ def process(db: Session, job: VerificationJob):
     s = get_settings()
     try:
         result = verify(VerificationRequest(code=job.code, language=job.language, task=job.task, tests=job.tests),
-                        run_tests=s.run_tests)
+                        run_tests=s.run_tests, profile=s.engine_profile)
         db.refresh(job)
         if job.cancel_requested:
             job.status, job.result = "cancelled", None

@@ -244,3 +244,57 @@ def test_unknown_routes_and_methods_use_standard_error_format(client):
     assert r.status_code == 404 and r.json()["error"]["code"] == "not_found" and r.json()["error"]["request_id"]
     r = client.delete("/api/v1/health")
     assert r.status_code == 405 and r.json()["error"]["code"] == "method_not_allowed"
+
+
+def test_feedback_teaches_the_system_about_false_alarms_without_hiding_evidence(client, auth):
+    """Marking a rule wrong twice: later findings from that rule carry a note and are collapsed only below high severity."""
+    code = "import random\n\ndef pick(xs):\n    return random.choice(xs)\n"   # non-security use: the insecure-random rule is a false alarm here
+    client.patch(f"{V}/profile", headers=auth, json={"adaptive_suggestions": True})
+
+    def verify_once():
+        j = client.post(f"{V}/verifications", headers=auth, json={"code": code, "language": "python", "client_consent": True}).json()
+        wait_done(client, auth, j["id"])
+        view = client.get(f"{V}/verifications/{j['id']}/explanation", headers=auth).json()
+        return j["id"], next(f for f in view["findings"] if "random" in f["what"].lower() or "random" in f["evidence"].lower()), view
+
+    job1, f1, v1 = verify_once()
+    assert "your_feedback" not in f1 and v1["learned_from_feedback"] == []
+    for job in (job1, verify_once()[0]):
+        assert client.post(f"{V}/feedback", headers=auth, json={"job_id": job, "finding_id": f1["finding_id"], "rating": "incorrect"}).status_code == 201
+    _, f3, v3 = verify_once()
+    assert f3["your_feedback"]["marked_wrong"] == 2 and f3["collapsed"] is True
+    assert f3["evidence"] == f1["evidence"] and f3["severity"] == f1["severity"]      # evidence and severity untouched
+    assert len(v3["findings"]) == len(v1["findings"])                                   # nothing is hidden
+    assert v3["learned_from_feedback"] == [f3["your_feedback"]["rule"]]
+    # opting out switches the behaviour off again
+    client.patch(f"{V}/profile", headers=auth, json={"adaptive_suggestions": False})
+    assert "your_feedback" not in verify_once()[1]
+
+
+def test_learning_never_collapses_high_severity_findings():
+    from app.adaptation.engine import AdaptationDecision, rule_history
+    from app.explanations.engine import build_explanation
+    finding = {"id": "SEC-1", "check": "security", "tool": "semgrep", "rule_id": "sql-string-formatting", "title": "SQL injection risk",
+               "message": "m", "severity": "high", "status": "issue_detected", "location": {"line": 1}, "cwe": [], "metadata": {}}
+    result = {"checks": [{"kind": "security", "status": "issues_found", "summary": "s", "scope": "sc", "tool": "semgrep", "findings": [finding]}]}
+    hist = rule_history([("semgrep:sql-string-formatting", "incorrect")] * 3 + [("ruff:F401", "incorrect"), ("x:y", "helpful")])
+    assert list(hist) == ["semgrep:sql-string-formatting"]          # one "wrong" is not a pattern
+    item = build_explanation(result, AdaptationDecision(level="intermediate"), rule_feedback=hist)["findings"][0]
+    assert item["your_feedback"]["marked_wrong"] == 3 and not item.get("collapsed")
+    assert rule_history([("r", "incorrect"), ("r", "incorrect"), ("r", "helpful"), ("r", "helpful")]) == {}
+
+
+def test_explanations_cover_the_extended_checks():
+    from app.explanations.templates import explain_finding
+    base = {"status": "issue_detected", "location": {"line": 2}, "cwe": [], "severity": "medium", "code_excerpt": "x"}
+    cases = [{"id": "TYPE-1", "check": "types", "tool": "mypy", "rule_id": "return-value", "title": "Incompatible return value type", "message": "m", "metadata": {}},
+             {"id": "SCRT-1", "check": "secrets", "tool": "trustcode-secrets", "rule_id": "github-token", "title": "GitHub token", "message": "m",
+              "metadata": {"why": "W", "why_beginner": "WB", "fix": "FIX", "also_reported_by": ["semgrep:hardcoded-secret"]}},
+             {"id": "LINT-1", "check": "lint", "tool": "trustcode-jslint", "rule_id": "nan-comparison", "title": "Comparison with NaN is always false", "message": "m", "metadata": {}}]
+    for f in cases:
+        for level in ("beginner", "intermediate", "advanced"):
+            item = explain_finding({**base, **f}, level)
+            assert item["why"] and item["next_step"] and item["could_not_verify"] and item["evidence"] == "m"
+            assert "ruff" not in item["method"] or f["tool"] == "ruff"
+    assert explain_finding({**base, **cases[1]}, "beginner")["also_reported_by"] == ["semgrep:hardcoded-secret"]
+    assert "NaN never equals" in explain_finding({**base, **cases[2]}, "beginner")["why"]

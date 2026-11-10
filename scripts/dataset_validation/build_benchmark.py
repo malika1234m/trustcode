@@ -71,7 +71,8 @@ def main():
     for item in ITEMS:
         hashes[hashlib.sha256(item["code"].encode()).hexdigest()] += 1
         result = verify(VerificationRequest(code=item["code"], language=item["language"], task=item["task"],
-                                            tests=item["visible_tests"]))
+                                            tests=item["visible_tests"]),
+                        profile="study-v1")  # frozen check set: the benchmark must not change when the product engine grows
         h = run_in_sandbox(item["language"], item["code"], item["hidden_tests"])
         hidden = h.data["tests"] if h.ok and h.data.get("status") == "ok" else None
         problems, observed = classify(item, result, hidden)

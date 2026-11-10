@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.0
+
+- **Verify Current File** (command, editor context menu, panel button) next to Verify Selected Code; **Run the Checks Again** command.
+- Keyboard shortcuts: `Ctrl/Cmd+K Alt+V` (selection), `Ctrl/Cmd+K Alt+F` (file), `Ctrl/Cmd+K Alt+R` (run again).
+- **Hover** on a finding shows why it matters, the tool evidence, the suggested next step and what was not verified.
+- **Quick action** on a finding ("TrustCode: explain …") opens the panel at that finding.
+- Findings now **follow your edits**: evidence below an edit moves with the code; evidence on an edited line is removed instead of pointing at different text.
+- Lines never executed by your tests are marked in the editor as **not verified** (dotted border + overview ruler).
+- **What changed since the last verification** of the same file: new, unchanged and no-longer-reported findings (never described as "fixed").
+- Identical code is **not sent twice**: a recent result is shown with its age and a "Run again" button.
+- Findings are grouped by severity; duplicate reports from two analyzers are shown once with both sources.
+- New server checks are displayed: JavaScript/TypeScript static analysis, type checking (Python, when available on the server), hardcoded-secret formats.
+- If you mark a rule's findings as wrong repeatedly (and adaptive suggestions are on), later findings from that rule say so and are collapsed below high severity. They are never hidden.
+- Status bar shows progress while verifying and counts failed checks.
+
 ## 0.4.1
 
 - New TrustCode logo and extension icon: a selection frame around a check whose stroke fades, marking where verification stops.

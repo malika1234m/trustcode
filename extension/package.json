@@ -1,8 +1,8 @@
 {
   "name": "trustcode",
   "displayName": "TrustCode — Verify AI-Generated Code",
-  "description": "Check AI-generated Python, JavaScript and TypeScript with real evidence: security patterns, lint, dependency checks and tests. See what was checked, what was found, and what was NOT verified.",
-  "version": "0.4.1",
+  "description": "Check AI-generated Python, JavaScript and TypeScript with real evidence: static analysis, type checks, security patterns, hardcoded secrets, dependency checks and tests. See what was checked, what was found, and what was NOT verified.",
+  "version": "0.5.0",
   "publisher": "trustcode-research",
   "license": "MIT",
   "private": true,
@@ -45,6 +45,16 @@
         "icon": "$(shield)"
       },
       {
+        "command": "trustcode.verifyFile",
+        "title": "TrustCode: Verify Current File",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "trustcode.rerun",
+        "title": "TrustCode: Run the Checks Again",
+        "icon": "$(refresh)"
+      },
+      {
         "command": "trustcode.signIn",
         "title": "TrustCode: Sign In"
       },
@@ -83,6 +93,23 @@
           "command": "trustcode.verifySelection",
           "when": "editorHasSelection",
           "group": "navigation@90"
+        },
+        {
+          "command": "trustcode.verifyFile",
+          "when": "!editorHasSelection && editorLangId =~ /^(python|javascript|javascriptreact|typescript|typescriptreact)$/",
+          "group": "navigation@91"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "trustcode.verifyFile",
+          "when": "view == trustcode.panel",
+          "group": "navigation@1"
+        },
+        {
+          "command": "trustcode.rerun",
+          "when": "view == trustcode.panel",
+          "group": "navigation@2"
         }
       ]
     },
@@ -117,7 +144,26 @@
           "scope": "application"
         }
       }
-    }
+    },
+    "keybindings": [
+      {
+        "command": "trustcode.verifySelection",
+        "key": "ctrl+k alt+v",
+        "mac": "cmd+k alt+v",
+        "when": "editorTextFocus && editorHasSelection"
+      },
+      {
+        "command": "trustcode.verifyFile",
+        "key": "ctrl+k alt+f",
+        "mac": "cmd+k alt+f",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "trustcode.rerun",
+        "key": "ctrl+k alt+r",
+        "mac": "cmd+k alt+r"
+      }
+    ]
   },
   "scripts": {
     "compile": "tsc -p .",

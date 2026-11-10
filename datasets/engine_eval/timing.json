@@ -1,0 +1,30 @@
+{
+ "before (study-v1, sequential)": {
+  "runs": 60,
+  "median_ms": 1454,
+  "mean_ms": 1524,
+  "p95_ms": 2248,
+  "failed_checks": 0
+ },
+ "study-v1, parallel": {
+  "runs": 60,
+  "median_ms": 999,
+  "mean_ms": 1098,
+  "p95_ms": 2035,
+  "failed_checks": 0
+ },
+ "extended, sequential": {
+  "runs": 60,
+  "median_ms": 1805,
+  "mean_ms": 1994,
+  "p95_ms": 3214,
+  "failed_checks": 0
+ },
+ "after (extended, parallel)": {
+  "runs": 60,
+  "median_ms": 928,
+  "mean_ms": 976,
+  "p95_ms": 1480,
+  "failed_checks": 0
+ }
+}

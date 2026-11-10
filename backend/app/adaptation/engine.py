@@ -40,3 +40,24 @@ def decide(selected_level: str, n_findings: int, recent_ratings: list[str], sugg
         elif last.count("too_simple") >= 3 and idx < 2:
             d.suggestion = {"to": LEVELS[idx + 1], "because": "3+ of your last 5 ratings said explanations were too simple"}
     return d
+
+
+WRONG_THRESHOLD = 2
+
+
+def rule_history(rows: list[tuple[str, str]]) -> dict[str, dict]:
+    """Learning from feedback, transparently: per-rule counts of this user's own ratings.
+
+    `rows` are (rule, rating) pairs. A rule the user has marked "incorrect" at least WRONG_THRESHOLD times - and
+    more often than "helpful" - is reported as a likely false alarm *for this user*. The caller only changes
+    presentation (a note, and collapsing below high severity): evidence is never hidden, deleted or re-scored,
+    and nothing is learned across users.
+    """
+    counts: dict[str, dict] = {}
+    for rule, rating in rows:
+        if not rule:
+            continue
+        c = counts.setdefault(rule, {"incorrect": 0, "helpful": 0})
+        if rating in c:
+            c[rating] += 1
+    return {rule: c for rule, c in counts.items() if c["incorrect"] >= WRONG_THRESHOLD and c["incorrect"] > c["helpful"]}

@@ -28,6 +28,8 @@ class CheckKind(str, Enum):
     TESTS = "tests"
     DEPENDENCIES = "dependencies"
     REQUIREMENTS = "requirements"
+    SECRETS = "secrets"            # extended profile: credential-format scan
+    TYPES = "types"                # extended profile: static type checking
 
 
 class CheckStatus(str, Enum):
@@ -110,6 +112,7 @@ class VerificationResult(BaseModel):
     checks: list[Check]
     unverified: list[UnverifiedArea] = Field(default_factory=list)
     engine_version: str
+    profile: str = "extended"                # which check set ran: "extended" (product) or "study-v1" (frozen, ADR-005)
     disclaimer: str = ("These results describe what specific automated checks did and did not find. "
                        "Passing checks do not establish that the code is correct or secure.")
 

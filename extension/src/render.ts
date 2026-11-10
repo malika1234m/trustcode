@@ -20,7 +20,7 @@ export const STATUS_LABEL: Record<string, { icon: string; label: string; cls: st
 
 const CHECK_NAME: Record<string, string> = {
   syntax: 'Syntax', lint: 'Static analysis', security: 'Security patterns', tests: 'Unit tests',
-  dependencies: 'Dependencies', requirements: 'Matches the task?',
+  dependencies: 'Dependencies', requirements: 'Matches the task?', secrets: 'Hardcoded secrets', types: 'Type checking',
 };
 
 export function statusChip(status: string): string {
@@ -81,14 +81,16 @@ export function renderFinding(f: any, allowFeedback: boolean): string {
       <details class="f-more" data-track="evidence" data-finding="${id}"><summary>Evidence &amp; limits</summary>
         <dl><dt>Evidence (tool output)</dt><dd><pre>${esc(f?.evidence)}</pre></dd>
         <dt>Not verified</dt><dd>${esc(f?.could_not_verify)}</dd>
+        ${Array.isArray(f?.also_reported_by) && f.also_reported_by.length ? `<dt>Also reported by</dt><dd>${esc(f.also_reported_by.join(', '))} <span class="muted small">(same line and weakness — shown once)</span></dd>` : ''}
         ${f?.confidence_note ? `<dt>Rule confidence</dt><dd>${esc(f.confidence_note)}</dd>` : ''}</dl>
       </details>
+      ${f?.your_feedback?.note ? `<p class="learned small" role="note"><span aria-hidden="true">↺</span> ${esc(f.your_feedback.note)}</p>` : ''}
       <div class="f-actions">${f?.where && /line/i.test(String(f.where)) ? `<button class="mini" data-action="reveal" data-finding="${id}">Go to line</button>` : ''}${fb}</div>`;
   const head = `<span class="pill sev-${esc(sev)}">${esc(sev.toUpperCase())}</span>
       <span class="f-title">${esc(f?.what)}</span><span class="f-id muted">${id}</span>${f?.source === 'llm' ? ' <span class="tag">AI-worded</span>' : ''}`;
   return f?.collapsed
-    ? `<li class="finding sev-${esc(sev)}"><details><summary class="f-head">${head}</summary>${body}</details></li>`
-    : `<li class="finding sev-${esc(sev)}"><div class="f-head">${head}</div>${body}</li>`;
+    ? `<li class="finding sev-${esc(sev)}" data-fid="${id}"><details><summary class="f-head">${head}</summary>${body}</details></li>`
+    : `<li class="finding sev-${esc(sev)}" data-fid="${id}"><div class="f-head">${head}</div>${body}</li>`;
 }
 
 export function renderFindings(view: any, allowFeedback = true): string {
@@ -97,8 +99,15 @@ export function renderFindings(view: any, allowFeedback = true): string {
     return `<section class="card" aria-labelledby="h-find"><h3 id="h-find" class="section-label">Findings</h3>
       <p>No checks reported findings. This does <strong>not</strong> mean the code is free of defects — see “Not verified”.</p></section>`;
   }
-  return `<section aria-labelledby="h-find"><h3 id="h-find" class="section-label">Findings (${fs.length})</h3>
-    <ul class="findings">${fs.map((f: any) => renderFinding(f, allowFeedback)).join('')}</ul></section>`;
+  // Grouped by severity (the server already sorts most severe first); group labels carry text, not just colour.
+  const groups: Array<[string, string[]]> = [['Critical / high', ['critical', 'high']], ['Medium', ['medium']], ['Low / info', ['low', 'info']]];
+  const known = new Set(groups.flatMap(([, s]) => s));
+  const html = groups.map(([label, sevs]) => {
+    const items = fs.filter((f: any) => sevs.includes(String(f?.severity ?? 'info')) || (sevs.includes('info') && !known.has(String(f?.severity ?? 'info'))));
+    return items.length ? `<h4 class="sev-group">${esc(label)} <span class="muted">(${items.length})</span></h4>
+      <ul class="findings">${items.map((f: any) => renderFinding(f, allowFeedback)).join('')}</ul>` : '';
+  }).join('');
+  return `<section aria-labelledby="h-find"><h3 id="h-find" class="section-label">Findings (${fs.length})</h3>${html}</section>`;
 }
 
 export function renderUnverified(view: any): string {
@@ -151,4 +160,30 @@ export function renderResult(view: any, opts: { allowFeedback?: boolean; showLev
     ${renderFindings(v, opts.allowFeedback !== false)}${renderUnverified(v)}${renderChecks(v)}
     <section class="card"><h3 class="section-label">Before you decide</h3><ul class="guidance">${(v.guidance ?? []).map((g: string) => `<li>${esc(g)}</li>`).join('')}</ul>
     <p class="disclaimer">${esc(v.disclaimer)}</p></section>`;
+}
+
+/** What changed since the previous verification of the same document. Wording never implies a fix was confirmed. */
+export function renderComparison(cmp: { resolved: any[]; added: any[]; unchanged: number; checksChanged: string[] } | undefined): string {
+  if (!cmp) return '';
+  const list = (items: any[]) => items.slice(0, 6).map((f) => `<li>${esc(f.title)}${f.line ? ` <span class="muted">(was line ${esc(f.line)})</span>` : ''}</li>`).join('')
+    + (items.length > 6 ? `<li class="muted">…and ${items.length - 6} more</li>` : '');
+  const listNew = (items: any[]) => items.slice(0, 6).map((f) => `<li>${esc(f.title)} <span class="muted">${esc(f.id)}</span></li>`).join('')
+    + (items.length > 6 ? `<li class="muted">…and ${items.length - 6} more</li>` : '');
+  if (!cmp.resolved.length && !cmp.added.length && !cmp.checksChanged.length) {
+    return `<section class="card compare" aria-labelledby="h-cmp"><h3 id="h-cmp" class="section-label">Since the last verification</h3>
+      <p class="muted small">Same findings as before (${esc(cmp.unchanged)} unchanged).</p></section>`;
+  }
+  return `<section class="card compare" aria-labelledby="h-cmp"><h3 id="h-cmp" class="section-label">Since the last verification</h3>
+    <div class="cmp-counts"><span class="chip st-notrun">– ${esc(cmp.resolved.length)} no longer reported</span>
+      <span class="chip ${cmp.added.length ? 'st-issue' : 'st-notrun'}">${cmp.added.length ? '!' : '–'} ${esc(cmp.added.length)} new</span>
+      <span class="chip st-notrun">${esc(cmp.unchanged)} unchanged</span></div>
+    ${cmp.resolved.length ? `<details><summary>No longer reported (${cmp.resolved.length})</summary><ul>${list(cmp.resolved)}</ul>
+      <p class="muted small">“No longer reported” means the check no longer matches — for example because the line changed or was removed. It is not confirmation of a fix.</p></details>` : ''}
+    ${cmp.added.length ? `<details open><summary>New (${cmp.added.length})</summary><ul>${listNew(cmp.added)}</ul></details>` : ''}
+    ${cmp.checksChanged.length ? `<p class="muted small">Check status changed: ${esc(cmp.checksChanged.join('; '))}</p>` : ''}</section>`;
+}
+
+export function renderCachedNotice(age: string | undefined): string {
+  return age ? `<p class="hint cached" role="status">Showing the result from ${esc(age)} for identical code — nothing was sent again.
+    <button class="mini" data-action="rerun">Run again</button></p>` : '';
 }

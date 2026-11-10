@@ -1,0 +1,374 @@
+{
+ "note": "Recorded by scripts/engine_eval (extended profile, registry lookups off). Regenerate deliberately; see README.md.",
+ "overall": {
+  "cases": 89,
+  "tp": 44,
+  "fp": 1,
+  "tn": 30,
+  "fn": 14,
+  "precision": 0.978,
+  "recall": 0.759,
+  "f1": 0.855,
+  "false_positive_rate": 0.032,
+  "false_negative_rate": 0.241,
+  "targeted_recall": 0.776
+ },
+ "cases": {
+  "OK-PY-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-PY-02": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-PY-03": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-PY-04": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-PY-05": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-PY-06": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-PY-07": {
+   "flagged": true,
+   "detected": false
+  },
+  "OK-PY-08": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-JS-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-JS-02": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-JS-03": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-JS-04": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-JS-05": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-TS-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-TS-02": {
+   "flagged": false,
+   "detected": false
+  },
+  "OK-TS-03": {
+   "flagged": false,
+   "detected": false
+  },
+  "UN-PY-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "UN-PY-02": {
+   "flagged": false,
+   "detected": false
+  },
+  "UN-PY-03": {
+   "flagged": false,
+   "detected": false
+  },
+  "UN-PY-04": {
+   "flagged": false,
+   "detected": false
+  },
+  "UN-JS-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "UN-JS-02": {
+   "flagged": false,
+   "detected": false
+  },
+  "UN-JS-03": {
+   "flagged": false,
+   "detected": false
+  },
+  "UN-JS-04": {
+   "flagged": false,
+   "detected": false
+  },
+  "UN-TS-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "SYN-PY-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "SYN-PY-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "SYN-PY-03": {
+   "flagged": true,
+   "detected": true
+  },
+  "SYN-JS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "SYN-JS-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "SYN-TS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-03": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-04": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-05": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-06": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-07": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-08": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-09": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-PY-10": {
+   "flagged": false,
+   "detected": false
+  },
+  "SEC-PY-11": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-JS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-JS-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-JS-03": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-JS-04": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-JS-05": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-TS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "SEC-JS-06": {
+   "flagged": false,
+   "detected": false
+  },
+  "SCR-PY-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "SCR-PY-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "SCR-PY-03": {
+   "flagged": true,
+   "detected": true
+  },
+  "SCR-JS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "SCR-JS-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "SCR-TS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "LOG-PY-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "LOG-PY-02": {
+   "flagged": false,
+   "detected": false
+  },
+  "LOG-PY-03": {
+   "flagged": false,
+   "detected": false
+  },
+  "LOG-PY-04": {
+   "flagged": true,
+   "detected": true
+  },
+  "LOG-PY-05": {
+   "flagged": true,
+   "detected": true
+  },
+  "LOG-PY-06": {
+   "flagged": true,
+   "detected": true
+  },
+  "LOG-JS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "LOG-JS-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "LOG-JS-03": {
+   "flagged": false,
+   "detected": false
+  },
+  "LOG-JS-04": {
+   "flagged": false,
+   "detected": false
+  },
+  "LOG-TS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "DEP-PY-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "DEP-JS-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "DEP-PY-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "DEP-JS-02": {
+   "flagged": false,
+   "detected": false
+  },
+  "AI-PY-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "AI-PY-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "AI-PY-03": {
+   "flagged": true,
+   "detected": true
+  },
+  "AI-PY-04": {
+   "flagged": true,
+   "detected": true
+  },
+  "AI-PY-05": {
+   "flagged": false,
+   "detected": true
+  },
+  "AI-PY-06": {
+   "flagged": true,
+   "detected": true
+  },
+  "AI-PY-07": {
+   "flagged": false,
+   "detected": false
+  },
+  "AI-JS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "AI-JS-02": {
+   "flagged": true,
+   "detected": true
+  },
+  "AI-JS-03": {
+   "flagged": true,
+   "detected": true
+  },
+  "AI-JS-04": {
+   "flagged": false,
+   "detected": false
+  },
+  "AI-TS-01": {
+   "flagged": true,
+   "detected": true
+  },
+  "AI-TS-02": {
+   "flagged": false,
+   "detected": false
+  },
+  "EDGE-PY-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "EDGE-PY-02": {
+   "flagged": false,
+   "detected": false
+  },
+  "EDGE-PY-03": {
+   "flagged": false,
+   "detected": false
+  },
+  "EDGE-JS-01": {
+   "flagged": false,
+   "detected": false
+  },
+  "EDGE-PY-04": {
+   "flagged": false,
+   "detected": false
+  },
+  "EDGE-TS-01": {
+   "flagged": false,
+   "detected": false
+  }
+ }
+}

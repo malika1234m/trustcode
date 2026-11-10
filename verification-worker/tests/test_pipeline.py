@@ -31,7 +31,8 @@ def test_syntax_error_skips_dependent_checks_and_never_passes():
     assert status(r, CheckKind.SYNTAX) == CheckStatus.ISSUES_FOUND
     assert status(r, CheckKind.SECURITY) == CheckStatus.NOT_RUN
     assert status(r, CheckKind.TESTS) == CheckStatus.NOT_RUN
-    assert all(c.status != CheckStatus.PASSED for c in r.checks if c.kind != CheckKind.DEPENDENCIES)
+    # dependency and credential-format checks are text scans that do not need a parse tree
+    assert all(c.status != CheckStatus.PASSED for c in r.checks if c.kind not in (CheckKind.DEPENDENCIES, CheckKind.SECRETS))
 
 
 def test_incomplete_marker_flagged():

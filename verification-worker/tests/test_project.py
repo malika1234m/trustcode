@@ -196,3 +196,15 @@ def test_import_resolution_cost_does_not_grow_with_listing_times_imports():
     assert not findings(r, "import-not-found"), "existing modules reported as missing"
     imports = next(c for c in r["project_checks"] if c["kind"] == "imports")
     assert imports["details"]["resolved"] <= 400, "imports examined per file must be capped"
+
+
+def test_listing_cannot_inflate_the_import_index_or_exceed_its_budget():
+    from trustcode_worker.project import MAX_SUFFIX_PARTS, SessionRequest, _Project
+    deep = "/".join(f"d{i}" for i in range(200)) + "/mod.py"          # 201 components
+    proj = _Project(SessionRequest(files=[F("a.py", "x = 1\n")], workspace_paths=[deep]))
+    assert sum(1 for k in proj.by_suffix if k.endswith("mod.py")) == MAX_SUFFIX_PARTS
+    # a deeply nested module is still found by its tail and by its full dotted path
+    r = run([F("a.py", "import mod\nimport d198.d199.mod\nimport " + ".".join(f"d{i}" for i in range(200)) + ".mod\n", "created")], paths=[deep, "a.py"])
+    assert not findings(r, "import-not-found")
+    with pytest.raises(ValueError, match="listing too large"):
+        run([F("a.py", "x = 1\n")], paths=["p" * 450 + f"/{i}.py" for i in range(5000)])

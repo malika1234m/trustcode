@@ -751,8 +751,9 @@ export class SessionController implements vscode.Disposable {
     if (!ok) { if (!interactive) this.announceReady('changes are ready, and sending them needs your confirmation'); return; }
     if (!(await this.host.ensureSignedIn())) return;
 
-    const workspacePaths = this.listing.length <= 20_000 ? this.listing : [];
-    if (!workspacePaths.length && this.listing.length) notes.push('The workspace has more than 20,000 tracked files, so the file listing was not sent: imports of missing files could not be detected.');
+    const listingChars = this.listing.reduce((n, p) => n + p.length, 0);
+    const workspacePaths = this.listing.length <= 20_000 && listingChars <= 1_900_000 ? this.listing : [];
+    if (!workspacePaths.length && this.listing.length) notes.push('The workspace file listing is larger than the server accepts (20,000 files or 1.9 MB of paths), so it was not sent: imports of missing files could not be detected.');
     const reports: any[] = [];
     let cancelled = false;
     const timeoutMs = Math.max(30, this.cfg().get<number>('verification.timeoutSeconds', 180)) * 1000;

@@ -45,6 +45,8 @@ DEPTHS: dict[str, frozenset[str]] = {
     "deep": frozenset({"lint", "types", "security", "secrets", "deps"}),
 }
 MAX_FILES = 60
+MAX_SUFFIX_PARTS = 8            # path components indexed per file for import resolution
+MAX_LISTING_CHARS = 2_000_000   # total characters of the workspace file listing
 MAX_IMPORTS_PER_FILE = 400      # imports examined per file by the cross-file checks
 MAX_TOTAL_CHARS = 600_000
 
@@ -241,7 +243,9 @@ class _Project:
         out: dict[str, str] = {}
         for p in paths:
             parts = p.split("/")
-            for i in range(len(parts)):
+            # Only the last few components are indexed: an import names a short module tail, and indexing every
+            # suffix of a very deep path would let a client-supplied listing inflate memory.
+            for i in range(max(0, len(parts) - MAX_SUFFIX_PARTS), len(parts)):
                 out.setdefault("/".join(parts[i:]), p)   # shortest path wins (paths arrive sorted by length)
         return out
 
@@ -271,7 +275,7 @@ class _Project:
             return None, any(_norm(c) in self.deleted for c in cands)
         tail = "/".join(parts)
         for suffix in (tail + ".py", tail + "/__init__.py"):
-            hit = self.by_suffix.get(suffix)
+            hit = self.by_suffix.get(suffix) or (suffix if suffix in self.paths else None)
             if hit:
                 return hit, False
         if tail in self.dir_suffixes:
@@ -528,7 +532,6 @@ def verify_session(req: SessionRequest, profile: str = "extended", max_workers: 
     never switch outbound lookups on by itself; None reads the operator setting TRUSTCODE_REGISTRY_CHECK."""
     import os
     t0 = time.monotonic()
-    proj = _Project(req)
     only = DEPTHS[req.depth]
     if allow_registry is None:
         allow_registry = os.environ.get("TRUSTCODE_REGISTRY_CHECK", "0") == "1"
@@ -536,6 +539,10 @@ def verify_session(req: SessionRequest, profile: str = "extended", max_workers: 
     total = sum(len(f.content or "") + len(f.baseline or "") for f in req.files)
     if total > MAX_TOTAL_CHARS:
         raise ValueError(f"session payload too large ({total} characters; limit {MAX_TOTAL_CHARS})")
+    listing = sum(len(p) for p in req.workspace_paths)
+    if listing > MAX_LISTING_CHARS:
+        raise ValueError(f"workspace file listing too large ({listing} characters; limit {MAX_LISTING_CHARS})")
+    proj = _Project(req)
 
     def run_file(item: tuple[str, SessionFile]) -> dict:
         path, f = item

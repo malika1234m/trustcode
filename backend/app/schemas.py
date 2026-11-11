@@ -103,6 +103,8 @@ class SessionVerifyIn(BaseModel):
     def _paths(cls, v: list[str]) -> list[str]:
         if any(len(p) > 500 for p in v):
             raise ValueError("workspace path too long")
+        if sum(len(p) for p in v) > 2_000_000:
+            raise ValueError("workspace file listing too large (limit 2,000,000 characters)")
         return v
 
 

@@ -94,6 +94,8 @@ An automated review of the first commit raised three points; all were fixed and 
   at 15 per file.
 - **Import resolution uses a suffix index** built once per request instead of scanning the client-supplied file listing
   for every import, and examines at most 400 imports per file.
+- **The import index is bounded** (a second review round): only the last 8 path components of each listed file are
+  indexed, and the workspace file listing is limited to 2,000,000 characters, so a crafted listing cannot inflate memory.
 - **Symbolic links are not followed out of the workspace.** A link that resolves outside the workspace, or onto a file
   matching the sensitive-file patterns, is listed as not sent.
 

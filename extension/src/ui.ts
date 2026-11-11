@@ -1,8 +1,8 @@
 // Pure UI renderers for the TrustCode panel (no vscode import -> unit-testable). Every dynamic value is escaped.
 import { esc, STATUS_LABEL } from './render';
 
-export type Tab = 'verify' | 'history' | 'account';
-export const TABS: Tab[] = ['verify', 'history', 'account'];
+export type Tab = 'verify' | 'session' | 'history' | 'account';
+export const TABS: Tab[] = ['verify', 'session', 'history', 'account'];
 
 const ICON = {
   // The TrustCode mark: selection frame + a check whose stroke fades (see docs/brand). Frame follows the theme's link colour.
@@ -23,7 +23,7 @@ export function header(signedIn: boolean, who: string): string {
 }
 
 export function tabs(active: Tab): string {
-  const label: Record<Tab, string> = { verify: 'Verify', history: 'History', account: 'Account' };
+  const label: Record<Tab, string> = { verify: 'Verify', session: 'Session', history: 'History', account: 'Account' };
   return `<nav class="tabs" role="tablist">${TABS.map((t) =>
     `<button role="tab" class="tab ${t === active ? 'active' : ''}" aria-selected="${t === active}" data-action="tab" data-tab="${t}">${label[t]}</button>`).join('')}</nav>`;
 }
@@ -130,9 +130,9 @@ export function history(items: any[]): string {
   }
   const label = (s: string) => ({ done: 'Done', failed: 'Failed', cancelled: 'Cancelled', expired: 'Expired', queued: 'Queued', running: 'Running' } as any)[s] ?? s;
   return `<ul class="list">${items.map((j) => `
-    <li><button class="row-item" data-action="openJob" data-job="${esc(j.id)}" ${j.status !== 'done' ? 'disabled' : ''}>
-      <span class="lang">${esc((j.language ?? '?').slice(0, 2).toUpperCase())}</span>
-      <span class="grow"><strong>${esc(j.code_lines)} line(s)</strong> <span class="muted">${esc(new Date(j.created_at).toLocaleString())}</span></span>
+    <li><button class="row-item" data-action="openJob" data-job="${esc(j.id)}" ${[j.status !== 'done' || j.language === 'session' ? 'disabled' : '', j.language === 'session' ? 'title="Multi-file reports are kept in the Session tab"' : ''].filter(Boolean).join(' ')}>
+      <span class="lang">${esc(j.language === 'session' ? 'MULTI' : (j.language ?? '?').slice(0, 2).toUpperCase())}</span>
+      <span class="grow"><strong>${j.language === 'session' ? 'Multi-file · ' : ''}${esc(j.code_lines)} line(s)</strong> <span class="muted">${esc(new Date(j.created_at).toLocaleString())}</span></span>
       <span class="chip ${j.status === 'done' ? 'st-passed' : 'st-notrun'}">${esc(label(j.status))}</span>
     </button></li>`).join('')}</ul>`;
 }

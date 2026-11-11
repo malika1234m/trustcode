@@ -16,7 +16,8 @@ export async function run(): Promise<void> {
     const cmds = await vscode.commands.getCommands(true);
     for (const c of ['trustcode.verifySelection', 'trustcode.signIn', 'trustcode.signOut', 'trustcode.setExperienceLevel',
                      'trustcode.privacySettings', 'trustcode.startExperiment', 'trustcode.forgetConsent',
-                     'trustcode.deleteMyData', 'trustcode.clearFindings', 'trustcode.verifyFile', 'trustcode.rerun', 'trustcode.showFinding']) {
+                     'trustcode.deleteMyData', 'trustcode.clearFindings', 'trustcode.verifyFile', 'trustcode.rerun', 'trustcode.showFinding',
+                     ...(ext!.packageJSON.contributes.commands as Array<{ command: string }>).map((x) => x.command)]) {
       assert.ok(cmds.includes(c), `missing ${c}`);
     }
   });
@@ -42,7 +43,12 @@ export async function run(): Promise<void> {
     assert.ok(String(cfg.get('backendUrl')).startsWith('https://'), 'remote default must use HTTPS');
   });
   const backend = process.env.TRUSTCODE_TEST_BACKEND;
-  if (backend) {
+  const mode = process.env.TRUSTCODE_TEST_MODE ?? '';
+  if (backend && mode.startsWith('session')) {
+    const hook = (ext as any)?.exports?.__test;
+    const { runSessionScenarios } = await import('./session');
+    for (const r of await runSessionScenarios(hook, backend, mode === 'session-git')) if (!r.ok) failures.push(r.name);
+  } else if (backend) {
     const hook = (ext as any)?.exports?.__test;
     console.log(`  activation: ${hook?.activationMs} ms`);
     const { runE2E } = await import('./e2e');

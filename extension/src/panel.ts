@@ -148,6 +148,21 @@ export function shellHtml(webview: vscode.Webview): string {
   .alert-head { display: flex; align-items: center; gap: 8px; } .alert-head h3 { margin: 0; }
   .alert-icon { width: 20px; height: 20px; border-radius: 50%; background: var(--vscode-errorForeground); color: var(--vscode-editor-background, #000);
                 display: inline-flex; align-items: center; justify-content: center; font-weight: 700; flex: none; }
+  .tiles.four { grid-template-columns: repeat(4, 1fr); } .tiles.four .num { font-size: 1.25em; }
+  @media (max-width: 300px) { .tiles.four { grid-template-columns: repeat(2, 1fr); } }
+  .sess-status { margin-bottom: 4px; } .session-head dl.kv { margin: 6px 0 8px; }
+  ul.files, ul.plain, ul.matrix { list-style: none; padding: 0; margin: 4px 0; }
+  .file-row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; padding: 3px 0; border-bottom: 1px solid var(--border); }
+  .file-row:last-child { border-bottom: none; } .file-row label { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 140px; cursor: pointer; }
+  .fpath { font-family: var(--vscode-editor-font-family); font-size: .92em; word-break: break-all; }
+  .ftags { display: inline-flex; flex-wrap: wrap; gap: 4px; } .tag.await { color: var(--vscode-editorInfo-foreground); border-style: solid; }
+  ul.plain li { margin: 4px 0; word-break: break-word; } ul.plain code, .outdated code { font-family: var(--vscode-editor-font-family); font-size: .92em; }
+  ul.matrix li { padding: 4px 0; border-bottom: 1px solid var(--border); } ul.matrix li:last-child { border-bottom: none; }
+  .mx { display: inline-flex; flex-wrap: wrap; gap: 4px; margin-left: 4px; }
+  .f-badges { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0 2px; } button.floc { font-family: var(--vscode-editor-font-family); font-size: .92em; text-align: left; word-break: break-all; }
+  .set-row { display: flex; flex-direction: column; gap: 3px; margin: 6px 0 10px; } .set-row span { font-weight: 600; }
+  progress { width: 100%; height: 6px; margin: 6px 0 2px; accent-color: var(--vscode-progressBar-background, var(--vscode-focusBorder)); }
+  .outdated { border-left: 3px solid var(--vscode-editorWarning-foreground); }
   .sev-group { font-size: .85em; margin: 10px 0 6px; font-weight: 600; } .sev-group:first-of-type { margin-top: 0; }
   .learned { border-left: 2px solid var(--vscode-editorInfo-foreground); padding: 2px 8px; margin: 6px 0; color: var(--vscode-descriptionForeground); }
   .cmp-counts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; } .compare ul { margin: 4px 0; } .compare details { margin: 4px 0; }
@@ -163,7 +178,18 @@ export function shellHtml(webview: vscode.Webview): string {
   const root = document.getElementById('root');
   window.addEventListener('message', (e) => {
     const m = e.data;
-    if (m.type === 'render') { root.innerHTML = m.html; wire(); }  // html is produced by escaping renderers
+    if (m.type === 'render') {  // html is produced by escaping renderers
+      const y = m.keepScroll ? document.scrollingElement.scrollTop : 0;
+      const open = m.keepScroll ? Array.from(root.querySelectorAll('details')).map((d) => d.open) : [];
+      const picked = m.keepScroll ? Array.from(root.querySelectorAll('input[data-pick]:checked')).map((x) => x.dataset.pick) : [];
+      root.innerHTML = m.html; wire();
+      if (m.keepScroll) {
+        const ds = root.querySelectorAll('details');
+        if (ds.length === open.length) ds.forEach((d, i) => { d.open = open[i]; });
+        root.querySelectorAll('input[data-pick]').forEach((x) => { x.checked = picked.includes(x.dataset.pick); });
+        document.scrollingElement.scrollTop = y;
+      }
+    }
     if (m.type === 'focus' && /^[A-Z]{2,5}-\\d{1,4}$/.test(String(m.finding))) {
       const el = root.querySelector('[data-fid="' + m.finding + '"]');
       if (!el) return;
@@ -178,18 +204,23 @@ export function shellHtml(webview: vscode.Webview): string {
     const c = document.getElementById('conf');
     if (c) c.addEventListener('input', () => { document.getElementById('confv').textContent = c.value; });
     root.querySelectorAll('[data-action]').forEach((b) => {
+      if (b.tagName === 'SELECT') {
+        b.addEventListener('change', () => vscode.postMessage({ action: b.dataset.action, key: b.dataset.key, value: b.value }));
+        return;
+      }
       if (b.type === 'checkbox') {
         b.addEventListener('change', () => vscode.postMessage({ action: b.dataset.action, key: b.dataset.key, value: b.checked }));
         return;
       }
       b.addEventListener('click', () => {
         const d = b.dataset;
-        if (d.action === 'feedback') {  // immediate, local confirmation
+        if (d.action === 'feedback' || d.action === 'sessionFeedback') {  // immediate, local confirmation
           b.parentElement.querySelectorAll('button').forEach((x) => { x.disabled = true; });
           b.classList.add('done'); b.textContent = '✓ ' + b.textContent;
         }
         vscode.postMessage({ action: d.action, decision: d.decision, level: d.level, finding: d.finding, rating: d.rating,
-          tab: d.tab, job: d.job, confidence: conf(), task: val('task'), tests: val('tests'), code: val('pcode'), rationale: val('rationale') });
+          tab: d.tab, job: d.job, path: d.path, run: d.run, key: d.key,
+          paths: Array.from(root.querySelectorAll('input[data-pick]:checked')).map((x) => x.dataset.pick), confidence: conf(), task: val('task'), tests: val('tests'), code: val('pcode'), rationale: val('rationale') });
       });
     });
     root.querySelectorAll('details[data-track]').forEach((el) => el.addEventListener('toggle', () => {

@@ -116,7 +116,7 @@ const mdEsc = (v: unknown) => String(v ?? '').replace(/[\\`*_{}[\]()#+\-.!|<>~]/
  * Hover text for a finding. `explained` is the server's explanation item for the same finding id (optional).
  * All dynamic text is Markdown-escaped; the only link is a fixed command with a validated finding id.
  */
-export function hoverMarkdown(f: FlatFinding, explained?: any): string {
+export function hoverMarkdown(f: FlatFinding, explained?: any, source?: 'session'): string {
   const id = /^[A-Z]{2,5}-\d{1,4}$/.test(f.id) ? f.id : '';
   const lines = [`**TrustCode · ${mdEsc(f.severity.toUpperCase())}** — ${mdEsc(f.title)}${id ? ` \`${id}\`` : ''}`, ''];
   if (explained?.why) lines.push(`**Why it matters:** ${mdEsc(explained.why)}`, '');
@@ -125,7 +125,7 @@ export function hoverMarkdown(f: FlatFinding, explained?: any): string {
   if (f.alsoReportedBy.length) lines.push(`Also reported by: ${f.alsoReportedBy.map(mdEsc).join(', ')}`, '');
   if (explained?.could_not_verify) lines.push(`**Not verified:** ${mdEsc(explained.could_not_verify)}`, '');
   if (explained?.your_feedback?.note) lines.push(`_${mdEsc(explained.your_feedback.note)}_`, '');
-  if (id) lines.push(`[Explain in TrustCode panel](command:trustcode.showFinding?${encodeURIComponent(JSON.stringify([id]))})`);
+  if (id) lines.push(`[Explain in TrustCode panel](command:trustcode.showFinding?${encodeURIComponent(JSON.stringify(source ? [id, source] : [id]))})`);
   return lines.join('\n');
 }
 

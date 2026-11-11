@@ -16,8 +16,8 @@ from ..explanations.engine import build_explanation
 from ..models import (AuditLog, Decision, ExperimentEvent, ExperimentSession, ExperimentTrial, Feedback, Profile,
                       Questionnaire, RefreshToken, User, VerificationJob, now)
 from ..schemas import (DecisionIn, EventIn, FeedbackIn, JobOut, JobPage, JoinIn, LoginIn, ProfileIn, ProfileOut,
-                       QuestionnaireIn, RefreshIn, RegisterIn, SessionCreateIn, SessionCreateOut, TokenOut,
-                       TrialDecisionIn, VerifyIn)
+                       QuestionnaireIn, RefreshIn, RegisterIn, SessionCreateIn, SessionCreateOut, SessionVerifyIn,
+                       TokenOut, TrialDecisionIn, VerifyIn)
 from ..security import (create_access_token, hash_password, hash_refresh, new_refresh_token, verify_password)
 from ..services import jobs
 
@@ -173,6 +173,62 @@ def create_verification(body: VerifyIn, request: Request, user: User = Depends(c
     return _job_out(j, include_result=False)
 
 
+SESSION_MAX_CHARS = 400_000
+
+
+@router.post("/session-verifications", response_model=JobOut, status_code=202, tags=["verification"])
+def create_session_verification(body: SessionVerifyIn, request: Request, user: User = Depends(current_user),
+                                db: Session = Depends(get_db)):
+    """Verify a set of changed files together (per-file checks plus cross-file checks). Counts as one verification."""
+    limiter.check(f"verify:{user.id}", get_settings().verify_rate_limit_per_minute)
+    from .saas import enforce_quota
+    enforce_quota(db, user)
+    total = sum(len(f.content or "") + len(f.baseline or "") for f in body.files)
+    if total > SESSION_MAX_CHARS:
+        raise HTTPException(413, f"the files total {total} characters; the limit per request is {SESSION_MAX_CHARS}. Send fewer files per batch.")
+    if len({f.path for f in body.files}) != len(body.files):
+        raise HTTPException(422, "each file path may appear only once")
+    payload = body.model_dump(exclude={"client_consent", "label"})
+    j = jobs.enqueue_session(db, user.id, payload, body.label)
+    audit(db, request, "session_verification_submitted", user.id, job_id=j.id, files=len(body.files), depth=body.depth,
+          chars=total)
+    db.commit()
+    return _job_out(j, include_result=False)
+
+
+@router.get("/verifications/{job_id}/session-report", tags=["verification"])
+def get_session_report(job_id: str, level: str | None = Query(None, pattern="^(beginner|intermediate|advanced)$"),
+                       user: User = Depends(current_user), db: Session = Depends(get_db)):
+    """The multi-file report with an explanation attached to every finding. Evidence is never altered."""
+    from ..explanations.templates import explain_finding
+    j = _own_job(db, user, job_id)
+    if j.status != "done" or not j.result:
+        raise HTTPException(409, f"verification is {j.status}; no result to explain")
+    if j.result.get("kind") != "session":
+        raise HTTPException(409, "this is a single-snippet verification; use /explanation")
+    p = profile_of(db, user)
+    lvl = level or (p.experience_level if p.experience_level in ("beginner", "intermediate", "advanced") else "intermediate")
+    learned = {}
+    if p.adaptive_suggestions:
+        learned = rule_history([tuple(r) for r in db.execute(
+            select(Feedback.rule, Feedback.rating).where(Feedback.user_id == user.id, Feedback.rule.is_not(None)))])
+    report = {**j.result, "level": lvl, "job_id": j.id}
+    files = []
+    for f in j.result["files"]:
+        items = []
+        for x in f["findings"]:
+            e = explain_finding(x, lvl)
+            hist = learned.get(f"{x['tool']}:{x.get('rule_id')}")
+            if hist:
+                e["your_feedback"] = {"marked_wrong": hist["incorrect"], "rule": f"{x['tool']}:{x.get('rule_id')}",
+                                      "note": f"You marked findings from this rule as wrong {hist['incorrect']} times. It is still reported; "
+                                              "decide whether this one is different."}
+            items.append({**x, "explained": e})
+        files.append({**f, "findings": items})
+    report["files"] = files
+    return report
+
+
 @router.get("/verifications", response_model=JobPage, tags=["verification"])
 def list_verifications(cursor: str | None = None, limit: int = Query(20, ge=1, le=100),
                        user: User = Depends(current_user), db: Session = Depends(get_db)):
@@ -209,6 +265,8 @@ def get_explanation(job_id: str, level: str | None = Query(None, pattern="^(begi
     j = _own_job(db, user, job_id)
     if j.status != "done" or not j.result:
         raise HTTPException(409, f"verification is {j.status}; no result to explain")
+    if j.result.get("kind") == "session":
+        raise HTTPException(409, "this is a multi-file verification; use /session-report")
     p = profile_of(db, user)
     ratings = list(db.scalars(select(Feedback.rating).where(Feedback.user_id == user.id).order_by(Feedback.created_at)))
     n = sum(len(c["findings"]) for c in j.result["checks"])
@@ -238,7 +296,9 @@ def feedback(body: FeedbackIn, user: User = Depends(current_user), db: Session =
     if body.job_id:
         j = _own_job(db, user, body.job_id)
         if body.finding_id and j.result:  # resolve the rule now: the result itself expires, the lesson should not
-            hit = next((x for c in j.result.get("checks", []) for x in c.get("findings", []) if x.get("id") == body.finding_id), None)
+            pool = ([x for f in j.result.get("files", []) for x in f.get("findings", [])] if j.result.get("kind") == "session"
+                    else [x for c in j.result.get("checks", []) for x in c.get("findings", [])])
+            hit = next((x for x in pool if x.get("id") == body.finding_id), None)
             if hit:
                 rule = f"{hit.get('tool')}:{hit.get('rule_id')}"[:120]
     f = Feedback(user_id=user.id, rule=rule, **body.model_dump())

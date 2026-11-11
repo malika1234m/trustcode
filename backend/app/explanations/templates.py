@@ -88,8 +88,34 @@ def _where(f: dict, level: str) -> str:
     return span[0].upper() + span[1:] + (f" - `{f['code_excerpt']}`" if f.get("code_excerpt") and level == "intermediate" else "")
 
 
+CROSS_FILE_WHY = {
+    "import-of-deleted-file": ("This file still uses another file that was deleted or renamed in the same set of changes, so it will fail as soon as it is loaded.",
+                               "Dangling import: the target was removed or renamed in this change set."),
+    "import-not-found": ("This file uses another file of the project that does not exist. AI assistants sometimes refer to files they never created.",
+                         "Unresolvable local import: target file absent from the workspace."),
+    "imported-name-not-defined": ("This file asks another file for something that file does not contain, so loading it fails. AI assistants sometimes call functions they never wrote.",
+                                  "Imported name absent from the target module -> ImportError at load."),
+    "imported-name-not-exported": ("This file asks another file for something that file does not make available, so the value is missing when the code runs.",
+                                   "Named import has no matching export in the target module."),
+    "default-import-without-default-export": ("This file expects a main (default) value from another file, but that file only offers named values.",
+                                              "Default import from a module without a default export."),
+    "undeclared-dependency": ("The code uses a package that is not listed in the project's dependency file, so it works only if that package happens to be installed already.",
+                              "Imported package missing from the manifest: breaks on a clean install."),
+}
+CROSS_FILE_NEXT = {
+    "import-of-deleted-file": "Update the import to the new location, or restore the file.",
+    "import-not-found": "Create the missing file, or correct the import path.",
+    "imported-name-not-defined": "Define the name in the target module, or import the name that actually exists.",
+    "imported-name-not-exported": "Export the name from the target module, or import a name it does export.",
+    "default-import-without-default-export": "Use a named import ({ ... }), or add a default export to the target.",
+    "undeclared-dependency": "Add the package to the manifest (after confirming its exact name on the registry), or remove the import.",
+}
+
+
 def _why(f: dict, level: str) -> str:
     md, check = f.get("metadata") or {}, f["check"]
+    if f.get("rule_id") in CROSS_FILE_WHY and md.get("cross_file"):
+        return CROSS_FILE_WHY[f["rule_id"]][0 if level == "beginner" else 1]
     if check in ("security", "secrets"):
         return (md.get("why_beginner") or f["message"]) if level == "beginner" else md.get("why", f["message"])
     if check == "types":
@@ -118,6 +144,8 @@ def _why(f: dict, level: str) -> str:
 
 def _next(f: dict, level: str) -> str:
     md, check = f.get("metadata") or {}, f["check"]
+    if f.get("rule_id") in CROSS_FILE_NEXT and md.get("cross_file"):
+        return CROSS_FILE_NEXT[f["rule_id"]]
     if check == "types":
         return ("Compare the type the function promises with what this line really produces, then fix whichever is wrong."
                 if level != "advanced" else "Fix the annotation or the expression.")
@@ -155,10 +183,13 @@ def explain_finding(f: dict, level: str) -> dict:
         "status": f["status"],
         "what": what,
         "where": _where(f, level),
-        "method": f"{METHOD.get(f['check'], f['tool'])} ({f['tool']})",
+        "method": (f"cross-file comparison ({f['tool']})" if (f.get("metadata") or {}).get("cross_file")
+                   else f"{METHOD.get(f['check'], f['tool'])} ({f['tool']})"),
         "why": _why(f, level),
         "evidence": f["message"],                       # verbatim tool output - identical at all levels
-        "could_not_verify": CHECK_LIMITS.get(f["check"], ""),
+        "could_not_verify": ("Only the files supplied with this change were compared; build tooling, path aliases and "
+                             "runtime-generated modules were not considered." if (f.get("metadata") or {}).get("cross_file")
+                             else CHECK_LIMITS.get(f["check"], "")),
         "next_step": _next(f, level),
         "source": "template",
     }

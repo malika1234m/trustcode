@@ -43,3 +43,6 @@ e2e-results.json
 # Agent skill bundles installed locally
 web/.agents/
 skills-lock.json
+
+# TrustCode agent signal files
+.trustcode/

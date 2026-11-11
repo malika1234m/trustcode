@@ -35,6 +35,25 @@ def enqueue(db: Session, user_id: str, code: str, language: str | None, task: st
     return job
 
 
+SESSION = "session"  # value of VerificationJob.language for multi-file jobs; the payload lives in `code` until analysed
+
+
+def enqueue_session(db: Session, user_id: str, payload: dict, label: str | None) -> VerificationJob:
+    import json
+    text = json.dumps(payload, separators=(",", ":"))
+    lines = sum(len((f.get("content") or "").splitlines()) for f in payload["files"] if f.get("change") not in ("context", "related"))
+    job = VerificationJob(user_id=user_id, code=text, tests=None, task=label, language=SESSION,
+                          code_sha256=hashlib.sha256(text.encode()).hexdigest(), code_lines=lines)
+    db.add(job)
+    db.commit()
+    if get_settings().worker_mode == "sync":
+        process_job_id(job.id)
+        db.refresh(job)
+    elif get_settings().worker_mode == "inline":
+        threading.Thread(target=process_job_id, args=(job.id,), daemon=True).start()
+    return job
+
+
 def claim_next(db: Session) -> VerificationJob | None:
     q = select(VerificationJob.id).where(VerificationJob.status == "queued").order_by(VerificationJob.created_at).limit(1)
     if db.bind.dialect.name == "postgresql":
@@ -54,13 +73,22 @@ def process(db: Session, job: VerificationJob):
     from trustcode_worker.pipeline import verify
     s = get_settings()
     try:
-        result = verify(VerificationRequest(code=job.code, language=job.language, task=job.task, tests=job.tests),
-                        run_tests=s.run_tests, profile=s.engine_profile)
-        db.refresh(job)
-        if job.cancel_requested:
-            job.status, job.result = "cancelled", None
+        if job.language == SESSION:
+            import json
+
+            from trustcode_worker.project import SessionRequest, verify_session
+            report = verify_session(SessionRequest(**json.loads(job.code)), profile=s.engine_profile)
+            report["label"] = job.task
+            db.refresh(job)
+            job.status, job.result = ("cancelled", None) if job.cancel_requested else ("done", report)
         else:
-            job.status, job.result, job.language = "done", result.model_dump(mode="json"), result.language.value
+            result = verify(VerificationRequest(code=job.code, language=job.language, task=job.task, tests=job.tests),
+                            run_tests=s.run_tests, profile=s.engine_profile)
+            db.refresh(job)
+            if job.cancel_requested:
+                job.status, job.result = "cancelled", None
+            else:
+                job.status, job.result, job.language = "done", result.model_dump(mode="json"), result.language.value
     except Exception as e:  # never report a crash as a completed analysis
         log.exception("verification failed job=%s", job.id)
         job.status, job.error = "failed", f"analysis failed: {type(e).__name__}"

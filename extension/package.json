@@ -1,8 +1,8 @@
 {
   "name": "trustcode",
   "displayName": "TrustCode — Verify AI-Generated Code",
-  "description": "Check AI-generated Python, JavaScript and TypeScript with real evidence: static analysis, type checks, security patterns, hardcoded secrets, dependency checks and tests. See what was checked, what was found, and what was NOT verified.",
-  "version": "0.5.0",
+  "description": "Verify what your AI coding agent changed. Track a session, then check every created, modified, renamed and deleted file together — with real evidence, cross-file checks, and a clear list of what was NOT verified. Python, JavaScript and TypeScript.",
+  "version": "0.6.0",
   "publisher": "trustcode-research",
   "license": "MIT",
   "private": true,
@@ -17,7 +17,8 @@
   ],
   "main": "./out/src/extension.js",
   "activationEvents": [
-    "onUri"
+    "onUri",
+    "onStartupFinished"
   ],
   "contributes": {
     "viewsContainers": {
@@ -85,6 +86,62 @@
       {
         "command": "trustcode.clearFindings",
         "title": "TrustCode: Clear Findings from Editor"
+      },
+      {
+        "command": "trustcode.verify",
+        "title": "TrustCode: Verify (default scope)",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "trustcode.startSession",
+        "title": "TrustCode: Start Tracking Session",
+        "icon": "$(record)"
+      },
+      {
+        "command": "trustcode.endSession",
+        "title": "TrustCode: End Session…",
+        "icon": "$(debug-stop)"
+      },
+      {
+        "command": "trustcode.pauseSession",
+        "title": "TrustCode: Pause Session Tracking"
+      },
+      {
+        "command": "trustcode.resumeSession",
+        "title": "TrustCode: Resume Session Tracking"
+      },
+      {
+        "command": "trustcode.reviewLatestChanges",
+        "title": "TrustCode: Review Latest AI Changes",
+        "icon": "$(eye)"
+      },
+      {
+        "command": "trustcode.verifySessionChanges",
+        "title": "TrustCode: Verify All Session Changes"
+      },
+      {
+        "command": "trustcode.verifyGitChanges",
+        "title": "TrustCode: Verify Git-Changed Files"
+      },
+      {
+        "command": "trustcode.verifyWorkspace",
+        "title": "TrustCode: Verify Entire Workspace…"
+      },
+      {
+        "command": "trustcode.verifyFiles",
+        "title": "TrustCode: Verify Chosen Files…"
+      },
+      {
+        "command": "trustcode.copyFixPrompt",
+        "title": "TrustCode: Copy Fix Prompt for Your Agent"
+      },
+      {
+        "command": "trustcode.agentHookSetup",
+        "title": "TrustCode: Agent Hook Setup (completion signal)"
+      },
+      {
+        "command": "trustcode.clearSessionHistory",
+        "title": "TrustCode: Clear Session Verification History"
       }
     ],
     "menus": {
@@ -102,6 +159,11 @@
       ],
       "view/title": [
         {
+          "command": "trustcode.reviewLatestChanges",
+          "when": "view == trustcode.panel",
+          "group": "navigation@0"
+        },
+        {
           "command": "trustcode.verifyFile",
           "when": "view == trustcode.panel",
           "group": "navigation@1"
@@ -110,6 +172,23 @@
           "command": "trustcode.rerun",
           "when": "view == trustcode.panel",
           "group": "navigation@2"
+        },
+        {
+          "command": "trustcode.startSession",
+          "when": "view == trustcode.panel",
+          "group": "session@1"
+        },
+        {
+          "command": "trustcode.endSession",
+          "when": "view == trustcode.panel",
+          "group": "session@2"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "trustcode.verifyFiles",
+          "when": "!explorerResourceIsFolder && resourceScheme == file",
+          "group": "7_modification@90"
         }
       ]
     },
@@ -142,6 +221,211 @@
           "default": false,
           "description": "Request LLM-written explanations (sends finding details to the configured LLM provider via the backend). Off by default.",
           "scope": "application"
+        },
+        "trustcode.verification.defaultScope": {
+          "type": "string",
+          "default": "session",
+          "enum": [
+            "selection",
+            "file",
+            "session",
+            "git",
+            "workspace",
+            "custom"
+          ],
+          "enumDescriptions": [
+            "Selected code only",
+            "The current file",
+            "All changes in the current tracking session",
+            "All files Git reports as changed",
+            "Every supported file in the workspace (asks first)",
+            "Files you choose"
+          ],
+          "description": "What “TrustCode: Verify (default scope)” verifies."
+        },
+        "trustcode.verification.depth": {
+          "type": "string",
+          "default": "standard",
+          "enum": [
+            "quick",
+            "standard",
+            "deep"
+          ],
+          "enumDescriptions": [
+            "Syntax, static analysis and type errors.",
+            "Quick + security patterns, hardcoded secrets, dependency analysis, and consistency between files (imports, declared packages).",
+            "Standard + lookup of imported packages on PyPI / npm (the server contacts the registry with package names)."
+          ],
+          "markdownDescription": "How thorough multi-file verification is. Every report lists the checks that did not run. Project tests are never executed for multi-file changes."
+        },
+        "trustcode.verification.sendBaseline": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "Also send the previous version of modified files, so findings can be labelled “new in this change” or “already present before”. Off: the origin is shown as unknown."
+        },
+        "trustcode.verification.includeRelatedFiles": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "Also send unchanged files that a changed file imports, or that import a changed/deleted file, plus the nearest package manifest. Needed for cross-file checks."
+        },
+        "trustcode.verification.maxFiles": {
+          "type": "number",
+          "default": 200,
+          "minimum": 1,
+          "maximum": 2000,
+          "description": "Largest number of files one verification may send. More files in scope: you are asked, and the rest are listed as not analysed."
+        },
+        "trustcode.verification.timeoutSeconds": {
+          "type": "number",
+          "default": 180,
+          "minimum": 30,
+          "description": "How long to wait for each batch of a multi-file verification before giving up."
+        },
+        "trustcode.autoVerify.onAgentFinished": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "markdownDescription": "Verify unverified session changes when the agent reports that it finished (needs an agent hook; run **TrustCode: Agent Hook Setup**). Only sends to a server you approved with “don't ask again”."
+        },
+        "trustcode.autoVerify.onInactivity": {
+          "type": "boolean",
+          "default": false,
+          "scope": "application",
+          "description": "Verify after the configured period without file changes. This is an estimate that the agent finished, not a confirmation."
+        },
+        "trustcode.autoVerify.onSessionEnd": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "Used by “End session and verify”."
+        },
+        "trustcode.autoVerify.onSave": {
+          "type": "boolean",
+          "default": false,
+          "scope": "application",
+          "description": "Verify unverified session changes a few seconds after files are saved (never on every keystroke)."
+        },
+        "trustcode.autoVerify.onBatch": {
+          "type": "boolean",
+          "default": false,
+          "scope": "application",
+          "description": "Verify once a batch of changed files has accumulated and settled."
+        },
+        "trustcode.autoVerify.batchSize": {
+          "type": "number",
+          "default": 10,
+          "minimum": 2,
+          "description": "Number of unverified changed files that counts as a batch."
+        },
+        "trustcode.session.inactivitySeconds": {
+          "type": "number",
+          "default": 60,
+          "minimum": 0,
+          "description": "Seconds without file changes after which a session is marked “possibly finished (estimate)”. 0 turns inactivity detection off."
+        },
+        "trustcode.session.autoStartOnAgentSignal": {
+          "type": "boolean",
+          "default": false,
+          "scope": "application",
+          "description": "Start a tracking session when an agent hook writes a “start” signal."
+        },
+        "trustcode.session.useGit": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "Use Git (in trusted workspaces) to list files, honour .gitignore and read pre-session versions. Off or unavailable: files are scanned and snapshotted instead."
+        },
+        "trustcode.session.exclude": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "**/node_modules/**",
+            "**/.git/**",
+            "**/.trustcode/**",
+            "**/.venv/**",
+            "**/venv/**",
+            "**/__pycache__/**",
+            "**/dist/**",
+            "**/build/**",
+            "**/out/**",
+            "**/.next/**",
+            "**/coverage/**",
+            "**/.vscode-test/**",
+            "**/*.min.js",
+            "**/*.map",
+            "**/.DS_Store"
+          ],
+          "markdownDescription": "Glob patterns of files that are not tracked (generated files, dependency folders). Files ignored by Git are also left out when Git is used. Every excluded file that is not in a dependency folder is listed in the dashboard under “not tracked”."
+        },
+        "trustcode.session.include": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "If set, only files matching these glob patterns are tracked (for example \"src/**\"). Empty: everything that is not excluded."
+        },
+        "trustcode.session.extensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "If set, only files with these extensions are tracked (for example \".py\", \".ts\"). Empty: all file types, so configuration, dependency and migration changes are seen."
+        },
+        "trustcode.session.sensitiveFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "scope": "application",
+          "default": [
+            "**/.env",
+            "**/.env.*",
+            "**/*.pem",
+            "**/*.key",
+            "**/*.p12",
+            "**/*.pfx",
+            "**/id_rsa*",
+            "**/id_ed25519*",
+            "**/credentials",
+            "**/credentials.*",
+            "**/secrets.*",
+            "**/*.keystore"
+          ],
+          "description": "Files that are tracked (you see that they changed) but whose content is never sent to the server."
+        },
+        "trustcode.session.maxFileSizeKB": {
+          "type": "number",
+          "default": 512,
+          "minimum": 1,
+          "description": "Files larger than this are tracked by size and modification time only and are not sent. Separately, the server accepts at most 50,000 characters per file."
+        },
+        "trustcode.session.retainRuns": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 100,
+          "description": "How many verification reports are kept per workspace (stored locally in VS Code's workspace storage)."
+        },
+        "trustcode.session.notifications": {
+          "type": "string",
+          "default": "important",
+          "enum": [
+            "all",
+            "important",
+            "none"
+          ],
+          "enumDescriptions": [
+            "Every session event",
+            "Only when a review is ready or an automatic run finished",
+            "Status bar only"
+          ],
+          "description": "Which session events show a notification."
         }
       }
     },
@@ -162,6 +446,11 @@
         "command": "trustcode.rerun",
         "key": "ctrl+k alt+r",
         "mac": "cmd+k alt+r"
+      },
+      {
+        "command": "trustcode.verify",
+        "key": "ctrl+k alt+t",
+        "mac": "cmd+k alt+t"
       }
     ]
   },
@@ -209,7 +498,7 @@
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": true,
-      "description": "TrustCode never executes workspace code locally, and its security-relevant settings are application-scoped."
+      "description": "TrustCode never executes workspace code. In untrusted workspaces it does not run Git either (sessions fall back to file scanning), and its security-relevant settings are application-scoped."
     },
     "virtualWorkspaces": true
   }

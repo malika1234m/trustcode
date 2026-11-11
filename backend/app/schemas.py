@@ -65,6 +65,47 @@ class VerifyIn(BaseModel):
         return v
 
 
+class SessionFileIn(BaseModel):
+    path: str = Field(min_length=1, max_length=500)
+    change: Literal["created", "modified", "deleted", "renamed", "context", "related"] = "modified"
+    content: str | None = Field(default=None, max_length=50_000)
+    baseline: str | None = Field(default=None, max_length=50_000)
+    renamed_from: str | None = Field(default=None, max_length=500)
+
+    @field_validator("path", "renamed_from")
+    @classmethod
+    def _relative(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        p = v.replace("\\", "/")
+        if p.startswith("/") or ".." in p.split("/") or "\x00" in p or (len(p) > 1 and p[1] == ":"):
+            raise ValueError("paths must be workspace-relative")
+        return p
+
+
+class SessionVerifyIn(BaseModel):
+    """A set of changed files verified together (AI coding session, Git changes, or a file selection)."""
+    files: list[SessionFileIn] = Field(min_length=1, max_length=40)
+    workspace_paths: list[str] = Field(default_factory=list, max_length=20_000)
+    depth: Literal["quick", "standard", "deep"] = "standard"
+    label: str | None = Field(default=None, max_length=200)
+    client_consent: bool = Field(description="Client confirms the user explicitly approved sending these files")
+
+    @field_validator("client_consent")
+    @classmethod
+    def _consent(cls, v: bool) -> bool:
+        if v is not True:
+            raise ValueError("explicit user consent is required before files are sent")
+        return v
+
+    @field_validator("workspace_paths")
+    @classmethod
+    def _paths(cls, v: list[str]) -> list[str]:
+        if any(len(p) > 500 for p in v):
+            raise ValueError("workspace path too long")
+        return v
+
+
 class JobOut(BaseModel):
     id: str
     status: str

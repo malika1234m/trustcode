@@ -73,22 +73,26 @@ def _registry_exists(lang: Language, name: str) -> bool | None:
         return None
 
 
-def check_dependencies(code: str, lang: Language) -> Check:
+def check_dependencies(code: str, lang: Language, local: frozenset[str] = frozenset(), registry: bool | None = None) -> Check:
+    """`local`: top-level module names known to be part of the project (multi-file verification), never third-party.
+    `registry`: force the registry lookup on/off; None uses TRUSTCODE_REGISTRY_CHECK."""
     t0 = time.monotonic()
     imports = _python_imports(code) if lang == Language.PYTHON else _js_imports(code)
     stdlib = sys.stdlib_module_names if lang == Language.PYTHON else NODE_BUILTINS
     third = {}
     for name, line in imports:
-        if name not in stdlib and name not in LOCAL_MODULES:
+        if name not in stdlib and name not in LOCAL_MODULES and name not in local:
             third.setdefault(name, line)
-    registry = os.environ.get("TRUSTCODE_REGISTRY_CHECK", "0") == "1"
+    if registry is None:
+        registry = os.environ.get("TRUSTCODE_REGISTRY_CHECK", "0") == "1"
     scope = ("Checks that imported packages are standard-library modules or exist on the public registry "
              f"({'PyPI' if lang == Language.PYTHON else 'npm'}). Does not check versions, licences, vulnerabilities "
              "or whether the package is the intended one.")
     if not third:
         return Check(kind=CheckKind.DEPENDENCIES, tool="trustcode-deps", status=CheckStatus.PASSED,
                      summary=f"{len(imports)} import(s), all standard library." if imports else "No imports.",
-                     scope=scope, details={"imports": [n for n, _ in imports]}, duration_ms=_ms(t0))
+                     scope=scope, details={"imports": [n for n, _ in imports], "third_party": [], "third_party_lines": {}},
+                     duration_ms=_ms(t0))
     findings, unknown = [], []
     for name, line in third.items():
         exists = _registry_exists(lang, name) if registry else None
@@ -108,7 +112,8 @@ def check_dependencies(code: str, lang: Language) -> Check:
                f"All {len(third)} third-party package(s) exist on the registry.")
     return Check(kind=CheckKind.DEPENDENCIES, tool="trustcode-deps", status=status, summary=summary, scope=scope,
                  findings=findings, duration_ms=_ms(t0),
-                 details={"third_party": list(third), "unverified": unknown, "registry_checked": registry})
+                 details={"third_party": list(third), "third_party_lines": third, "unverified": unknown,
+                          "registry_checked": registry})
 
 
 def _ms(t0):

@@ -12,7 +12,18 @@ dependency existence) and shows:
 There is deliberately **no overall "safe" score**. You decide: accept, modify or reject, and record how confident you are.
 TrustCode never edits your files.
 
-## Use
+## Verify what your coding agent changed
+1. Run **TrustCode: Start Tracking Session** (or use the **Session** tab) before you give the agent its task.
+2. Let the agent work. Created, modified, renamed and deleted files appear in the Session tab as they happen.
+3. Choose **Verify all changes**. You get one report for the whole change: findings per file, problems between
+   files, what is new versus already present, and what was not executed or not analysed.
+4. Use **Copy fix prompt for your agent**, let it fix, and verify again to compare the runs.
+
+TrustCode cannot see inside an agent. Unless the agent signals completion through a hook (**TrustCode: Agent Hook
+Setup**), "possibly finished" is an estimate based on files no longer changing. Project tests are not run for
+multi-file changes; that is stated in every report. Details and limits: `docs/project/session_tracking_report.md`.
+
+## Verify a selection or a file
 1. Click **Sign In with browser** in the TrustCode panel (or run **TrustCode: Sign In**). Log in or create an account on the
    TrustCode website; your browser returns you to VS Code (choose **Open** if asked).
 2. Select AI-generated Python, JavaScript or TypeScript in the editor → right-click → **TrustCode: Verify Selected Code**

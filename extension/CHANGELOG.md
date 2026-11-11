@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.6.0
+
+- **Session tracking**: start a session before giving your coding agent a task. TrustCode records a baseline and then
+  collects every file the task creates, modifies, renames or deletes — no selection needed. Edits you already had are
+  part of the baseline and are not attributed to the session.
+- **Verify all changes together**: per-file checks plus checks between files — imports of deleted or missing files,
+  names a module no longer defines or exports (including in unchanged files that import a changed one), and packages
+  that are imported but not declared.
+- Findings are labelled **new in this change**, **already present before** or **origin unknown**.
+- New **Session** tab: status, counts, changed files with diffs, report, verification history, settings.
+- Other scopes: Git-changed files, chosen files (also from the Explorer context menu), entire workspace.
+- Check depth: Quick, Standard, Deep. Checks that do not run at a depth are shown as not run.
+- Automatic verification (optional): when the agent reports it finished, after inactivity, on save, per batch, or
+  when you end the session. Automatic runs only send to a server you already approved.
+- **Agent completion signal**: an agent hook can tell TrustCode it finished (setup guide included for Claude Code).
+  Without a signal, "possibly finished" is shown as an estimate.
+- Results are marked **out of date** if files change during or after a run.
+- **Copy fix prompt for your agent**, then re-verify and compare runs. TrustCode still never edits your files.
+- Sessions survive a restart. Files matching sensitive patterns (`.env`, keys) are tracked but never sent.
+- Not included: project test execution, API-contract and database-schema checks (always listed as not executed).
+
 ## 0.5.0
 
 - **Verify Current File** (command, editor context menu, panel button) next to Verify Selected Code; **Run the Checks Again** command.

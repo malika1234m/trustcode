@@ -298,3 +298,52 @@ def test_explanations_cover_the_extended_checks():
             assert "ruff" not in item["method"] or f["tool"] == "ruff"
     assert explain_finding({**base, **cases[1]}, "beginner")["also_reported_by"] == ["semgrep:hardcoded-secret"]
     assert "NaN never equals" in explain_finding({**base, **cases[2]}, "beginner")["why"]
+
+
+# ---------------------------------------------------------------- multi-file (session) verification
+SESSION_FILES = [
+    {"path": "app/models.py", "change": "created", "content": "class User:\n    pass\n"},
+    {"path": "app/auth.py", "change": "modified", "baseline": "import os\ndef run(c):\n    return os.system('ls ' + c)\n",
+     "content": "from .models import User, Token\nimport os\ndef run(c):\n    return os.system('ls ' + c)\ndef calc(e):\n    return eval(e)\n"},
+    {"path": "app/old.py", "change": "deleted"},
+]
+
+
+def test_session_verification_end_to_end(client, auth):
+    body = {"files": SESSION_FILES, "workspace_paths": ["app/models.py", "app/auth.py"], "depth": "standard",
+            "label": "auth feature", "client_consent": True}
+    j = client.post(f"{V}/session-verifications", headers=auth, json=body)
+    assert j.status_code == 202, j.text
+    done = wait_done(client, auth, j.json()["id"])
+    assert done["language"] == "session" and done["result"]["kind"] == "session"
+    report = client.get(f"{V}/verifications/{done['id']}/session-report?level=beginner", headers=auth).json()
+    found = {x["rule_id"]: x for f in report["files"] for x in f["findings"]}
+    assert found["eval-exec-use"]["introduced"] == "new" and found["shell-command-injection"]["introduced"] == "preexisting"
+    missing = found["imported-name-not-defined"]
+    assert missing["path"] == "app/auth.py" and "does not contain" in missing["explained"]["why"]
+    assert missing["explained"]["evidence"] == missing["message"] and "cross-file" in missing["explained"]["method"]
+    assert any(n["check"] == "Project tests" for n in report["not_executed"])
+    # the single-snippet explanation endpoint refuses multi-file jobs instead of mis-rendering them, and vice versa
+    assert client.get(f"{V}/verifications/{done['id']}/explanation", headers=auth).status_code == 409
+    # source is purged after analysis; feedback can still name the rule
+    assert client.post(f"{V}/feedback", headers=auth, json={"job_id": done["id"], "finding_id": missing["id"], "rating": "incorrect"}).status_code == 201
+    listed = client.get(f"{V}/verifications?limit=5", headers=auth).json()["items"][0]
+    assert listed["language"] == "session" and listed["code_lines"] == 8
+
+
+def test_session_verification_validation(client, auth):
+    ok = {"files": [{"path": "a.py", "content": "x = 1\n"}], "client_consent": True}
+    assert client.post(f"{V}/session-verifications", json=ok).status_code == 401
+    assert client.post(f"{V}/session-verifications", headers=auth, json={**ok, "client_consent": False}).status_code == 422
+    for bad in ("/etc/passwd", "../secret.py", "C:\\x.py", "a/../../b.py"):
+        r = client.post(f"{V}/session-verifications", headers=auth, json={**ok, "files": [{"path": bad, "content": "x=1"}]})
+        assert r.status_code == 422, bad
+    dup = {**ok, "files": [{"path": "a.py", "content": "x=1"}, {"path": "a.py", "content": "y=2"}]}
+    assert client.post(f"{V}/session-verifications", headers=auth, json=dup).status_code == 422
+    big = {**ok, "files": [{"path": f"f{i}.py", "content": "x = 1\n" * 8000} for i in range(10)]}
+    r = client.post(f"{V}/session-verifications", headers=auth, json=big)
+    assert r.status_code == 413 and "fewer files" in r.text
+    assert client.post(f"{V}/session-verifications", headers=auth, json={**ok, "files": []}).status_code == 422
+    j = client.post(f"{V}/session-verifications", headers=auth, json=ok).json()
+    wait_done(client, auth, j["id"])
+    assert client.get(f"{V}/verifications/{j['id']}/session-report?level=expert", headers=auth).status_code == 422

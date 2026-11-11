@@ -4,9 +4,9 @@ import { account, history, page, progress, summaryTiles, verifyForm, welcome } f
 
 const XSS = '<img src=x onerror=alert(1)>';
 
-test('page shows header, three tabs and marks the active one', () => {
+test('page shows header, four tabs and marks the active one', () => {
   const html = page('history', true, 'trustcode-api.vercel.app', '<p>x</p>');
-  assert.strictEqual((html.match(/role="tab"/g) ?? []).length, 3);
+  assert.strictEqual((html.match(/role="tab"/g) ?? []).length, 4);
   assert.match(html, /class="tab active" aria-selected="true" data-action="tab" data-tab="history">History/);
   assert.match(html, /● trustcode-api\.vercel\.app/);
 });

@@ -8,6 +8,8 @@ import { DecisionState, esc, Level, renderCachedNotice, renderComparison, render
 import { ageText, cacheKey, compareResults, Comparison, findingIdFromMessage, flatFindings, FlatFinding, hoverMarkdown, LineRange, ResultCache, shiftRange, toLineEdit } from './findings';
 import { authorizeUrl, callbackUri, newPkce, parseCallback, Pending } from './auth';
 import { shellHtml } from './panel';
+import { SessionController } from './session/controller';
+import { sessionPage } from './session/render';
 import { account, errorCard, history, page, progress as progressCard, summaryTiles, Tab, TABS, verifyForm, waitingForBrowser, welcome } from './ui';
 
 // Secrets are bound to the backend origin, so tokens are never sent to a different server.
@@ -20,7 +22,6 @@ interface Selection { code: string; language?: SupportedLanguage; lines: number;
 /** A finding or unverified area pinned to document lines; kept in step with edits (see onDocumentChanged). */
 interface Mark { range: LineRange; finding?: FlatFinding; unverified?: { description: string; reason: string } }
 const FINDING_ID = /^[A-Z]{2,5}-\d{1,4}$/;
-const LANGUAGE_IDS = ['python', 'javascript', 'javascriptreact', 'typescript', 'typescriptreact'];
 
 const LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
 const DECISIONS = ['accept', 'modify', 'reject'] as const;
@@ -131,8 +132,14 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   }
 
   /** Opens the panel on the current result and scrolls to one finding. */
-  async showFinding(findingId: unknown) {
+  async showFinding(findingId: unknown, source?: unknown) {
     if (typeof findingId !== 'string' || !FINDING_ID.test(findingId)) return;
+    if (source === 'session') {
+      this.session.viewingRun = undefined;
+      await this.showSessionTab();
+      this.view?.webview.postMessage({ type: 'focus', finding: findingId });
+      return;
+    }
     await vscode.commands.executeCommand('trustcode.panel.focus');
     if (this.lastResult && this.jobId !== this.lastResult.jobId) { this.jobId = this.lastResult.jobId; this.lastView = undefined; }
     if (!this.jobId) return;
@@ -150,6 +157,34 @@ class TrustCodeView implements vscode.WebviewViewProvider {
 
   activeTab: Tab = 'verify';
   private signedIn = false;
+  session!: SessionController;
+  sessionItem?: vscode.StatusBarItem;
+  private refreshTimer?: NodeJS.Timeout;
+
+  /** Called by the session controller whenever its state changes: live-updates the dashboard and status bar. */
+  refreshSession() {
+    clearTimeout(this.refreshTimer);
+    this.refreshTimer = setTimeout(() => {
+      const text = this.session.statusText();
+      if (this.sessionItem) { if (text) { this.sessionItem.text = text; this.sessionItem.show(); } else this.sessionItem.hide(); }
+      if (this.activeTab === 'session' && this.signedIn) this.view?.webview.postMessage({ type: 'render', keepScroll: true, html: page('session', this.signedIn, this.who(), sessionPage(this.session.model())) });
+    }, 120);
+  }
+  async showSessionTab() {
+    await vscode.commands.executeCommand('trustcode.panel.focus');
+    await this.showTab('session');
+  }
+  /** Consent for sending a set of files. Non-interactive callers (automatic triggers) never get a dialog. */
+  async consentFor(message: string, interactive: boolean): Promise<boolean> {
+    const backend = backendUrl();
+    const consent = this.ctx.globalState.get<ConsentState>(CONSENT_KEY, { trustedBackends: [] });
+    if (!needsPrompt(consent, backend)) return true;
+    if (!interactive) return false;
+    const choice = await vscode.window.showWarningMessage(message, { modal: true }, 'Send', 'Send and don\'t ask again for this server');
+    if (!choice) return false;
+    if (choice !== 'Send') await this.ctx.globalState.update(CONSENT_KEY, remember(consent, backend));
+    return true;
+  }
 
   private mode() { return vscode.workspace.getConfiguration('trustcode').get<string>('mode', 'account'); }
   private who() {
@@ -177,6 +212,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     if (!this.signedIn && tab !== 'account') return this.renderRaw(welcome(backendUrl()));
     this.activeTab = tab;
     if (tab === 'verify') return this.jobId ? this.showExplanation() : this.showForm();
+    if (tab === 'session') return this.render(sessionPage(this.session.model()));
     if (tab === 'history') {
       this.render('<p class="muted">Loading history…</p>');
       const pageData = await this.api.request('GET', '/verifications?limit=25');
@@ -279,6 +315,54 @@ class TrustCodeView implements vscode.WebviewViewProvider {
         return void vscode.window.setStatusBarMessage('TrustCode: thanks for the feedback', 2500);
       }
       case 'experiment': return vscode.commands.executeCommand('trustcode.startExperiment');
+      // ---- session dashboard
+      case 'sessionStart': return void (await this.session.start());
+      case 'sessionPause': return this.session.pause();
+      case 'sessionResume': return this.session.resume();
+      case 'sessionEnd': return this.session.end(false);
+      case 'sessionEndVerify': return this.session.end(true);
+      case 'sessionRescan': return void (await this.session.rescan(true));
+      case 'sessionVerify': return this.session.verify('session', 'manual', true);
+      case 'sessionVerifyPending': return this.session.verify('pending', 'manual', true);
+      case 'sessionVerifySelected': {
+        const picked = Array.isArray(m.paths) ? m.paths.filter((p: unknown): p is string => typeof p === 'string' && p.length <= 500).slice(0, 500) : [];
+        return this.session.verify('selected', 'manual', true, picked);
+      }
+      case 'rerunFailed': return this.session.verify('failed', 'manual', true);
+      case 'verifyGit': return this.session.verify('git', 'manual', true);
+      case 'verifyWorkspace': return void vscode.commands.executeCommand('trustcode.verifyWorkspace');
+      case 'verifyPick': return void vscode.commands.executeCommand('trustcode.verifyFiles');
+      case 'openDiff': return typeof m.path === 'string' && m.path.length <= 500 ? this.session.openDiff(m.path) : undefined;
+      case 'openFinding': return typeof m.finding === 'string' && FINDING_ID.test(m.finding) ? this.session.openFinding(m.finding) : undefined;
+      case 'sessionFeedback': {
+        const rating = oneOf(m.rating, ['helpful', 'incorrect'] as const);
+        if (!rating || typeof m.finding !== 'string' || !FINDING_ID.test(m.finding)) return;
+        await this.session.feedback(m.finding, rating);
+        return void vscode.window.setStatusBarMessage('TrustCode: thanks for the feedback', 2500);
+      }
+      case 'copyFixPrompt': return void vscode.commands.executeCommand('trustcode.copyFixPrompt');
+      case 'openFixPrompt': return void vscode.commands.executeCommand('trustcode.copyFixPrompt', 'open');
+      case 'openRun': {
+        if (m.run !== 'latest' && (typeof m.run !== 'string' || !/^[a-f0-9]{12}$/.test(m.run))) return;
+        this.session.viewingRun = m.run === 'latest' ? undefined : m.run;
+        return this.render(sessionPage(this.session.model()));
+      }
+      case 'setSetting': {
+        const cfg = vscode.workspace.getConfiguration('trustcode');
+        const bools = ['autoVerify.onAgentFinished', 'autoVerify.onInactivity', 'autoVerify.onSessionEnd', 'autoVerify.onSave', 'autoVerify.onBatch',
+          'verification.sendBaseline', 'verification.includeRelatedFiles'] as const;
+        const key = oneOf(m.key, [...bools, 'verification.depth', 'verification.defaultScope'] as const);
+        if (!key) return;
+        let value: unknown;
+        if (key === 'verification.depth') value = oneOf(m.value, ['quick', 'standard', 'deep'] as const);
+        else if (key === 'verification.defaultScope') value = oneOf(m.value, ['selection', 'file', 'session', 'git', 'workspace', 'custom'] as const);
+        else value = typeof m.value === 'boolean' ? m.value : undefined;
+        if (value === undefined) return;
+        await cfg.update(key, value, vscode.ConfigurationTarget.Global);
+        return this.refreshSession();
+      }
+      case 'openSessionSettings': return void vscode.commands.executeCommand('workbench.action.openSettings', '@ext:trustcode-research.trustcode session verification autoVerify');
+      case 'hookSetup': return void vscode.commands.executeCommand('trustcode.agentHookSetup');
       case 'trial-decide': return this.trialDecide(m);
       case 'track': return this.track(m);
       case 'tlx': return this.submitTlx(m);
@@ -581,6 +665,62 @@ export function activate(ctx: vscode.ExtensionContext) {
   const api = new TrustCodeApi(backendUrl, secretStore(ctx, TOKEN_KEY), timeout);
   const participantApi = new TrustCodeApi(backendUrl, secretStore(ctx, PARTICIPANT_KEY), timeout);
   const view = new TrustCodeView(ctx, api, participantApi);
+  const sessionHost = {
+    api,
+    ensureSignedIn: () => view.ensureSignedIn(),
+    consent: (message: string, interactive: boolean) => view.consentFor(message, interactive),
+    backendLabel: () => (isLoopback(backendUrl()) ? `your local TrustCode backend (${backendUrl()})` : `the remote TrustCode server ${backendUrl()}`),
+    refresh: () => view.refreshSession(),
+    showSessionTab: () => view.showSessionTab(),
+    focusFinding: (id: string) => void view.showFinding(id, 'session'),
+    onError: (e: unknown) => view.error(e),
+  };
+  const session = new SessionController(ctx, sessionHost);
+  view.session = session;
+  const sessionCmd = (id: string, fn: (...a: any[]) => Promise<unknown>) =>
+    vscode.commands.registerCommand(id, (...a: any[]) => fn(...a).catch((e) => view.error(e)));
+  const relOf = (u: unknown) => (u instanceof vscode.Uri ? session.toRel(u) : undefined);
+  const HOOK_DOC = `# TrustCode: tell TrustCode when your coding agent has finished
+
+TrustCode cannot see inside a coding agent. Without a signal it can only *estimate* that the agent has
+finished, from the fact that files stopped changing. If your agent can run a command when it finishes, it can
+tell TrustCode directly by writing a small file in the workspace:
+
+    .trustcode/agent-signal.json      {"event": "stop", "agent": "claude-code"}
+
+- \`"event": "stop"\`  - the agent finished a turn. The session is marked "Agent reported it finished" and, if
+  "Verify when the agent reports it finished" is on, all unverified changes are verified.
+- \`"event": "start"\` - starts a tracking session, only if \`trustcode.session.autoStartOnAgentSignal\` is on.
+
+The file is read as data only (two fields, validated); nothing in it is executed. \`.trustcode/\` is never
+tracked or sent. Add it to your .gitignore.
+
+## Claude Code
+
+Claude Code can run a command on its \`Stop\` hook (when it finishes responding). Add this to
+\`.claude/settings.local.json\` in the project (or merge it into your existing hooks), then check it against
+the hooks documentation of your Claude Code version:
+
+\`\`\`json
+{
+  "hooks": {
+    "Stop": [
+      { "hooks": [ { "type": "command",
+        "command": "mkdir -p \\"\${CLAUDE_PROJECT_DIR:-.}/.trustcode\\" && printf '{\\"event\\":\\"stop\\",\\"agent\\":\\"claude-code\\",\\"ts\\":\\"%s\\"}' \\"$(date -u +%FT%TZ)\\" > \\"\${CLAUDE_PROJECT_DIR:-.}/.trustcode/agent-signal.json\\"" } ] }
+    ]
+  }
+}
+\`\`\`
+
+A Stop hook fires at the end of each agent turn, which is not always the end of the whole task. TrustCode
+says "finished a turn", and withdraws "ready for review" if files start changing again.
+
+## Other agents (Cursor, Copilot, scripts)
+
+Any tool that can run a shell command when it finishes can write the same file. GitHub Copilot does not expose
+a completion event to other extensions, so for Copilot TrustCode relies on the inactivity estimate
+(\`trustcode.session.inactivitySeconds\`) or on you choosing "Review latest changes" / "End session and verify".
+`;
   const wrap = (fn: () => Promise<unknown>) => () => fn().catch((e) => view.error(e));
 
   // Browser sign-in (authorization code + PKCE): the password is entered on the TrustCode website, never in VS Code.
@@ -631,30 +771,32 @@ export function activate(ctx: vscode.ExtensionContext) {
       await vscode.commands.executeCommand('trustcode.panel.focus');
       await view.onMessage({ action: 'rerun' });
     })),
-    vscode.commands.registerCommand('trustcode.showFinding', (id?: unknown) => view.showFinding(id).catch((e) => view.error(e))),
-    vscode.languages.registerHoverProvider(LANGUAGE_IDS.map((language) => ({ language })), {
+    vscode.commands.registerCommand('trustcode.showFinding', (id?: unknown, source?: unknown) => view.showFinding(id, source).catch((e) => view.error(e))),
+    vscode.languages.registerHoverProvider([{ scheme: 'file' }, { scheme: 'untitled' }], {
       provideHover(doc, pos) {
         const mark = view.markAt(doc.uri, pos.line);
-        if (!mark?.finding) return undefined;
+        if (!mark?.finding) return session.hoverAt(doc.uri, pos.line);
         const md = new vscode.MarkdownString(hoverMarkdown(mark.finding, view.explained(mark.finding.id)));
         md.isTrusted = { enabledCommands: ['trustcode.showFinding'] };  // the only link the hover can run
         return new vscode.Hover(md, new vscode.Range(mark.range.start, 0, mark.range.end, Number.MAX_SAFE_INTEGER));
       },
     }),
-    vscode.languages.registerCodeActionsProvider(LANGUAGE_IDS.map((language) => ({ language })), {
-      provideCodeActions(_doc, _range, context) {
+    vscode.languages.registerCodeActionsProvider([{ scheme: 'file' }, { scheme: 'untitled' }], {
+      provideCodeActions(doc, _range, context) {
         const actions: vscode.CodeAction[] = [];
         for (const d of context.diagnostics) {
           const id = typeof d.source === 'string' && d.source.startsWith('TrustCode') ? findingIdFromMessage(d.message) : undefined;
           if (!id) continue;
           const explain = new vscode.CodeAction(`TrustCode: explain ${id} (why, evidence, next step)`, vscode.CodeActionKind.QuickFix);
-          explain.command = { command: 'trustcode.showFinding', title: 'Explain in TrustCode', arguments: [id] };
+          const fromSession = session.ownsDiagnostic(doc.uri, d);
+          explain.command = { command: 'trustcode.showFinding', title: 'Explain in TrustCode', arguments: fromSession ? [id, 'session'] : [id] };
           explain.diagnostics = [d];
           actions.push(explain);
         }
         if (actions.length) {
-          const rerun = new vscode.CodeAction('TrustCode: run the checks again', vscode.CodeActionKind.QuickFix);
-          rerun.command = { command: 'trustcode.rerun', title: 'Run the checks again' };
+          const sessionOnly = context.diagnostics.every((d) => session.ownsDiagnostic(doc.uri, d));
+          const rerun = new vscode.CodeAction(sessionOnly ? 'TrustCode: verify the session changes again' : 'TrustCode: run the checks again', vscode.CodeActionKind.QuickFix);
+          rerun.command = sessionOnly ? { command: 'trustcode.verifySessionChanges', title: 'Verify session changes' } : { command: 'trustcode.rerun', title: 'Run the checks again' };
           actions.push(rerun);
         }
         return actions;
@@ -662,6 +804,76 @@ export function activate(ctx: vscode.ExtensionContext) {
     }, { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] }),
     view.unverifiedDecoration,
     vscode.window.onDidChangeVisibleTextEditors(() => view.refreshMarks()),
+    session,
+    sessionCmd('trustcode.startSession', async () => { if (await session.start()) await view.showSessionTab(); }),
+    sessionCmd('trustcode.pauseSession', () => session.pause()),
+    sessionCmd('trustcode.resumeSession', () => session.resume()),
+    sessionCmd('trustcode.endSession', async () => {
+      if (!session.session || session.session.status === 'ended') { vscode.window.showInformationMessage('TrustCode: no session is being tracked.'); return; }
+      const pick = await vscode.window.showQuickPick(['End session and verify all changes', 'End session without verifying'], { placeHolder: 'End the tracking session' });
+      if (!pick) return;
+      await view.showSessionTab();
+      await session.end(pick.startsWith('End session and verify'));
+    }),
+    sessionCmd('trustcode.reviewLatestChanges', async () => { await view.showSessionTab(); await session.rescan(true); }),
+    sessionCmd('trustcode.verifySessionChanges', async () => { await view.showSessionTab(); await session.verify('session', 'manual', true); }),
+    sessionCmd('trustcode.verifyGitChanges', async () => { await view.showSessionTab(); await session.verify('git', 'manual', true); }),
+    sessionCmd('trustcode.verifyWorkspace', async () => {
+      const go = await vscode.window.showWarningMessage('Verify every Python, JavaScript and TypeScript file in the workspace? This can send many files and use several verifications from your monthly allowance. You will see the exact count before anything is sent.',
+        { modal: true }, 'Continue');
+      if (go !== 'Continue') return;
+      await view.showSessionTab();
+      await session.verify('workspace', 'manual', true);
+    }),
+    sessionCmd('trustcode.verifyFiles', async (clicked?: unknown, selected?: unknown) => {
+      let rels = (Array.isArray(selected) && selected.length ? selected : clicked ? [clicked] : []).map(relOf).filter((p): p is string => !!p);
+      if (!rels.length) {
+        const picks = await vscode.window.showOpenDialog({ canSelectMany: true, canSelectFolders: false, openLabel: 'Verify these files',
+          defaultUri: vscode.workspace.workspaceFolders?.[0]?.uri });
+        rels = (picks ?? []).map(relOf).filter((p): p is string => !!p);
+        if (picks?.length && !rels.length) vscode.window.showWarningMessage('TrustCode: choose files inside the open workspace folder.');
+      }
+      if (!rels.length) return;
+      await view.showSessionTab();
+      await session.verify('custom', 'manual', true, rels);
+    }),
+    sessionCmd('trustcode.verify', async () => {
+      const scope = cfg().get<string>('verification.defaultScope', 'session');
+      if (scope === 'selection') return vscode.commands.executeCommand('trustcode.verifySelection');
+      if (scope === 'file') return vscode.commands.executeCommand('trustcode.verifyFile');
+      if (scope === 'workspace') return vscode.commands.executeCommand('trustcode.verifyWorkspace');
+      if (scope === 'custom') return vscode.commands.executeCommand('trustcode.verifyFiles');
+      if (scope === 'git') return vscode.commands.executeCommand('trustcode.verifyGitChanges');
+      if (!session.session) {
+        const pick = await vscode.window.showInformationMessage('TrustCode: no session is being tracked, so there are no session changes to verify.', 'Start tracking session', 'Verify Git-changed files');
+        if (pick === 'Start tracking session') return vscode.commands.executeCommand('trustcode.startSession');
+        if (pick) return vscode.commands.executeCommand('trustcode.verifyGitChanges');
+        return undefined;
+      }
+      return vscode.commands.executeCommand('trustcode.verifySessionChanges');
+    }),
+    sessionCmd('trustcode.copyFixPrompt', async (mode?: unknown) => {
+      const text = session.fixPrompt();
+      if (!text) { vscode.window.showInformationMessage('TrustCode: the current report has no findings to send to your agent.'); return; }
+      if (mode === 'open') { await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({ language: 'markdown', content: text })); return; }
+      await vscode.env.clipboard.writeText(text);
+      vscode.window.showInformationMessage('TrustCode: fix prompt copied. Paste it into your coding agent; TrustCode will pick up the changes it makes and you can verify again.');
+    }),
+    sessionCmd('trustcode.agentHookSetup', async () => {
+      await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({ language: 'markdown', content: HOOK_DOC }));
+    }),
+    sessionCmd('trustcode.clearSessionHistory', async () => {
+      const ok = await vscode.window.showWarningMessage('Remove all stored session verification reports for this workspace?', { modal: true }, 'Remove');
+      if (ok === 'Remove') await session.clearHistory();
+    }),
+    (() => {
+      const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 101);
+      item.command = 'trustcode.reviewLatestChanges';
+      item.tooltip = 'TrustCode session — click to review the latest changes';
+      view.sessionItem = item;
+      return item;
+    })(),
+    vscode.workspace.onDidChangeConfiguration((e) => { if (e.affectsConfiguration('trustcode')) view.refreshSession(); }),
     vscode.commands.registerCommand('trustcode.signIn', (intent?: unknown) => wrap(async () => {
       await browserAuth.begin(intent === 'create' ? 'register' : 'login');
     })()),
@@ -705,7 +917,7 @@ export function activate(ctx: vscode.ExtensionContext) {
       return item;
     })(),
     vscode.workspace.onDidChangeTextDocument((e) => view.onDocumentChanged(e)),
-    vscode.commands.registerCommand('trustcode.clearFindings', () => view.clearMarks()),
+    vscode.commands.registerCommand('trustcode.clearFindings', () => { view.clearMarks(); session.diagnostics.clear(); }),
     vscode.commands.registerCommand('trustcode.deleteMyData', wrap(async () => {
       const ok = await vscode.window.showWarningMessage(
         'Delete your TrustCode account and all stored verification history, decisions and feedback on this server? This cannot be undone.',
@@ -720,9 +932,12 @@ export function activate(ctx: vscode.ExtensionContext) {
     })),
     vscode.commands.registerCommand('trustcode.forgetConsent', wrap(async () => { await ctx.globalState.update(CONSENT_KEY, { trustedBackends: [] }); vscode.window.showInformationMessage('TrustCode will ask before sending code again.'); })),
   );
+  void session.activate().catch(() => undefined);   // restores a session that was being tracked before a restart
   // Test-only hook (never active for users): lets the integration suite drive the real panel object.
   if (process.env.TRUSTCODE_TEST === '1') {
-    return { __test: { view, ctx, browserAuth, activationMs: Date.now() - started } };
+    return { __test: { view, ctx, browserAuth, session, activationMs: Date.now() - started,
+      // simulates a restart: a fresh controller that must restore everything from storage
+      restartSession: async () => { await view.session.persistNow(); view.session.dispose(); const next = new SessionController(ctx, sessionHost); view.session = next; await next.activate(); return next; } } };
   }
   return undefined;
 }

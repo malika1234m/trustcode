@@ -91,7 +91,11 @@ def _names(kind: CheckKind) -> str:
             "types": "Type checking"}.get(kind.value, kind.value)
 
 
-def verify(req: VerificationRequest, run_tests: bool = True, profile: str = "extended", parallel: bool = True) -> VerificationResult:
+def verify(req: VerificationRequest, run_tests: bool = True, profile: str = "extended", parallel: bool = True,
+           only: frozenset[str] | None = None, local_modules: frozenset[str] = frozenset(),
+           registry: bool | None = None) -> VerificationResult:
+    """`only`: restrict the optional stages (lint, types, security, secrets, deps, tests) to this set; a stage
+    left out is reported as NOT_RUN with the reason, never as passed. Used by the session check depths."""
     if profile not in PROFILES:
         raise ValueError(f"unknown profile {profile!r}")
     extended = profile == "extended"
@@ -116,16 +120,29 @@ def verify(req: VerificationRequest, run_tests: bool = True, profile: str = "ext
                 stages["types"] = (_safe, check_types, CheckKind.TYPES, req.code, lang, wd / "types")
         if extended:
             stages["secrets"] = (_safe, check_secrets, CheckKind.SECRETS, req.code)  # text scan: works on unparsable code too
-        stages["deps"] = (_safe, check_dependencies, CheckKind.DEPENDENCIES, req.code, lang)
+        stages["deps"] = (_safe, check_dependencies, CheckKind.DEPENDENCIES, req.code, lang, local_modules, registry)
         if run_tests and not decl_only:
             stages["tests"] = (_tests_stage, req, lang, parses)
-        if parallel:
+        selected = set(stages)
+        if only is not None:
+            stages = {name: call for name, call in stages.items() if name in only}
+        left_out = selected - set(stages)
+        if not stages:
+            done = {}
+        elif parallel:
             with ThreadPoolExecutor(max_workers=len(stages), thread_name_prefix="trustcode-stage") as pool:
                 futures = {name: pool.submit(*call) for name, call in stages.items()}
                 done = {name: fut.result() for name, fut in futures.items()}
         else:
             done = {name: call[0](*call[1:]) for name, call in stages.items()}
 
+    for name in left_out:  # deliberately not run at this depth: say so
+        kind = {"lint": CheckKind.LINT, "security": CheckKind.SECURITY, "types": CheckKind.TYPES, "secrets": CheckKind.SECRETS,
+                "deps": CheckKind.DEPENDENCIES, "tests": CheckKind.TESTS}[name]
+        c = Check(kind=kind, tool=_TOOL.get(kind, "sandbox"), status=CheckStatus.NOT_RUN,
+                  summary="Not part of the selected check depth.", scope="Not run: choose a deeper check to include it.",
+                  details={"not_selected": True})
+        done[name] = (c, []) if name == "tests" else c
     lint = done.get("lint") or _skipped(CheckKind.LINT, "undefined variables, unused code and common bug patterns were")
     security = done.get("security") or Check(
         kind=CheckKind.SECURITY, tool="semgrep", status=CheckStatus.NOT_RUN, summary="Skipped: code does not parse.",

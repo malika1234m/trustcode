@@ -557,7 +557,13 @@ export class SessionController implements vscode.Disposable {
     const uri = this.toUri(rel);
     if (!uri) return { reason: 'outside the workspace' };
     try {
-      const buf = await fs.promises.readFile(uri.fsPath);
+      // A link inside the workspace can point anywhere on the machine. Only files that really live in the
+      // workspace are read for sending, and the sensitive-file rules are applied to the real location too.
+      const real = await fs.promises.realpath(uri.fsPath);
+      const realRel = await this.realRel(real);
+      if (realRel === undefined) return { reason: 'symbolic link to a location outside the workspace: not sent' };
+      if (isSensitive(realRel, this.rules())) return { reason: 'resolves to a file matching trustcode.session.sensitiveFiles: never sent' };
+      const buf = await fs.promises.readFile(real);
       if (buf.subarray(0, 8000).includes(0)) return { reason: 'binary file: not sent' };
       const text = buf.toString('utf8');
       if (text.length > MAX_FILE_CHARS) return { reason: `larger than the ${MAX_FILE_CHARS.toLocaleString()}-character limit per file: not sent` };
@@ -723,8 +729,16 @@ export class SessionController implements vscode.Disposable {
       });
       if (related >= 60) notes.push('More than 60 unchanged files import the changed files; only the first 60 were included in cross-file checks.');
     }
+    // The server says how much it accepts per request (less when it analyses inside the request).
+    const limits = { ...BATCH };
+    try {
+      const health = await this.host.api.request('GET', '/health', undefined, { auth: false });
+      const lf = Number(health?.limits?.session_max_files), lc = Number(health?.limits?.session_max_chars);
+      if (Number.isFinite(lf) && lf >= 1) limits.maxFiles = Math.min(limits.maxFiles, lf);
+      if (Number.isFinite(lc) && lc >= 1000) limits.maxChars = Math.min(limits.maxChars, Math.floor(lc * 0.95));
+    } catch { /* unreachable server: the submit below reports it */ }
     const plan = planBatches([...payload.values()].map((e) => ({ path: e.path, chars: (e.content?.length ?? 0) + (e.baseline?.length ?? 0), attach: attachFor.get(e.path) ?? [] })),
-      (p) => attachText.get(p)?.content.length ?? 0, BATCH);
+      (p) => attachText.get(p)?.content.length ?? 0, limits);
     for (const p of plan.oversized) skipped.push({ path: p, reason: 'file plus its previous version exceed the request limit: not sent' });
     const totalChars = [...payload.values()].reduce((n, e) => n + (e.content?.length ?? 0) + (e.baseline?.length ?? 0), 0);
     const withBaseline = [...payload.values()].filter((e) => e.baseline !== undefined).length;
@@ -752,7 +766,8 @@ export class SessionController implements vscode.Disposable {
         try {
           if (token.isCancellationRequested) { cancelled = true; }
           else {
-            const job = await this.host.api.request('POST', '/session-verifications', { files, workspace_paths: workspacePaths, depth: st.depth, label: got.label.slice(0, 200), client_consent: true });
+            const job = await this.host.api.request('POST', '/session-verifications', { files, workspace_paths: workspacePaths, depth: st.depth, label: got.label.slice(0, 200), client_consent: true },
+              { timeoutMs: 90_000 });   // a server that analyses inside the request answers only when it is done
             const done = await this.host.api.waitForResult(job.id, () => token.isCancellationRequested, undefined, 400, timeoutMs);
             if (done.status === 'cancelled') cancelled = true;
             else if (done.status !== 'done') throw new ApiError(500, 'failed', done.error ?? `verification ${done.status}`);
@@ -775,10 +790,21 @@ export class SessionController implements vscode.Disposable {
     await this.finishRun({ startedAt, scope, depth: st.depth, trigger, reports, verifiedKey, skipped, cancelled });
   }
 
+  /** Workspace-relative path of a resolved (real) file-system path, or undefined when it is outside every folder. */
+  private async realRel(real: string): Promise<string | undefined> {
+    for (const f of this.folders()) {
+      let root = f.uri.fsPath;
+      try { root = await fs.promises.realpath(root); } catch { /* keep the configured path */ }
+      if (real.startsWith(root + path.sep)) return path.relative(root, real).split(path.sep).join('/');
+    }
+    return undefined;
+  }
+
   private async cachedText(rel: string): Promise<string | undefined> {
     const uri = this.toUri(rel);
     if (!uri) return undefined;
     try {
+      if ((await fs.promises.lstat(uri.fsPath)).isSymbolicLink()) return undefined;   // related-file search never follows links
       const st = await fs.promises.stat(uri.fsPath);
       if (st.size > 200_000) return undefined;
       const key = `${st.size}:${Math.floor(st.mtimeMs)}`;

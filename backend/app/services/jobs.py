@@ -77,6 +77,7 @@ def process(db: Session, job: VerificationJob):
             import json
 
             from trustcode_worker.project import SessionRequest, verify_session
+            # outbound registry lookups stay an operator decision (TRUSTCODE_REGISTRY_CHECK), whatever depth is requested
             report = verify_session(SessionRequest(**json.loads(job.code)), profile=s.engine_profile)
             report["label"] = job.task
             db.refresh(job)

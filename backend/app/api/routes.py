@@ -50,7 +50,7 @@ def health(db: Session = Depends(get_db)):
             "test_execution": ("disabled" if not s.run_tests else
                                ("sandbox-ready" if docker_available()[0] else "sandbox-unavailable") if s.worker_mode == "inline"
                                else "remote-worker"),
-            "llm_configured": bool(s.anthropic_api_key), "local_mode": s.local_mode}
+            "llm_configured": bool(s.anthropic_api_key), "local_mode": s.local_mode, "limits": session_limits()}
 
 
 # ------------------------------------------------------------------ auth
@@ -176,6 +176,14 @@ def create_verification(body: VerifyIn, request: Request, user: User = Depends(c
 SESSION_MAX_CHARS = 400_000
 
 
+def session_limits() -> dict:
+    """Per-request limits for multi-file verification. In sync mode the analysis runs inside the HTTP request
+    (serverless time limit), so batches are kept small; clients read these values and batch accordingly."""
+    s = get_settings()
+    files = s.session_max_files or (8 if s.worker_mode == "sync" else 40)
+    return {"session_max_files": max(1, min(files, 40)), "session_max_chars": SESSION_MAX_CHARS if files > 8 else 160_000}
+
+
 @router.post("/session-verifications", response_model=JobOut, status_code=202, tags=["verification"])
 def create_session_verification(body: SessionVerifyIn, request: Request, user: User = Depends(current_user),
                                 db: Session = Depends(get_db)):
@@ -183,9 +191,12 @@ def create_session_verification(body: SessionVerifyIn, request: Request, user: U
     limiter.check(f"verify:{user.id}", get_settings().verify_rate_limit_per_minute)
     from .saas import enforce_quota
     enforce_quota(db, user)
+    limits = session_limits()
     total = sum(len(f.content or "") + len(f.baseline or "") for f in body.files)
-    if total > SESSION_MAX_CHARS:
-        raise HTTPException(413, f"the files total {total} characters; the limit per request is {SESSION_MAX_CHARS}. Send fewer files per batch.")
+    if total > limits["session_max_chars"]:
+        raise HTTPException(413, f"the files total {total} characters; the limit per request is {limits['session_max_chars']}. Send fewer files per batch.")
+    if len(body.files) > limits["session_max_files"]:
+        raise HTTPException(413, f"{len(body.files)} files sent; this server accepts {limits['session_max_files']} per request. Send fewer files per batch.")
     if len({f.path for f in body.files}) != len(body.files):
         raise HTTPException(422, "each file path may appear only once")
     payload = body.model_dump(exclude={"client_consent", "label"})

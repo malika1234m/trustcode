@@ -45,6 +45,7 @@ DEPTHS: dict[str, frozenset[str]] = {
     "deep": frozenset({"lint", "types", "security", "secrets", "deps"}),
 }
 MAX_FILES = 60
+MAX_IMPORTS_PER_FILE = 400      # imports examined per file by the cross-file checks
 MAX_TOTAL_CHARS = 600_000
 
 
@@ -229,6 +230,20 @@ class _Project:
         self.py_local = frozenset(
             {posixpath.basename(p)[:-3] for p in self.paths | self.deleted if p.endswith(".py") and not p.endswith("__init__.py")}
             | {posixpath.basename(posixpath.dirname(p)) for p in self.paths | self.deleted if p.endswith(".py") and posixpath.dirname(p)})
+        # Suffix indexes, built once: every "a/b/c.py" is reachable by "c.py", "b/c.py" and "a/b/c.py" in O(1).
+        # (Resolving an import must not scan the whole listing: the listing and the imports are client-supplied.)
+        self.by_suffix = self._index(sorted(self.paths, key=len))
+        self.deleted_suffixes = set(self._index(self.deleted))
+        self.dir_suffixes = set(self._index(self.dirs))
+
+    @staticmethod
+    def _index(paths) -> dict[str, str]:
+        out: dict[str, str] = {}
+        for p in paths:
+            parts = p.split("/")
+            for i in range(len(parts)):
+                out.setdefault("/".join(parts[i:]), p)   # shortest path wins (paths arrive sorted by length)
+        return out
 
     def content(self, path: str) -> str | None:
         f = self.files.get(path)
@@ -256,13 +271,12 @@ class _Project:
             return None, any(_norm(c) in self.deleted for c in cands)
         tail = "/".join(parts)
         for suffix in (tail + ".py", tail + "/__init__.py"):
-            hit = next((p for p in sorted(self.paths, key=len) if p == suffix or p.endswith("/" + suffix)), None)
+            hit = self.by_suffix.get(suffix)
             if hit:
                 return hit, False
-        if any(d == tail or d.endswith("/" + tail) for d in self.dirs):
+        if tail in self.dir_suffixes:
             return tail, False
-        gone = any(p == s or p.endswith("/" + s) for p in self.deleted for s in (tail + ".py", tail + "/__init__.py"))
-        return None, gone
+        return None, (tail + ".py") in self.deleted_suffixes or (tail + "/__init__.py") in self.deleted_suffixes
 
     # ---- javascript / typescript
     def resolve_js(self, importer: str, spec: str) -> tuple[str | None, bool]:
@@ -306,7 +320,7 @@ def _import_findings(proj: _Project, analysed: list[tuple[str, Language, str]]) 
         lines = code.splitlines()
         ex = lambda ln: lines[ln - 1].strip()[:200] if 0 < ln <= len(lines) else None  # noqa: E731
         if lang == Language.PYTHON:
-            for level, module, names, line in _py_imports(code):
+            for level, module, names, line in _py_imports(code)[:MAX_IMPORTS_PER_FILE]:
                 top = module.split(".")[0] if module else ""
                 if not level and top not in proj.py_local:
                     stats["external"] += 1
@@ -342,7 +356,7 @@ def _import_findings(proj: _Project, analysed: list[tuple[str, Language, str]]) 
                             "This import raises ImportError when the module loads.", Severity.HIGH, ex(line),
                             caused=had_py(target, name))
         else:
-            for spec, names, wants_default, line in _js_imports(code, lang):
+            for spec, names, wants_default, line in _js_imports(code, lang)[:MAX_IMPORTS_PER_FILE]:
                 if not spec.startswith("."):
                     stats["unresolved_aliases" if spec.startswith(("@/", "~/", "#")) else "external"] += 1
                     continue
@@ -508,11 +522,17 @@ NOT_EXECUTED = [
 ]
 
 
-def verify_session(req: SessionRequest, profile: str = "extended", max_workers: int = 4) -> dict:
+def verify_session(req: SessionRequest, profile: str = "extended", max_workers: int = 4,
+                   allow_registry: bool | None = None) -> dict:
+    """`allow_registry`: whether this server may contact PyPI / npm. A client asking for the deep check can
+    never switch outbound lookups on by itself; None reads the operator setting TRUSTCODE_REGISTRY_CHECK."""
+    import os
     t0 = time.monotonic()
     proj = _Project(req)
     only = DEPTHS[req.depth]
-    registry = True if req.depth == "deep" else None
+    if allow_registry is None:
+        allow_registry = os.environ.get("TRUSTCODE_REGISTRY_CHECK", "0") == "1"
+    registry = bool(allow_registry) and req.depth == "deep"
     total = sum(len(f.content or "") + len(f.baseline or "") for f in req.files)
     if total > MAX_TOTAL_CHARS:
         raise ValueError(f"session payload too large ({total} characters; limit {MAX_TOTAL_CHARS})")
@@ -539,12 +559,23 @@ def verify_session(req: SessionRequest, profile: str = "extended", max_workers: 
                                 if checks else "nothing") + " was checked.")
             return entry
         entry["language"] = lang.value
+        if f.change in ("context", "related"):
+            # read for structure only (what it defines / imports): no analyzers are run on unchanged files
+            if lang == Language.PYTHON:
+                parses = _py_defined_names(f.content) is not None
+            else:
+                tree = parse_tree(f.content, lang)
+                parses = tree is not None and not tree.root_node.has_error
+            entry.update(analysed=parses, _code=f.content, _lang=lang, _third={}, _parses=parses,
+                         reason=None if parses else "Does not parse: could not be used for cross-file checks.")
+            return entry
         result = verify(VerificationRequest(code=f.content, language=lang), run_tests=False, profile=profile, only=only,
                         local_modules=proj.py_local if lang == Language.PYTHON else frozenset(), registry=registry)
         entry.update(analysed=True, checks=result.checks, unverified=[u for u in result.unverified
                                                                        if u.description not in ("Runtime behaviour",)])
         deps = result.check(CheckKind.DEPENDENCIES)
         entry["_code"], entry["_lang"] = f.content, lang
+        entry["_parses"] = bool(result.checks[0].details.get("parses"))
         entry["_third"] = dict((deps.details or {}).get("third_party_lines") or {}) if deps else {}
         if f.change in ("context", "related"):
             return entry
@@ -565,7 +596,7 @@ def verify_session(req: SessionRequest, profile: str = "extended", max_workers: 
     project_checks: list[dict] = []
     cross: list[tuple[str, Finding]] = []
     analysed_code = [(e["path"], e["_lang"], e["_code"]) for e in entries if e.get("_code") is not None and e["change"] != "context"
-                     and e["checks"] and e["checks"][0].details.get("parses")]
+                     and e.get("_parses")]
     if req.depth == "quick":
         project_checks.append({"kind": "imports", "status": "not_run", "summary": "Not part of the Quick check.",
                                "scope": "Not run: imports between files were NOT checked.", "tool": "trustcode-imports"})
@@ -667,6 +698,8 @@ def verify_session(req: SessionRequest, profile: str = "extended", max_workers: 
     not_executed = list(NOT_EXECUTED)
     if req.depth != "deep":
         not_executed.append({"check": "Package registry lookup", "reason": "Only part of the Deep check: whether imported packages exist on PyPI / npm was not looked up."})
+    elif not registry:
+        not_executed.append({"check": "Package registry lookup", "reason": "Registry lookups are switched off on this server, so whether imported packages exist on PyPI / npm was not looked up."})
     return {
         "kind": "session", "schema_version": "1.0", "engine_version": ENGINE_VERSION, "depth": req.depth, "profile": profile,
         "files": files_out, "project_checks": project_checks, "not_executed": not_executed,

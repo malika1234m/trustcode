@@ -156,3 +156,43 @@ def test_related_typescript_importer_of_a_removed_export():
              F("src/page.tsx", "import { listUsers } from './api';\nexport const P = () => listUsers();\n", "related")])
     f = findings(r)
     assert [x["rule_id"] for x in f] == ["imported-name-not-exported"] and f[0]["introduced"] == "new"
+
+
+def test_deep_check_cannot_switch_on_registry_lookups_the_operator_disabled(monkeypatch):
+    from trustcode_worker.analyzers import dependencies
+    calls = []
+    monkeypatch.setattr(dependencies, "_registry_exists", lambda lang, name: calls.append(name) or True)
+    monkeypatch.delenv("TRUSTCODE_REGISTRY_CHECK", raising=False)
+    files = [F("a.py", "import requests\nimport totally_made_up_pkg\n", "created")]
+    r = run(files, depth="deep")
+    assert calls == [], "a client-chosen depth made the server contact a registry"
+    assert any(n["check"] == "Package registry lookup" and "switched off on this server" in n["reason"] for n in r["not_executed"])
+    monkeypatch.setenv("TRUSTCODE_REGISTRY_CHECK", "1")
+    run(files, depth="deep")
+    assert sorted(calls) == ["requests", "totally_made_up_pkg"]
+    calls.clear()
+    run(files, depth="standard")
+    assert calls == [], "registry lookups belong to the deep check only"
+
+
+def test_registry_lookups_are_capped_per_file(monkeypatch):
+    from trustcode_worker.analyzers import dependencies
+    from trustcode_worker.models import Language
+    calls = []
+    monkeypatch.setattr(dependencies, "_registry_exists", lambda lang, name: calls.append(name) or True)
+    code = "".join(f"import pkg_{i}\n" for i in range(60))
+    c = dependencies.check_dependencies(code, Language.PYTHON, registry=True)
+    assert len(calls) == dependencies.MAX_REGISTRY_LOOKUPS and len(c.details["unverified"]) == 60 - dependencies.MAX_REGISTRY_LOOKUPS
+
+
+def test_import_resolution_cost_does_not_grow_with_listing_times_imports():
+    import time
+    paths = [f"pkg{i % 50}/sub{i % 7}/module_{i}.py" for i in range(20_000)] + ["app/__init__.py", "app/a.py"]
+    code = "".join(f"import module_{i}\nfrom pkg{i % 50}.sub{i % 7} import module_{i} as m{i}\n" for i in range(0, 20_000, 50))   # 800 import statements
+    t0 = time.monotonic()
+    r = run([F("app/a.py", code, "created")], paths=paths, depth="standard")
+    took = time.monotonic() - t0
+    assert took < 20, f"cross-file checks took {took:.1f}s for a large listing"
+    assert not findings(r, "import-not-found"), "existing modules reported as missing"
+    imports = next(c for c in r["project_checks"] if c["kind"] == "imports")
+    assert imports["details"]["resolved"] <= 400, "imports examined per file must be capped"

@@ -85,6 +85,22 @@ Requested scenarios and where they are covered (`extension/test/integration/sess
 Bugs found by these runs and fixed: the "edited in editor" tag was never set (now uses VS Code's own save
 event); a failed test of mine tripped on the disclaimer wording (test fixed, product unchanged).
 
+## Security review follow-up (2026-11-11)
+
+An automated review of the first commit raised three points; all were fixed and are covered by tests.
+
+- **Registry lookups stay an operator decision.** The deep check no longer makes the server contact PyPI / npm unless
+  `TRUSTCODE_REGISTRY_CHECK=1` is set on the server; otherwise the lookup is listed as not executed. Lookups are capped
+  at 15 per file.
+- **Import resolution uses a suffix index** built once per request instead of scanning the client-supplied file listing
+  for every import, and examines at most 400 imports per file.
+- **Symbolic links are not followed out of the workspace.** A link that resolves outside the workspace, or onto a file
+  matching the sensitive-file patterns, is listed as not sent.
+
+Also changed for the hosted (serverless) server, which analyses inside the request: the server advertises its
+per-request limits on `/health` (8 files there, 40 on a worker deployment) and the extension batches accordingly;
+unchanged supporting files are parsed for structure only and no longer run through the analyzers.
+
 ## Limitations
 
 1. **No project test execution.** The sandbox runs one file with supplied tests. Every multi-file report lists

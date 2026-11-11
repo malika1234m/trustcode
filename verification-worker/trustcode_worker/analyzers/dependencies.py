@@ -30,6 +30,7 @@ NODE_BUILTINS = {
 PY_ALIASES = {"yaml": "PyYAML", "cv2": "opencv-python", "PIL": "Pillow", "sklearn": "scikit-learn",
               "bs4": "beautifulsoup4", "dateutil": "python-dateutil", "jwt": "PyJWT", "dotenv": "python-dotenv"}
 LOCAL_MODULES = {"solution"}
+MAX_REGISTRY_LOOKUPS = 15
 
 
 def _python_imports(code: str) -> list[tuple[str, int]]:
@@ -94,8 +95,9 @@ def check_dependencies(code: str, lang: Language, local: frozenset[str] = frozen
                      scope=scope, details={"imports": [n for n, _ in imports], "third_party": [], "third_party_lines": {}},
                      duration_ms=_ms(t0))
     findings, unknown = [], []
-    for name, line in third.items():
-        exists = _registry_exists(lang, name) if registry else None
+    for n, (name, line) in enumerate(third.items()):
+        # bounded outbound requests per file; anything beyond the cap stays "not verified"
+        exists = _registry_exists(lang, name) if registry and n < MAX_REGISTRY_LOOKUPS else None
         if exists is False:
             findings.append(Finding(
                 id="", check=CheckKind.DEPENDENCIES, tool="registry lookup", rule_id="package-not-found",

@@ -347,3 +347,16 @@ def test_session_verification_validation(client, auth):
     j = client.post(f"{V}/session-verifications", headers=auth, json=ok).json()
     wait_done(client, auth, j["id"])
     assert client.get(f"{V}/verifications/{j['id']}/session-report?level=expert", headers=auth).status_code == 422
+
+
+def test_server_advertises_batch_limits_and_enforces_them(client, auth, monkeypatch):
+    from app.api import routes
+    from app.config import get_settings
+    assert client.get(f"{V}/health").json()["limits"] == {"session_max_files": 40, "session_max_chars": 400_000}
+    monkeypatch.setattr(get_settings(), "worker_mode", "sync")       # serverless: analysis runs inside the request
+    assert routes.session_limits() == {"session_max_files": 8, "session_max_chars": 160_000}
+    monkeypatch.setattr(get_settings(), "worker_mode", "inline")
+    monkeypatch.setattr(get_settings(), "session_max_files", 2)
+    body = {"files": [{"path": f"f{i}.py", "content": "x = 1\n"} for i in range(3)], "client_consent": True}
+    r = client.post(f"{V}/session-verifications", headers=auth, json=body)
+    assert r.status_code == 413 and "accepts 2 per request" in r.text

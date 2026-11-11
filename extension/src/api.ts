@@ -30,13 +30,13 @@ export class TrustCodeApi {
   constructor(private baseUrl: () => string, private store: TokenStore, private timeoutMs: () => number,
               private fetchImpl: FetchLike = (globalThis as any).fetch) {}
 
-  async request(method: string, path: string, body?: unknown, opts: { auth?: boolean; headers?: Record<string, string>; retry?: boolean } = {}): Promise<any> {
+  async request(method: string, path: string, body?: unknown, opts: { auth?: boolean; headers?: Record<string, string>; retry?: boolean; timeoutMs?: number } = {}): Promise<any> {
     const auth = opts.auth !== false;
     const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(opts.headers ?? {}) };
     const tokens = auth ? await this.store.get() : undefined;
     if (auth && tokens) headers.Authorization = `Bearer ${tokens.access}`;
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), this.timeoutMs());
+    const timer = setTimeout(() => ctrl.abort(), Math.max(this.timeoutMs(), opts.timeoutMs ?? 0));
     let res;
     try {
       res = await this.fetchImpl(this.baseUrl().replace(/\/$/, '') + '/api/v1' + path,

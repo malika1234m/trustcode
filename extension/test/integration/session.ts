@@ -372,6 +372,25 @@ export async function runSessionScenarios(hook: any, backend: string, gitMode: b
     });
   }
 
+  await t('security: symbolic links are never followed out of the workspace or onto a sensitive file', async () => {
+    const outside = path.join(require('os').tmpdir(), `trustcode-outside-${Date.now()}.py`);
+    fs.writeFileSync(outside, 'OUTSIDE_SECRET = "must never leave this machine"\n');
+    fs.symlinkSync(outside, abs('app/link_outside.py'));
+    fs.symlinkSync(abs('.env'), abs('app/settings_link.py'));
+    const api = view.api;
+    const orig = api.request.bind(api);
+    const sent: string[] = [];
+    api.request = async (method: string, p: string, body?: any, ...rest: any[]) => { if (method === 'POST' && p === '/session-verifications') sent.push(JSON.stringify(body)); return orig(method, p, body, ...rest); };
+    try { await session.verify('custom', 'manual', true, ['app/link_outside.py', 'app/settings_link.py', 'app/auth.py']); } finally { api.request = orig; fs.rmSync(outside, { force: true }); }
+    assert.ok(sent.length >= 1, 'nothing was sent at all');
+    assert.ok(!sent.join('').includes('OUTSIDE_SECRET') && !sent.join('').includes('API_KEY='), 'content behind a symbolic link was sent');
+    const skipped = Object.fromEntries(latest().skipped.map((x: any) => [x.path, x.reason]));
+    assert.match(skipped['app/link_outside.py'], /outside the workspace/);
+    assert.match(skipped['app/settings_link.py'], /never sent/);
+    fs.rmSync(abs('app/link_outside.py')); fs.rmSync(abs('app/settings_link.py'));
+    await session.rescan(false);
+  });
+
   await t('custom scope: chosen files can be verified without a selection or an open editor', async () => {
     await vscode.commands.executeCommand('workbench.action.closeAllEditors');
     await session.verify('custom', 'manual', true, ['app/legacy.py', 'web/api.ts', 'not/in/workspace.py']);

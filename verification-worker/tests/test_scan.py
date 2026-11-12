@@ -477,3 +477,19 @@ def test_evidence_from_external_scanners_never_contains_the_secret(tmp_path):
     assert secret not in json.dumps(r) and secret[:12] not in json.dumps(r)
     assert engine.patterns.redact(f"JWT_SECRET={secret}") == "JWT_SECRET=f3a9…[masked]"
     assert engine.patterns.redact("PORT=3000") == "PORT=3000"
+
+
+def test_tools_are_never_resolved_from_the_scanned_project_or_a_relative_path(tmp_path, monkeypatch):
+    marker = tmp_path / "ran"
+    p = project(tmp_path / "repo", {"a.py": CLEAN})
+    for name in ("gitleaks", "osv-scanner", "git"):
+        fake = p / name
+        fake.write_text(f"#!/bin/sh\ntouch {marker}\n")
+        fake.chmod(0o755)
+    monkeypatch.setenv("PATH", f".{os.pathsep}{os.pathsep}{p}{os.pathsep}relative/bin{os.pathsep}{os.environ['PATH']}")
+    monkeypatch.chdir(p)
+    r = scan(p, "full", use_cache=False, online=False)
+    assert not marker.exists(), "a program inside the scanned project was executed"
+    assert "." not in os.environ["PATH"].split(os.pathsep) and "" not in os.environ["PATH"].split(os.pathsep)
+    assert engine._which("gitleaks", p) is None or not engine._which("gitleaks", p).startswith(str(p))
+    assert r["status"] in ("complete", "incomplete")

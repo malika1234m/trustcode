@@ -54,12 +54,38 @@ def _progress(message: str, done: int = 0, total: int = 0) -> None:
         print("TRUSTCODE_PROGRESS " + json.dumps({"message": message, "done": done, "total": total}), file=sys.stderr, flush=True)
 
 
+def _harden_search_path(root: Path | None = None) -> None:
+    """Programs are looked up only in absolute PATH directories outside the project being scanned - never in the
+    current directory or in a directory of the (untrusted) project. This also covers programs that the scanners
+    start themselves."""
+    base = os.path.realpath(root) if root is not None else None
+    def outside(p: str) -> bool:
+        real = os.path.realpath(p)
+        return base is None or not (real == base or real.startswith(base + os.sep))
+    parts = [p for p in os.environ.get("PATH", "").split(os.pathsep) if p and p != "." and os.path.isabs(p) and outside(p)]
+    os.environ["PATH"] = os.pathsep.join(parts)
+    os.environ["NoDefaultCurrentDirectoryInExePath"] = "1"   # Windows: do not search the working directory
+
+
+def _which(name: str, root: Path | None = None) -> str | None:
+    """Absolute path of a tool, refusing anything that lives inside the project being scanned."""
+    _harden_search_path()
+    exe = shutil.which(name)
+    if not exe or not os.path.isabs(exe):
+        return None
+    if root is not None:
+        real, base = os.path.realpath(exe), os.path.realpath(root)
+        if real == base or real.startswith(base + os.sep):
+            return None
+    return exe
+
+
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
 def _git(root: Path, *args: str) -> str | None:
-    if not shutil.which("git"):
+    if not _which("git", root):
         return None
     r = run(["git", "-c", "core.fsmonitor=false", *args], cwd=str(root), timeout=60, env={"GIT_OPTIONAL_LOCKS": "0", "GIT_TERMINAL_PROMPT": "0"})
     return r.stdout if r.returncode == 0 else None
@@ -326,17 +352,10 @@ def run_bandit(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], dic
     return out, check
 
 
-def _mask_span(line: str, start_col: int, end_col: int) -> str:
-    """Evidence for a credential found by an external tool: the reported span is always cut out, then the rest is redacted."""
-    a, b = max(0, start_col - 1), max(start_col, end_col)
-    cut = (line[:a] + "…[masked]" + line[b:]) if 0 <= a < len(line) else "…[masked]"
-    return patterns.redact(cut.strip())[:200]
-
-
 def run_gitleaks(root: Path, scanned: set[str], texts: dict[str, str]) -> tuple[list[dict], dict | None]:
     """Credential detection by Gitleaks (optional). Project-supplied Gitleaks configuration, ignore files and
     inline allow markers are not honoured, and values are redacted by the tool before they reach this process."""
-    exe = shutil.which("gitleaks")
+    exe = _which("gitleaks", root)
     if not exe:
         return [], None
     check = {"id": "gitleaks", "name": "Credential detection (Gitleaks)", "status": "completed", "detail": ""}
@@ -370,7 +389,7 @@ def run_gitleaks(root: Path, scanned: set[str], texts: dict[str, str]) -> tuple[
             out.append({"rule_id": "TC-SEC-004" if generic else "TC-SEC-001", "category": "secrets", "title": meta["title"], "severity": meta["severity"],
                         "confidence": "potential" if generic else "strongly_suspected", "path": path, "line": line, "col": max(1, int(res.get("StartColumn", 1))),
                         "end_line": max(line, int(res.get("EndLine", line))), "end_col": max(1, int(res.get("EndColumn", 1))) + 1, "file_level": False,
-                        "evidence": _mask_span(text_line, int(res.get("StartColumn", 1)), int(res.get("EndColumn", 0))), "reason": str(res.get("Description", "Credential detected."))[:200],
+                        "evidence": f"{rid}: …[masked]", "reason": str(res.get("Description", "Credential detected."))[:200],
                         "remediation": meta["remediation"], "source": f"gitleaks:{rid}", "cwe": meta["cwe"], "owasp": [], "block": meta["block"], "priority": meta["priority"]})
         except (KeyError, TypeError, ValueError):
             continue
@@ -381,7 +400,7 @@ def run_gitleaks(root: Path, scanned: set[str], texts: dict[str, str]) -> tuple[
 def run_osv_scanner(root: Path, texts: dict[str, str]) -> tuple[list[dict], str | None, bool]:
     """Dependency advisories through the OSV-Scanner CLI (more lockfile formats than the built-in lookup).
     Returns (findings, error, ran). It contacts osv.dev, so it only runs when network lookups are enabled."""
-    exe = shutil.which("osv-scanner")
+    exe = _which("osv-scanner", root)
     if not exe:
         return [], None, False
     neutral = Path(tempfile.mkdtemp(prefix="trustcode-osv-"))
@@ -552,7 +571,7 @@ def _write_json(path: Path, data) -> None:
 
 
 def _tool_ver(name: str, flag: str) -> str | None:
-    exe = shutil.which(name)
+    exe = _which(name)
     if not exe:
         return None
     r = run([exe, flag], cwd=tempfile.gettempdir(), timeout=20)
@@ -573,13 +592,13 @@ def tools_status() -> list[dict]:
         {"name": "bandit", "role": "second set of Python security rules (optional)", "installed": bandit_available() is not None, "version": bandit_available(),
          "compatible": True if bandit_available() else None, "status": "ready" if bandit_available() else "not installed (optional)",
          "detail": "" if bandit_available() else "Optional: pip install bandit. Python files are still covered by the Semgrep rules."},
-        {"name": "gitleaks", "role": "second credential detector (optional)", "installed": bool(shutil.which("gitleaks")), "version": _tool_ver("gitleaks", "version"),
-         "compatible": True if shutil.which("gitleaks") else None, "status": "ready" if shutil.which("gitleaks") else "not installed (optional)",
-         "detail": "" if shutil.which("gitleaks") else "Optional. Credentials are still covered by the built-in rules."},
-        {"name": "osv-scanner", "role": "dependency advisories for more lockfile formats (optional, network)", "installed": bool(shutil.which("osv-scanner")),
-         "version": _tool_ver("osv-scanner", "--version"), "compatible": True if shutil.which("osv-scanner") else None,
-         "status": "ready (used when advisory lookups are on)" if shutil.which("osv-scanner") else "not installed (optional)",
-         "detail": "" if shutil.which("osv-scanner") else "Optional. The built-in OSV lookup covers npm and Python lockfiles."},
+        {"name": "gitleaks", "role": "second credential detector (optional)", "installed": bool(_which("gitleaks")), "version": _tool_ver("gitleaks", "version"),
+         "compatible": True if _which("gitleaks") else None, "status": "ready" if _which("gitleaks") else "not installed (optional)",
+         "detail": "" if _which("gitleaks") else "Optional. Credentials are still covered by the built-in rules."},
+        {"name": "osv-scanner", "role": "dependency advisories for more lockfile formats (optional, network)", "installed": bool(_which("osv-scanner")),
+         "version": _tool_ver("osv-scanner", "--version"), "compatible": True if _which("osv-scanner") else None,
+         "status": "ready (used when advisory lookups are on)" if _which("osv-scanner") else "not installed (optional)",
+         "detail": "" if _which("osv-scanner") else "Optional. The built-in OSV lookup covers npm and Python lockfiles."},
         {"name": "trustcode-patterns", "role": "credentials, environment files, agent and CI configuration", "installed": True, "version": ENGINE, "compatible": True, "status": "ready", "detail": "Built in."},
         {"name": "git", "role": "ignore rules, staged and outgoing changes", "installed": bool(git_v), "version": git_v, "compatible": True if git_v else None,
          "status": "ready" if git_v else "not installed", "detail": "" if git_v else "Full-project scans still work; staged and outgoing-change scans need Git."},
@@ -611,6 +630,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
     `history`: also look for provider-format credentials on lines added in the last 500 commits (opt-in)."""
     t0 = time.monotonic()
     root = Path(root).resolve()
+    _harden_search_path(root)
     cfg = load_config(root)
     online = cfg["network"] if online is None else online
     notes: list[str] = [cfg["_error"]] if cfg.get("_error") else []

@@ -18,7 +18,7 @@ export function SiteHeader() {
 }
 
 const FOOT = {
-  Product: [['Features', '/features'], ['How it works', '/how-it-works'], ['Pricing', '/pricing'], ['Changelog', '/changelog']],
+  Product: [['Features', '/features'], ['Security checks', '/#security'], ['How it works', '/how-it-works'], ['Roadmap', '/roadmap'], ['Pricing', '/pricing'], ['Changelog', '/changelog']],
   Resources: [['Documentation', '/docs'], ['Getting started', '/docs/getting-started'], ['Troubleshooting', '/docs/troubleshooting'], ['Support', '/contact']],
   Company: [['About', '/about'], ['Contact', '/contact'], ['GitHub', GITHUB_URL]],
   Legal: [['Privacy', '/legal/privacy'], ['Terms', '/legal/terms'], ['Acceptable use', '/legal/acceptable-use'], ['Refunds', '/legal/refunds']],
@@ -30,7 +30,7 @@ export function SiteFooter() {
       <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div>
           <Logo />
-          <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">Checks AI-generated code in VS Code, shows the evidence for each finding, and marks what nothing verified.</p>
+          <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">Project-wide security checks in VS Code for code written by you or your AI agent. Evidence for every finding, and a clear list of what was not checked.</p>
         </div>
         {Object.entries(FOOT).map(([title, links]) => (
           <div key={title}>

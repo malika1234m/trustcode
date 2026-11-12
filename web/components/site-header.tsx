@@ -7,9 +7,10 @@ import { Logo } from './logo';
 export const NAV = [
   { label: 'Features', href: '/#features', section: 'features' },
   { label: 'How it works', href: '/#how-it-works', section: 'how-it-works' },
+  { label: 'Security checks', href: '/#security', section: 'security' },
+  { label: 'Documentation', href: '/docs' },
+  { label: 'Roadmap', href: '/roadmap' },
   { label: 'Pricing', href: '/pricing', section: 'pricing' },
-  { label: 'Docs', href: '/docs' },
-  { label: 'Changelog', href: '/changelog' },
 ] as const;
 
 function useActive(pathname: string) {
@@ -81,7 +82,7 @@ export function SiteHeaderClient() {
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
         <Link href="/" aria-label="TrustCode home" className="inline-flex min-h-11 items-center"><Logo /></Link>
 
-        <div ref={navRef} className="relative hidden md:block" onMouseLeave={() => setHover(null)}>
+        <div ref={navRef} className="relative hidden lg:block" onMouseLeave={() => setHover(null)}>
           <nav aria-label="Main" className="flex items-center gap-1 text-[0.94rem]">
             {NAV.map((n, i) => {
               const active = i === activeIndex;
@@ -100,7 +101,7 @@ export function SiteHeaderClient() {
           <Link href="/login" className="btn btn-ghost !min-h-10 !px-4 !py-2 text-sm max-sm:!hidden">Sign in</Link>
           <Link href="/register" className="btn btn-neon !min-h-10 !px-4 !py-2 text-sm">Get started</Link>
           <button ref={menuBtn} type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? 'Close menu' : 'Open menu'}
-                  className="flex h-11 w-11 items-center justify-center rounded-lg text-fg hover:bg-card md:hidden">
+                  className="flex h-11 w-11 items-center justify-center rounded-lg text-fg hover:bg-card lg:hidden">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
               <path d={open ? 'M6 6l12 12' : 'M4 7h16'} className="transition-all duration-200" />
               <path d={open ? 'M18 6L6 18' : 'M4 17h16'} className="transition-all duration-200" />
@@ -109,7 +110,7 @@ export function SiteHeaderClient() {
         </div>
       </div>
 
-      <div id="mobile-nav" hidden={!open} className="border-t border-line bg-bg md:hidden">
+      <div id="mobile-nav" hidden={!open} className="border-t border-line bg-bg lg:hidden">
         <nav aria-label="Main (mobile)" className="mx-auto flex h-[calc(100dvh-4rem)] max-w-6xl flex-col overflow-y-auto px-5 pb-8 pt-3">
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="flex min-h-14 items-center border-b border-line text-lg text-fg">{n.label}</Link>

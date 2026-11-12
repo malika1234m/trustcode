@@ -104,3 +104,48 @@ details[open]::details-content { block-size: auto; }
 .float-3d { animation: tc-float 6s ease-in-out infinite; transform-style: preserve-3d; }
 @media (prefers-reduced-motion: reduce) { .float-3d { animation: none; } .tilt-card { transform: none !important; } }
 @media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .neon-frame { background: linear-gradient(160deg, rgba(20,29,50,.96), rgba(10,16,32,.96)); } }
+
+/* ---- Project-wide scanner layer ----
+   Severity uses the status colours only (coral > amber > info > dim). Availability badges reuse the brand motif:
+   hatching = planned (not built yet), periwinkle = in development, teal = available. */
+.sev { display:inline-flex; align-items:center; gap:.4rem; font-size:.78rem; font-weight:600; line-height:1; }
+.sev::before { content:""; width:.5rem; height:.5rem; border-radius:2px; background: currentColor; flex-shrink:0; }
+.sev-critical { color: var(--err); } .sev-high { color: var(--warn); } .sev-medium { color: var(--info); } .sev-low { color: var(--dim); }
+.status { display:inline-flex; align-items:center; gap:.35rem; border-radius:6px; padding:.18rem .5rem; font-size:.72rem; font-weight:600; line-height:1.2; white-space:nowrap; border:1px solid transparent; }
+.status-available { color: var(--ok); background: color-mix(in srgb, var(--ok) 12%, transparent); border-color: color-mix(in srgb, var(--ok) 30%, transparent); }
+.status-in-development { color: var(--brand); background: color-mix(in srgb, var(--brand) 12%, transparent); border-color: color-mix(in srgb, var(--brand) 32%, transparent); }
+.status-planned { color: var(--muted); border-color: var(--border-2); background-image: repeating-linear-gradient(135deg, var(--hatch) 0 2px, transparent 2px 7px); }
+.panel { background: linear-gradient(160deg, rgba(20,29,50,.92), rgba(10,16,32,.95)); border: 1px solid rgba(142,150,255,.22); border-radius: 16px; }
+@media (prefers-color-scheme: light) { :root:not([data-theme="dark"]) .panel { background: var(--card); border-color: var(--border); } }
+.mono { font-family: var(--font-plex-mono), ui-monospace, monospace; }
+@keyframes tc-scan { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.scan-bar { transform-origin: left; animation: tc-scan 1.8s cubic-bezier(.22,1,.36,1) .4s both; }
+
+/* ---- Visual-first homepage (2026-11): motion vocabulary ----
+   Every animation's resting frame is the finished state, so reduced motion (which disables animation globally)
+   still shows complete illustrations. */
+@keyframes tc-sweep { 0% { transform: translateY(-10%); opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { transform: translateY(1000%); opacity: 0; } }
+.sweep { animation: tc-sweep 4.5s cubic-bezier(.45,0,.55,1) infinite; }
+@keyframes tc-pop { 0%, 18% { opacity: 0; transform: translateY(6px) scale(.96); } 26%, 100% { opacity: 1; transform: none; } }
+.pop { animation: tc-pop 4.5s ease-out infinite; }
+@keyframes tc-flag { 0%, 35% { background-color: transparent; } 45%, 100% { background-color: color-mix(in srgb, var(--row, var(--err)) 14%, transparent); } }
+.flag-row { animation: tc-flag 4.5s ease-out infinite; }
+@keyframes tc-dash { to { stroke-dashoffset: -40; } }
+.flow { stroke-dasharray: 4 6; animation: tc-dash 1.6s linear infinite; }
+@keyframes tc-drift { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.drift { animation: tc-drift 6s ease-in-out infinite; }
+@keyframes tc-pulse { 0%,100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.06); } }
+.pulse-soft { animation: tc-pulse 3.2s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+@keyframes tc-travel { from { offset-distance: 0%; } to { offset-distance: 100%; } }
+.travel { animation: tc-travel 3.2s cubic-bezier(.45,0,.55,1) infinite; }
+.glow-cyan { filter: drop-shadow(0 0 10px rgba(56,225,255,.55)); }
+.glow-purple { filter: drop-shadow(0 0 12px rgba(169,124,255,.6)); }
+.tile { background: linear-gradient(160deg, rgba(24,35,58,.85), rgba(12,19,34,.9)); border: 1px solid rgba(255,255,255,.07); border-radius: 16px;
+  transition: border-color .2s ease-out, transform .2s ease-out, box-shadow .2s ease-out; }
+.tile:hover { border-color: rgba(142,150,255,.45); transform: translateY(-2px); box-shadow: 0 24px 60px -24px rgba(91,140,255,.5); }
+@media (prefers-reduced-motion: reduce) { .tile:hover { transform: none; } }
+@keyframes tc-sweep-x { 0% { transform: translateX(-120%); opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { transform: translateX(var(--sweep-to, 900%)); opacity: 0; } }
+.sweep-x { animation: tc-sweep-x 5s cubic-bezier(.45,0,.55,1) infinite; }
+@keyframes tc-beam { from { background-position: 200% 0; } to { background-position: -100% 0; } }
+.beam { background: linear-gradient(90deg, transparent 0%, transparent 35%, var(--neon-cyan) 50%, transparent 65%, transparent 100%) , linear-gradient(90deg, rgba(142,150,255,.25), rgba(56,225,255,.25));
+  background-size: 200% 100%, 100% 100%; animation: tc-beam 2.4s linear infinite; }

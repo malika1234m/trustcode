@@ -8,8 +8,8 @@ const mono = IBM_Plex_Mono({ variable: '--font-plex-mono', subsets: ['latin'], w
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: 'TrustCode: evidence for AI-generated code in VS Code', template: '%s · TrustCode' },
-  description: 'A VS Code extension that checks AI-generated Python, JavaScript and TypeScript with real evidence: security patterns, lint, dependency and test checks — and shows exactly what was not verified.',
+  title: { default: 'TrustCode: project-wide security checks for AI-written code', template: '%s · TrustCode' },
+  description: 'A VS Code extension that tracks the files you and your AI coding agents change and checks them for security problems: injection, exposed credentials, hallucinated packages and more. Evidence for every finding, and a clear list of what was not checked.',
   openGraph: { type: 'website', siteName: 'TrustCode', url: SITE_URL },
   twitter: { card: 'summary_large_image' },
   alternates: { canonical: '/' },

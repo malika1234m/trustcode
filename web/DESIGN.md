@@ -80,3 +80,25 @@ IBM Plex Sans (400/500/600/700) for everything; IBM Plex Mono for code only. Hea
 Neon tokens: `--neon-cyan #38E1FF`, `--neon-blue #5B8CFF`, `--neon-purple #A97CFF`; utilities `.text-neon`, `.neon-frame`, `.btn-neon`, `.glass`, `.pill`, `.streaks`, `.float-3d` (all in `app/globals.css`).
 
 Content rules kept from the reference design: no Marketplace badge until the listing exists, no confidence percentage or "code is trustworthy" verdict, no prices or Monthly/Yearly toggle until billing is live, no testimonials or social links that don't exist.
+
+## Visual-first homepage (2026-11)
+
+The homepage presents TrustCode as a project-wide security scanner, told mostly through illustrations: short headlines, one-line captions, no paragraphs.
+
+- **Availability is data, not copy.** Every capability's status comes from `lib/capabilities.ts` (`available` / `in-development` / `planned`, shown as Available / In development / Coming soon). Use `<CapabilityBadge name="…">` or `<StatusBadge>`; promote a capability only after it ships and is tested. The full list lives on `/roadmap`.
+- **Status badges** (`.status-*`): teal = available, periwinkle = in development, hatched = coming soon (hatching keeps its meaning: not covered). Planned steps and not-checked tiles use a dashed border, so text never sits on hatching.
+- **Severity** (`.sev-*`): coral = critical, amber = high, info blue = medium, dim = low. Status colours only.
+- **Demonstration data** is always tagged. Sample findings are never presented as real output.
+
+| Visual | File | What it shows |
+|---|---|---|
+| Hero dashboard | `components/landing/hero-visual.tsx` | WebGL rings (or static rings), a tilted scan dashboard with a sweeping scan line, flagged files and floating chips |
+| Workspace scan | `components/visuals/workspace-scan.tsx` | File tree plus a grid of file tiles: new, modified, findings, not checked; a beam sweeps across |
+| Agent hub | `components/visuals/agent-hub.tsx` | Agent names (plain text, no logos) connected to a central TrustCode shield; stacks on phones |
+| Pipeline | `components/visuals/pipeline.tsx` | Code → Scan → Review → Deploy with travelling beams; Deploy is drawn dashed (coming soon) |
+| Demo | `components/landing/project-scan-demo.tsx` | Simulated scan in an editor: findings by severity, exact line highlight, inline finding card |
+| Closing backdrop | `public/visuals/shield-glow.svg` | Static shield and rings behind the final call to action |
+
+**Motion:** ambient loops (scan sweeps, flowing connectors, soft pulses, drifting chips) are slow and low-contrast. Every animation's resting frame is the finished illustration, and `prefers-reduced-motion` disables all of them through the global rule in `globals.css`. Keyframes: `tc-sweep`, `tc-sweep-x`, `tc-flag`, `tc-pop`, `tc-dash`, `tc-drift`, `tc-pulse`, `tc-beam`.
+
+The earlier selected-code components (`inspector.tsx`, `tilt-card.tsx`, `features.tsx`, `versus.tsx`) are no longer used by the homepage.

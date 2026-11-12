@@ -28,6 +28,8 @@ export async function runE2E(hook: any, backend: string): Promise<R[]> {
   const cfg = () => vscode.workspace.getConfiguration('trustcode');
   await cfg().update('backendUrl', backend, vscode.ConfigurationTarget.Global);
   await cfg().update('mode', 'local', vscode.ConfigurationTarget.Global);
+  // this journey covers the optional explanation views (levels, why/next step), which are off by default since 0.7.0
+  await cfg().update('showExplanations', true, vscode.ConfigurationTarget.Global);
   await ctx.globalState.update('trustcode.consent', { trustedBackends: [backend.replace(/\/$/, ''), 'http://127.0.0.1:9'] });
 
   async function openSelect(lang: string, content: string, fromLine = 0) {

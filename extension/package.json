@@ -1,8 +1,8 @@
 {
   "name": "trustcode",
   "displayName": "TrustCode — Verify AI-Generated Code",
-  "description": "Verify what your AI coding agent changed. Track a session, then check every created, modified, renamed and deleted file together — with real evidence, cross-file checks, and a clear list of what was NOT verified. Python, JavaScript and TypeScript.",
-  "version": "0.6.0",
+  "description": "Security gate for your project: scans every file locally for SQL injection, exposed secrets, unsafe configuration and other vulnerabilities, highlights the exact code, and can block commits, pushes and releases. Also tracks what AI coding agents change.",
+  "version": "0.7.0",
   "publisher": "trustcode-research",
   "license": "MIT",
   "private": true,
@@ -142,6 +142,64 @@
       {
         "command": "trustcode.clearSessionHistory",
         "title": "TrustCode: Clear Session Verification History"
+      },
+      {
+        "command": "trustcode.scanProject",
+        "title": "TrustCode: Scan Entire Project for Security Issues",
+        "icon": "$(shield)"
+      },
+      {
+        "command": "trustcode.scanChangedFiles",
+        "title": "TrustCode: Scan Changed Files"
+      },
+      {
+        "command": "trustcode.scanBeforeCommit",
+        "title": "TrustCode: Scan Before Commit (staged files)"
+      },
+      {
+        "command": "trustcode.scanBeforePush",
+        "title": "TrustCode: Scan Before Push (outgoing changes)"
+      },
+      {
+        "command": "trustcode.scanBeforeProduction",
+        "title": "TrustCode: Scan Before Production"
+      },
+      {
+        "command": "trustcode.rescanSecurity",
+        "title": "TrustCode: Rescan (ignore cache)",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "trustcode.nextSecurityFinding",
+        "title": "TrustCode: Next Security Finding"
+      },
+      {
+        "command": "trustcode.previousSecurityFinding",
+        "title": "TrustCode: Previous Security Finding"
+      },
+      {
+        "command": "trustcode.setSecurityBaseline",
+        "title": "TrustCode: Set Security Baseline from a Full Scan"
+      },
+      {
+        "command": "trustcode.installGitHooks",
+        "title": "TrustCode: Install Git Hooks (pre-commit, pre-push)…"
+      },
+      {
+        "command": "trustcode.showCiExample",
+        "title": "TrustCode: Show CI Workflow Example"
+      },
+      {
+        "command": "trustcode.openSecurity",
+        "title": "TrustCode: Open Security Tab"
+      },
+      {
+        "command": "trustcode.scanNewFiles",
+        "title": "TrustCode: Scan New (Untracked) Files"
+      },
+      {
+        "command": "trustcode.editScanConfig",
+        "title": "TrustCode: Edit Scan Rules and Exclusions…"
       }
     ],
     "menus": {
@@ -158,6 +216,11 @@
         }
       ],
       "view/title": [
+        {
+          "command": "trustcode.scanProject",
+          "when": "view == trustcode.panel",
+          "group": "navigation@0"
+        },
         {
           "command": "trustcode.reviewLatestChanges",
           "when": "view == trustcode.panel",
@@ -426,6 +489,53 @@
             "Status bar only"
           ],
           "description": "Which session events show a notification."
+        },
+        "trustcode.scanner.path": {
+          "type": "string",
+          "default": "trustcode-scan",
+          "scope": "application",
+          "markdownDescription": "Command or full path of the local security scanner. TrustCode never installs it for you: `pip install \"trustcode-worker[tools]\"`. Application-scoped so a workspace cannot point it at another program."
+        },
+        "trustcode.scanner.automatic": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "After the first scan, rescan automatically when files are created, changed or deleted (waits until changes settle; unchanged files are reused from the cache)."
+        },
+        "trustcode.scanner.settleSeconds": {
+          "type": "number",
+          "default": 5,
+          "minimum": 2,
+          "description": "How long file changes must be quiet before an automatic rescan starts."
+        },
+        "trustcode.scanner.scanSessionChanges": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "When a tracked AI coding session reaches a review point, scan the files it changed."
+        },
+        "trustcode.scanner.onlineAdvisories": {
+          "type": "boolean",
+          "default": false,
+          "scope": "application",
+          "description": "Look pinned dependency versions up in the OSV advisory database. Sends package names and versions only, never source code. Off: the dependency check is reported as skipped."
+        },
+        "trustcode.scanner.timeoutSeconds": {
+          "type": "number",
+          "default": 900,
+          "minimum": 60,
+          "description": "Longest time a scan may run."
+        },
+        "trustcode.showExplanations": {
+          "type": "boolean",
+          "default": false,
+          "description": "Show the longer “why it matters / suggested next step” text and explanation levels in the Verify and Session tabs. Off: findings show a title, location, severity and evidence only."
+        },
+        "trustcode.scanner.scanGitHistory": {
+          "type": "boolean",
+          "default": false,
+          "scope": "application",
+          "description": "During full and pre-production scans, also look for credentials on lines added in the last 500 commits. Slower on large repositories."
         }
       }
     },
@@ -451,6 +561,21 @@
         "command": "trustcode.verify",
         "key": "ctrl+k alt+t",
         "mac": "cmd+k alt+t"
+      },
+      {
+        "command": "trustcode.scanProject",
+        "key": "ctrl+k alt+s",
+        "mac": "cmd+k alt+s"
+      },
+      {
+        "command": "trustcode.nextSecurityFinding",
+        "key": "ctrl+k alt+n",
+        "mac": "cmd+k alt+n"
+      },
+      {
+        "command": "trustcode.previousSecurityFinding",
+        "key": "ctrl+k alt+p",
+        "mac": "cmd+k alt+p"
       }
     ]
   },
@@ -484,12 +609,17 @@
     "copilot",
     "javascript",
     "llm",
+    "pre-commit",
     "python",
+    "sast",
+    "secrets",
     "security",
     "semgrep",
+    "sql injection",
     "trust",
     "typescript",
-    "verification"
+    "verification",
+    "vulnerability"
   ],
   "galleryBanner": {
     "color": "#0C1322",

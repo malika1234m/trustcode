@@ -4,6 +4,11 @@
 
 export type Level = 'beginner' | 'intermediate' | 'advanced';
 
+let showExplanations = true;
+/** Long "why it matters / next step" text. The product default is off (set from configuration at activation). */
+export function setShowExplanations(on: boolean) { showExplanations = on; }
+export const explanationsShown = () => showExplanations;
+
 export function esc(v: unknown): string {
   return String(v ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -75,8 +80,8 @@ export function renderFinding(f: any, allowFeedback: boolean): string {
       <dl class="f-main">
         <dt>Where</dt><dd>${esc(f?.where)}</dd>
         <dt>Detected by</dt><dd>${esc(f?.method)}</dd>
-        <dt>Why it matters</dt><dd>${esc(f?.why)}</dd>
-        <dt>Suggested next step</dt><dd>${esc(f?.next_step)}</dd>
+        ${showExplanations ? `<dt>Why it matters</dt><dd>${esc(f?.why)}</dd>
+        <dt>Suggested next step</dt><dd>${esc(f?.next_step)}</dd>` : ''}
       </dl>
       <details class="f-more" data-track="evidence" data-finding="${id}"><summary>Evidence &amp; limits</summary>
         <dl><dt>Evidence (tool output)</dt><dd><pre>${esc(f?.evidence)}</pre></dd>
@@ -156,7 +161,7 @@ export function renderResult(view: any, opts: { allowFeedback?: boolean; showLev
   const sug = v.adaptation?.suggestion ? `<p class="hint">Suggestion: switch to <strong>${esc(v.adaptation.suggestion.to)}</strong> explanations — ${esc(v.adaptation.suggestion.because)}.
       <button data-action="level" data-level="${esc(v.adaptation.suggestion.to)}">Switch</button></p>` : '';
   const llm = v.llm?.fallback ? `<p class="muted small">AI wording unavailable; showing standard explanations.</p>` : '';
-  return `${opts.showLevelSwitch !== false && v.level ? renderLevelSwitch(v.level) : ''}${sug}${llm}
+  return `${showExplanations && opts.showLevelSwitch !== false && v.level ? renderLevelSwitch(v.level) : ''}${showExplanations ? sug : ''}${showExplanations ? llm : ''}
     ${renderFindings(v, opts.allowFeedback !== false)}${renderUnverified(v)}${renderChecks(v)}
     <section class="card"><h3 class="section-label">Before you decide</h3><ul class="guidance">${(v.guidance ?? []).map((g: string) => `<li>${esc(g)}</li>`).join('')}</ul>
     <p class="disclaimer">${esc(v.disclaimer)}</p></section>`;

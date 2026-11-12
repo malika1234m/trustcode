@@ -163,6 +163,8 @@ export function shellHtml(webview: vscode.Webview): string {
   .set-row { display: flex; flex-direction: column; gap: 3px; margin: 6px 0 10px; } .set-row span { font-weight: 600; }
   progress { width: 100%; height: 6px; margin: 6px 0 2px; accent-color: var(--vscode-progressBar-background, var(--vscode-focusBorder)); }
   .outdated { border-left: 3px solid var(--vscode-editorWarning-foreground); }
+  .finding.sec { padding: 7px 10px; } .sec-reason { margin: 4px 0 2px; } pre.sec-ev { font-size: .9em; margin: 2px 0 4px; max-height: 5.5em; overflow: hidden; }
+  summary.sev-group { cursor: pointer; margin: 8px 0 6px; } .tabs { overflow-x: auto; } .tab { padding-left: 8px; padding-right: 8px; white-space: nowrap; }
   .sev-group { font-size: .85em; margin: 10px 0 6px; font-weight: 600; } .sev-group:first-of-type { margin-top: 0; }
   .learned { border-left: 2px solid var(--vscode-editorInfo-foreground); padding: 2px 8px; margin: 6px 0; color: var(--vscode-descriptionForeground); }
   .cmp-counts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; } .compare ul { margin: 4px 0; } .compare details { margin: 4px 0; }

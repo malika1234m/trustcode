@@ -37,6 +37,8 @@ export interface Host {
   showSessionTab(): Promise<void>;
   focusFinding(id: string): void;
   onError(e: unknown): void;
+  /** Called when a session reaches a review point (agent signal, inactivity estimate, or the user ending it). */
+  onChangesReady?(paths: string[]): void;
 }
 interface Item { path: string; kind: 'created' | 'modified' | 'deleted' | 'renamed'; from?: string; baseline?: string | null }
 interface Mark { range: LineRange; finding: SessionFinding }
@@ -496,6 +498,7 @@ export class SessionController implements vscode.Disposable {
     s.status = 'ended'; s.endedAt = Date.now(); s.completion = { kind: 'manual', at: Date.now(), detail: 'You ended the session.' };
     this.detach();
     await this.persistNow(); this.host.refresh();
+    this.changesReady();
     if (verify && counts(s).total) await this.verify('session', 'session_end', true);
   }
 
@@ -514,6 +517,7 @@ export class SessionController implements vscode.Disposable {
     await this.processing; await this.flush();
     if (!markCompletion(s, { kind: 'agent_signal', at: Date.now(), detail: `${sig.agent} reported that it finished a turn (signal file written by its hook).` })) return;
     this.persist(); this.host.refresh();
+    this.changesReady();
     if (this.settings().auto.agentFinished && counts(s).awaiting) this.scheduleAuto('agent_signal', 800);
     else if (counts(s).total) this.announceReady(`${sig.agent} reported it finished`);
   }
@@ -525,6 +529,7 @@ export class SessionController implements vscode.Disposable {
     if (inactivityReached(s, st.inactivitySeconds, Date.now())
       && markCompletion(s, { kind: 'inactivity_estimate', at: Date.now(), detail: `No file has changed for ${st.inactivitySeconds} seconds.` })) {
       this.persist(); this.host.refresh();
+      this.changesReady();
       if (st.auto.inactivity && counts(s).awaiting) this.scheduleAuto('inactivity', 300);
       else this.announceReady('files stopped changing (the agent may have finished)');
     }
@@ -532,6 +537,10 @@ export class SessionController implements vscode.Disposable {
   private onSaved() {
     const s = this.session;
     if (s && this.settings().auto.save && (s.status === 'tracking' || s.status === 'awaiting_review')) this.scheduleAuto('save', 4000);
+  }
+  private changesReady() {
+    const s = this.session;
+    if (s) this.host.onChangesReady?.(effectiveChanges(s).filter((c) => c.kind !== 'deleted').map((c) => c.path));
   }
   private announceReady(why: string) {
     if (this.notifiedReady) return;

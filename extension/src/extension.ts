@@ -9,6 +9,9 @@ import { ageText, cacheKey, compareResults, Comparison, findingIdFromMessage, fl
 import { authorizeUrl, callbackUri, newPkce, parseCallback, Pending } from './auth';
 import { shellHtml } from './panel';
 import { SessionController } from './session/controller';
+import { SecurityController } from './security/controller';
+import { securityPage } from './security/model';
+import { setShowExplanations } from './render';
 import { sessionPage } from './session/render';
 import { account, errorCard, history, page, progress as progressCard, summaryTiles, Tab, TABS, verifyForm, waitingForBrowser, welcome } from './ui';
 
@@ -158,7 +161,18 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   activeTab: Tab = 'verify';
   private signedIn = false;
   session!: SessionController;
+  security!: SecurityController;
+  securityItem?: vscode.StatusBarItem;
   sessionItem?: vscode.StatusBarItem;
+
+  /** The Security tab works without an account: scanning is local. */
+  refreshSecurity() {
+    if (this.activeTab === 'security') this.view?.webview.postMessage({ type: 'render', keepScroll: true, html: page('security', this.signedIn, this.who(), securityPage(this.security.model())) });
+  }
+  async showSecurityTab() {
+    await vscode.commands.executeCommand('trustcode.panel.focus');
+    await this.showTab('security');
+  }
   private refreshTimer?: NodeJS.Timeout;
 
   /** Called by the session controller whenever its state changes: live-updates the dashboard and status bar. */
@@ -209,6 +223,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   }
   async showTab(tab: Tab) {
     await this.refreshAuth();
+    if (tab === 'security') { this.activeTab = tab; return this.render(securityPage(this.security.model())); }
     if (!this.signedIn && tab !== 'account') return this.renderRaw(welcome(backendUrl()));
     this.activeTab = tab;
     if (tab === 'verify') return this.jobId ? this.showExplanation() : this.showForm();
@@ -315,6 +330,21 @@ class TrustCodeView implements vscode.WebviewViewProvider {
         return void vscode.window.setStatusBarMessage('TrustCode: thanks for the feedback', 2500);
       }
       case 'experiment': return vscode.commands.executeCommand('trustcode.startExperiment');
+      // ---- security scanner (local)
+      case 'secScan': { const mode = oneOf(m.key, ['full', 'changed', 'new', 'staged', 'push', 'production'] as const); return mode ? void (await this.security.scan(mode)) : undefined; }
+      case 'secConfig': return this.security.editConfig();
+      case 'secRescan': return void (await this.security.rescan());
+      case 'secCancel': return this.security.cancel();
+      case 'secCheck': return void (await this.security.scan('full'));
+      case 'secOpen': return typeof m.finding === 'string' && /^[a-f0-9]{8,64}$/.test(m.finding) ? this.security.open(m.finding) : undefined;
+      case 'secReview': return typeof m.finding === 'string' && /^[a-f0-9]{8,64}$/.test(m.finding) ? this.security.review(m.finding) : undefined;
+      case 'secNext': return this.security.step(1);
+      case 'secPrev': return this.security.step(-1);
+      case 'secGroup': { const g = oneOf(m.key, ['severity', 'file', 'category'] as const); if (g) { this.security.groupBy = g; this.refreshSecurity(); } return; }
+      case 'secBaseline': return this.security.baseline();
+      case 'secHooks': return this.security.installHooks();
+      case 'secCi': return void vscode.commands.executeCommand('trustcode.showCiExample');
+      case 'secSettings': return void vscode.commands.executeCommand('workbench.action.openSettings', '@ext:trustcode-research.trustcode scanner');
       // ---- session dashboard
       case 'sessionStart': return void (await this.session.start());
       case 'sessionPause': return this.session.pause();
@@ -349,7 +379,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
       }
       case 'setSetting': {
         const cfg = vscode.workspace.getConfiguration('trustcode');
-        const bools = ['autoVerify.onAgentFinished', 'autoVerify.onInactivity', 'autoVerify.onSessionEnd', 'autoVerify.onSave', 'autoVerify.onBatch',
+        const bools = ['scanner.automatic', 'autoVerify.onAgentFinished', 'autoVerify.onInactivity', 'autoVerify.onSessionEnd', 'autoVerify.onSave', 'autoVerify.onBatch',
           'verification.sendBaseline', 'verification.includeRelatedFiles'] as const;
         const key = oneOf(m.key, [...bools, 'verification.depth', 'verification.defaultScope'] as const);
         if (!key) return;
@@ -359,6 +389,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
         else value = typeof m.value === 'boolean' ? m.value : undefined;
         if (value === undefined) return;
         await cfg.update(key, value, vscode.ConfigurationTarget.Global);
+        this.refreshSecurity();
         return this.refreshSession();
       }
       case 'openSessionSettings': return void vscode.commands.executeCommand('workbench.action.openSettings', '@ext:trustcode-research.trustcode session verification autoVerify');
@@ -665,7 +696,41 @@ export function activate(ctx: vscode.ExtensionContext) {
   const api = new TrustCodeApi(backendUrl, secretStore(ctx, TOKEN_KEY), timeout);
   const participantApi = new TrustCodeApi(backendUrl, secretStore(ctx, PARTICIPANT_KEY), timeout);
   const view = new TrustCodeView(ctx, api, participantApi);
+  const applyDisplay = () => setShowExplanations(cfg().get<boolean>('showExplanations', false));
+  applyDisplay();
+  const security = new SecurityController(() => view.refreshSecurity(), (text, tooltip) => {
+    const item = view.securityItem;
+    if (!item) return;
+    if (text) { item.text = text; item.tooltip = tooltip; item.show(); } else item.hide();
+  });
+  view.security = security;
+  const CI_EXAMPLE = `# .github/workflows/trustcode-scan.yml
+# Runs the TrustCode security scan on every push and pull request. A local hook can be skipped with
+# --no-verify, so this is the check that cannot be bypassed from a developer machine.
+name: TrustCode security scan
+on: [push, pull_request]
+permissions:
+  contents: read
+  security-events: write   # upload findings to GitHub code scanning
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install the scanner
+        run: pip install "trustcode-worker[tools] @ git+https://github.com/malika1234m/trustcode.git#subdirectory=verification-worker"
+      - name: Scan (fails the job when the policy blocks or the scan is incomplete)
+        run: trustcode-scan --mode ci --format sarif --output trustcode.sarif
+      - name: Upload findings
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with: { sarif_file: trustcode.sarif, category: trustcode }
+`;
   const sessionHost = {
+    /** An AI coding session reached a review point: scan exactly the files it changed, locally. */
+    onChangesReady: (paths: string[]) => { if (cfg().get<boolean>('scanner.scanSessionChanges', true) && paths.length) void security.scan('changed', { paths, quiet: true }).catch(() => undefined); },
     api,
     ensureSignedIn: () => view.ensureSignedIn(),
     consent: (message: string, interactive: boolean) => view.consentFor(message, interactive),
@@ -804,6 +869,27 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
     }, { providedCodeActionKinds: [vscode.CodeActionKind.QuickFix] }),
     view.unverifiedDecoration,
     vscode.window.onDidChangeVisibleTextEditors(() => view.refreshMarks()),
+    security,
+    sessionCmd('trustcode.scanProject', async () => { await view.showSecurityTab(); await security.scan('full'); }),
+    sessionCmd('trustcode.scanChangedFiles', async () => { await view.showSecurityTab(); await security.scan('changed'); }),
+    sessionCmd('trustcode.scanBeforeCommit', async () => { await view.showSecurityTab(); await security.scan('staged'); }),
+    sessionCmd('trustcode.scanBeforePush', async () => { await view.showSecurityTab(); await security.scan('push'); }),
+    sessionCmd('trustcode.scanBeforeProduction', async () => { await view.showSecurityTab(); await security.scan('production'); }),
+    sessionCmd('trustcode.scanNewFiles', async () => { await view.showSecurityTab(); await security.scan('new'); }),
+    sessionCmd('trustcode.editScanConfig', () => security.editConfig()),
+    sessionCmd('trustcode.rescanSecurity', async () => { await view.showSecurityTab(); await security.rescan(); }),
+    sessionCmd('trustcode.nextSecurityFinding', () => security.step(1)),
+    sessionCmd('trustcode.previousSecurityFinding', () => security.step(-1)),
+    sessionCmd('trustcode.setSecurityBaseline', () => security.baseline()),
+    sessionCmd('trustcode.installGitHooks', () => security.installHooks()),
+    sessionCmd('trustcode.showCiExample', async () => { await vscode.window.showTextDocument(await vscode.workspace.openTextDocument({ language: 'yaml', content: CI_EXAMPLE })); }),
+    (() => {
+      const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 102);
+      item.command = 'trustcode.openSecurity';
+      view.securityItem = item;
+      return item;
+    })(),
+    sessionCmd('trustcode.openSecurity', () => view.showSecurityTab()),
     session,
     sessionCmd('trustcode.startSession', async () => { if (await session.start()) await view.showSessionTab(); }),
     sessionCmd('trustcode.pauseSession', () => session.pause()),
@@ -873,7 +959,7 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
       view.sessionItem = item;
       return item;
     })(),
-    vscode.workspace.onDidChangeConfiguration((e) => { if (e.affectsConfiguration('trustcode')) view.refreshSession(); }),
+    vscode.workspace.onDidChangeConfiguration((e) => { if (e.affectsConfiguration('trustcode')) { applyDisplay(); view.refreshSession(); view.refreshSecurity(); } }),
     vscode.commands.registerCommand('trustcode.signIn', (intent?: unknown) => wrap(async () => {
       await browserAuth.begin(intent === 'create' ? 'register' : 'login');
     })()),
@@ -935,7 +1021,7 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
   void session.activate().catch(() => undefined);   // restores a session that was being tracked before a restart
   // Test-only hook (never active for users): lets the integration suite drive the real panel object.
   if (process.env.TRUSTCODE_TEST === '1') {
-    return { __test: { view, ctx, browserAuth, session, activationMs: Date.now() - started,
+    return { __test: { view, ctx, browserAuth, session, security, activationMs: Date.now() - started,
       // simulates a restart: a fresh controller that must restore everything from storage
       restartSession: async () => { await view.session.persistNow(); view.session.dispose(); const next = new SessionController(ctx, sessionHost); view.session = next; await next.activate(); return next; } } };
   }

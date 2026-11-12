@@ -1,5 +1,6 @@
 // Pure helpers for working with verification evidence in the editor (no vscode import -> unit-testable).
 import { createHash } from 'crypto';
+import { explanationsShown } from './render';
 
 export interface FlatFinding {
   id: string; check: string; tool: string; rule?: string; title: string; message: string; severity: string;
@@ -119,8 +120,8 @@ const mdEsc = (v: unknown) => String(v ?? '').replace(/[\\`*_{}[\]()#+\-.!|<>~]/
 export function hoverMarkdown(f: FlatFinding, explained?: any, source?: 'session'): string {
   const id = /^[A-Z]{2,5}-\d{1,4}$/.test(f.id) ? f.id : '';
   const lines = [`**TrustCode · ${mdEsc(f.severity.toUpperCase())}** — ${mdEsc(f.title)}${id ? ` \`${id}\`` : ''}`, ''];
-  if (explained?.why) lines.push(`**Why it matters:** ${mdEsc(explained.why)}`, '');
-  if (explained?.next_step) lines.push(`**Suggested next step:** ${mdEsc(explained.next_step)}`, '');
+  if (explained?.why && explanationsShown()) lines.push(`**Why it matters:** ${mdEsc(explained.why)}`, '');
+  if (explained?.next_step && explanationsShown()) lines.push(`**Suggested next step:** ${mdEsc(explained.next_step)}`, '');
   lines.push(`**Evidence** (${mdEsc(f.tool)}${f.rule ? ` · ${mdEsc(f.rule)}` : ''}): ${mdEsc(f.message)}`, '');
   if (f.alsoReportedBy.length) lines.push(`Also reported by: ${f.alsoReportedBy.map(mdEsc).join(', ')}`, '');
   if (explained?.could_not_verify) lines.push(`**Not verified:** ${mdEsc(explained.could_not_verify)}`, '');

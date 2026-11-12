@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.7.0
+
+- **Security tab: scan the whole project locally.** No account and no upload. Covers tracked and untracked files,
+  configuration, environment files, CI workflows, container files and agent configuration.
+- Detection: SQL and NoSQL injection, command injection, XSS, path traversal, SSRF, unsafe deserialisation, JWT and
+  session mistakes, insecure CORS, debug mode, disabled TLS verification, exposed credentials (masked), committed
+  environment files, secrets exposed to the frontend, risky agent settings, unsafe CI workflows and more.
+- **Exact highlighting**: the vulnerable expression is underlined, with severity, a separate confidence
+  (confirmed / strongly suspected / needs review), the rule and one line of evidence. Next / previous finding commands.
+- Scan modes: entire project, changed files, before commit (staged content), before push, before production, rescan.
+- **Automatic rescans** when files change, however they are changed; unchanged files are reused from a cache.
+- Baseline (new / existing / reintroduced / resolved) and audited "reviewed false positive" records.
+- Git hooks that never replace an existing hook, a CI workflow example, and a configurable blocking policy.
+- An incomplete or failed scan is always shown as such, never as a clean result.
+- Changes made in a tracked AI session are scanned when the session reaches a review point.
+- **Long explanations are now off by default** in the Verify and Session tabs (`trustcode.showExplanations`).
+- Requires the local scanner: `pip install "trustcode-worker[tools]"`. Details: `docs/security_scanner.md`.
+
 ## 0.6.0
 
 - **Session tracking**: start a session before giving your coding agent a task. TrustCode records a baseline and then

@@ -1,0 +1,197 @@
+# Project-scanner rules (trustcode-scan only). Not part of the frozen study ruleset (ADR-005).
+# metadata: category, trustcode_severity, confidence (confirmed | strong | review), title, cwe, owasp
+rules:
+- id: php-taint-sql
+  mode: taint
+  languages:
+  - php
+  severity: ERROR
+  message: Request data reaches a SQL statement without parameters.
+  pattern-sources:
+  - pattern-either:
+    - pattern: $_GET[...]
+    - pattern: $_POST[...]
+    - pattern: $_REQUEST[...]
+    - pattern: $_COOKIE[...]
+    - pattern: $_SERVER[...]
+  pattern-sanitizers:
+  - pattern: intval(...)
+  - pattern: (int) $X
+  - pattern: mysqli_real_escape_string(...)
+  - pattern: $C->real_escape_string(...)
+  - pattern: $C->quote(...)
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: mysqli_query($C, $Q, ...)
+      - pattern: mysql_query($Q, ...)
+      - pattern: pg_query($C, $Q)
+      - pattern: $DB->query($Q, ...)
+      - pattern: $DB->exec($Q)
+      - pattern: $DB->prepare($Q, ...)
+    - focus-metavariable: $Q
+  metadata:
+    category: sql-injection
+    trustcode_severity: critical
+    confidence: strong
+    title: Request data in SQL statement
+    cwe:
+    - CWE-89
+    owasp:
+    - A03:2021 Injection
+- id: php-taint-xss
+  mode: taint
+  languages:
+  - php
+  severity: WARNING
+  message: Request data is echoed into the page without escaping.
+  pattern-sources:
+  - pattern-either:
+    - pattern: $_GET[...]
+    - pattern: $_POST[...]
+    - pattern: $_REQUEST[...]
+    - pattern: $_COOKIE[...]
+    - pattern: $_SERVER[...]
+  pattern-sanitizers:
+  - pattern: htmlspecialchars(...)
+  - pattern: htmlentities(...)
+  - pattern: intval(...)
+  - pattern: strip_tags(...)
+  pattern-sinks:
+  - pattern: echo ...;
+  - pattern: print(...);
+  metadata:
+    category: xss
+    trustcode_severity: high
+    confidence: strong
+    title: Request data echoed without escaping
+    cwe:
+    - CWE-79
+    owasp:
+    - A03:2021 Injection
+- id: php-taint-command
+  mode: taint
+  languages:
+  - php
+  severity: ERROR
+  message: Request data reaches a shell command.
+  pattern-sources:
+  - pattern-either:
+    - pattern: $_GET[...]
+    - pattern: $_POST[...]
+    - pattern: $_REQUEST[...]
+    - pattern: $_COOKIE[...]
+    - pattern: $_SERVER[...]
+  pattern-sanitizers:
+  - pattern: escapeshellarg(...)
+  - pattern: escapeshellcmd(...)
+  pattern-sinks:
+  - pattern-either:
+    - pattern: system(...)
+    - pattern: exec(...)
+    - pattern: shell_exec(...)
+    - pattern: passthru(...)
+    - pattern: popen(...)
+  metadata:
+    category: command-injection
+    trustcode_severity: critical
+    confidence: strong
+    title: Request data in shell command
+    cwe:
+    - CWE-78
+    owasp:
+    - A03:2021 Injection
+- id: php-taint-file
+  mode: taint
+  languages:
+  - php
+  severity: ERROR
+  message: Request data decides which file is included or read.
+  pattern-sources:
+  - pattern-either:
+    - pattern: $_GET[...]
+    - pattern: $_POST[...]
+    - pattern: $_REQUEST[...]
+    - pattern: $_COOKIE[...]
+    - pattern: $_SERVER[...]
+  pattern-sanitizers:
+  - pattern: basename(...)
+  pattern-sinks:
+  - pattern-either:
+    - pattern: include $X;
+    - pattern: include_once $X;
+    - pattern: require $X;
+    - pattern: require_once $X;
+    - pattern: file_get_contents(...)
+    - pattern: fopen(...)
+    - pattern: unlink(...)
+  metadata:
+    category: path-traversal
+    trustcode_severity: critical
+    confidence: strong
+    title: Request-controlled file include or read
+    cwe:
+    - CWE-22
+    - CWE-98
+    owasp:
+    - A01:2021 Broken Access Control
+- id: php-taint-deserialize
+  mode: taint
+  languages:
+  - php
+  severity: ERROR
+  message: Request data is passed to unserialize().
+  pattern-sources:
+  - pattern-either:
+    - pattern: $_GET[...]
+    - pattern: $_POST[...]
+    - pattern: $_REQUEST[...]
+    - pattern: $_COOKIE[...]
+    - pattern: $_SERVER[...]
+  pattern-sinks:
+  - pattern: unserialize(...)
+  metadata:
+    category: unsafe-deserialization
+    trustcode_severity: critical
+    confidence: strong
+    title: Request data unserialized
+    cwe:
+    - CWE-502
+    owasp:
+    - A08:2021 Integrity Failures
+- id: php-weak-password-hash
+  languages:
+  - php
+  severity: WARNING
+  message: A password is hashed with a fast, unsalted hash function.
+  patterns:
+  - pattern-either:
+    - pattern: md5($P)
+    - pattern: sha1($P)
+  - metavariable-regex:
+      metavariable: $P
+      regex: (?i).*pass.*
+  metadata:
+    category: cryptography
+    trustcode_severity: high
+    confidence: strong
+    title: Weak password hash
+    cwe:
+    - CWE-916
+    owasp:
+    - A02:2021 Cryptographic Failures
+- id: php-eval
+  languages:
+  - php
+  severity: ERROR
+  message: eval() executes a string as PHP code.
+  pattern: eval(...);
+  metadata:
+    category: command-injection
+    trustcode_severity: high
+    confidence: review
+    title: Dynamic code execution
+    cwe:
+    - CWE-95
+    owasp:
+    - A03:2021 Injection

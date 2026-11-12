@@ -1,6 +1,6 @@
 // Session dashboard renderers (pure: no vscode import -> unit-testable). Every dynamic value is escaped.
 // Nothing here states or implies that a change is safe or correct; counts describe evidence only.
-import { esc, STATUS_LABEL } from '../render';
+import { esc, explanationsShown, STATUS_LABEL } from '../render';
 import { Completion, Counts, EffectiveChange, Skipped, verificationKey } from './model';
 import { MergedReport, RunComparison, RunRecord, SessionFinding } from './report';
 
@@ -110,7 +110,7 @@ export function findingItem(f: SessionFinding): string {
       <span class="chip ${f.deterministic ? 'st-notrun' : 'st-review'}">${f.deterministic ? 'Tool-confirmed' : '? Needs human review'}</span>
       ${f.crossFile ? '<span class="chip st-notrun">Cross-file</span>' : ''}</div>
     <button class="link floc" data-action="openFinding" data-finding="${id}">${esc(f.path)}${f.line ? `:${esc(f.line)}` : ''}</button>
-    <dl class="f-main">${f.why ? `<dt>Why it matters</dt><dd>${esc(f.why)}</dd>` : ''}${f.nextStep ? `<dt>Suggested next step</dt><dd>${esc(f.nextStep)}</dd>` : ''}</dl>
+    ${explanationsShown() ? `<dl class="f-main">${f.why ? `<dt>Why it matters</dt><dd>${esc(f.why)}</dd>` : ''}${f.nextStep ? `<dt>Suggested next step</dt><dd>${esc(f.nextStep)}</dd>` : ''}</dl>` : ''}
     <details class="f-more"><summary>Evidence &amp; limits</summary><dl><dt>Evidence (${esc(f.tool)}${f.rule ? ` · ${esc(f.rule)}` : ''})</dt><dd><pre>${esc(f.message)}${f.excerpt ? `\n\n${esc(f.excerpt)}` : ''}</pre></dd>
       ${f.couldNotVerify ? `<dt>Not verified</dt><dd>${esc(f.couldNotVerify)}</dd>` : ''}</dl></details>
     ${f.feedbackNote ? `<p class="learned small" role="note"><span aria-hidden="true">↺</span> ${esc(f.feedbackNote)}</p>` : ''}

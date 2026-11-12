@@ -8,7 +8,7 @@ async function main() {
   const extensionDevelopmentPath = path.resolve(__dirname, '../../..');
   const extensionTestsPath = path.resolve(__dirname, './suite');
   await runTests({ vscodeExecutablePath: process.env.VSCODE_EXECUTABLE, extensionDevelopmentPath, extensionTestsPath,
-    extensionTestsEnv: { TRUSTCODE_TEST: '1', TRUSTCODE_TEST_BACKEND: process.env.TRUSTCODE_TEST_BACKEND ?? '', TRUSTCODE_TEST_MODE: process.env.TRUSTCODE_TEST_MODE ?? '' },
+    extensionTestsEnv: { TRUSTCODE_TEST: '1', TRUSTCODE_TEST_BACKEND: process.env.TRUSTCODE_TEST_BACKEND ?? '', TRUSTCODE_TEST_MODE: process.env.TRUSTCODE_TEST_MODE ?? '', TRUSTCODE_TEST_SCANNER: process.env.TRUSTCODE_TEST_SCANNER ?? '' },
     launchArgs: [...(process.env.TRUSTCODE_TEST_WORKSPACE ? [process.env.TRUSTCODE_TEST_WORKSPACE] : []), '--disable-extensions', '--disable-workspace-trust',
       '--user-data-dir', path.join(os.tmpdir(), `trustcode-vscode-test-${process.env.TRUSTCODE_TEST_MODE ?? 'default'}`)] });
 }

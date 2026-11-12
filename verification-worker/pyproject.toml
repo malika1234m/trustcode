@@ -1,12 +1,15 @@
 [project]
 name = "trustcode-worker"
-version = "0.2.0"
+version = "0.3.0"
 description = "TrustCode verification engine: syntax, lint, security, sandboxed tests, dependency checks"
 requires-python = ">=3.11"
 dependencies = ["pydantic>=2.7", "tree-sitter>=0.25", "tree-sitter-javascript>=0.25", "tree-sitter-typescript>=0.23"]
 
 [project.optional-dependencies]
-tools = ["ruff>=0.6", "semgrep>=1.70", "pyflakes>=3.2", "mypy>=1.11"]
+tools = ["ruff>=0.6", "semgrep>=1.70", "pyflakes>=3.2", "mypy>=1.11", "bandit>=1.7"]
+
+[project.scripts]
+trustcode-scan = "trustcode_worker.scan.cli:main"
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -16,4 +19,4 @@ build-backend = "setuptools.build_meta"
 include = ["trustcode_worker*"]
 
 [tool.setuptools.package-data]
-trustcode_worker = ["rules/*.yml", "rules/extended/*.yml", "sandbox/image/*"]
+trustcode_worker = ["rules/*.yml", "rules/extended/*.yml", "rules/scan/*.yml", "sandbox/image/*"]

@@ -1,8 +1,8 @@
 // Pure UI renderers for the TrustCode panel (no vscode import -> unit-testable). Every dynamic value is escaped.
 import { esc, STATUS_LABEL } from './render';
 
-export type Tab = 'verify' | 'session' | 'history' | 'account';
-export const TABS: Tab[] = ['verify', 'session', 'history', 'account'];
+export type Tab = 'security' | 'verify' | 'session' | 'history' | 'account';
+export const TABS: Tab[] = ['security', 'verify', 'session', 'history', 'account'];
 
 const ICON = {
   // The TrustCode mark: selection frame + a check whose stroke fades (see docs/brand). Frame follows the theme's link colour.
@@ -23,7 +23,7 @@ export function header(signedIn: boolean, who: string): string {
 }
 
 export function tabs(active: Tab): string {
-  const label: Record<Tab, string> = { verify: 'Verify', session: 'Session', history: 'History', account: 'Account' };
+  const label: Record<Tab, string> = { security: 'Security', verify: 'Verify', session: 'Session', history: 'History', account: 'Account' };
   return `<nav class="tabs" role="tablist">${TABS.map((t) =>
     `<button role="tab" class="tab ${t === active ? 'active' : ''}" aria-selected="${t === active}" data-action="tab" data-tab="${t}">${label[t]}</button>`).join('')}</nav>`;
 }
@@ -47,6 +47,7 @@ export function welcome(backend: string): string {
     <button class="link" data-action="createAccount">Create free account</button>
     <div class="divider"><span>or</span></div>
     <button class="secondary wide" data-action="useLocal">Use local mode (code stays on this machine)</button>
+    <button class="secondary wide" data-action="tab" data-tab="security">Scan this project for security issues (local, no account)</button>
     <p class="note">Server: ${esc(backend)}</p>
   </section>`;
 }

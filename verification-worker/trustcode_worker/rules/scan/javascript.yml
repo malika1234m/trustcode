@@ -1,0 +1,430 @@
+# Project-scanner rules (trustcode-scan only). Not part of the frozen study ruleset (ADR-005).
+# metadata: category, trustcode_severity, confidence (confirmed | strong | review), title, cwe, owasp
+rules:
+- id: js-taint-sql
+  mode: taint
+  languages:
+  - javascript
+  - typescript
+  severity: ERROR
+  message: Request data reaches a SQL statement without parameters.
+  pattern-sources:
+  - patterns:
+    - pattern-either:
+      - pattern: $REQ.query
+      - pattern: $REQ.body
+      - pattern: $REQ.params
+      - pattern: $REQ.headers
+      - pattern: $REQ.cookies
+    - metavariable-regex:
+        metavariable: $REQ
+        regex: ^(req|request|ctx)$
+  pattern-sinks:
+  - patterns:
+    - pattern: $DB.$M($Q, ...)
+    - metavariable-regex:
+        metavariable: $M
+        regex: ^(query|execute|raw|run|all|get|prepare|exec|\$queryRawUnsafe|\$executeRawUnsafe)$
+    - focus-metavariable: $Q
+  metadata:
+    category: sql-injection
+    trustcode_severity: critical
+    confidence: strong
+    title: Request data in SQL statement
+    cwe:
+    - CWE-89
+    owasp:
+    - A03:2021 Injection
+- id: js-taint-command
+  mode: taint
+  languages:
+  - javascript
+  - typescript
+  severity: ERROR
+  message: Request data reaches a shell command.
+  pattern-sources:
+  - patterns:
+    - pattern-either:
+      - pattern: $REQ.query
+      - pattern: $REQ.body
+      - pattern: $REQ.params
+      - pattern: $REQ.headers
+      - pattern: $REQ.cookies
+    - metavariable-regex:
+        metavariable: $REQ
+        regex: ^(req|request|ctx)$
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: child_process.exec($X, ...)
+      - pattern: child_process.execSync($X, ...)
+      - pattern: exec($X, ...)
+      - pattern: execSync($X, ...)
+    - focus-metavariable: $X
+  metadata:
+    category: command-injection
+    trustcode_severity: critical
+    confidence: strong
+    title: Request data in shell command
+    cwe:
+    - CWE-78
+    owasp:
+    - A03:2021 Injection
+- id: js-taint-ssrf
+  mode: taint
+  languages:
+  - javascript
+  - typescript
+  severity: WARNING
+  message: Request data is used as the URL of a server-side HTTP request.
+  pattern-sources:
+  - patterns:
+    - pattern-either:
+      - pattern: $REQ.query
+      - pattern: $REQ.body
+      - pattern: $REQ.params
+      - pattern: $REQ.headers
+      - pattern: $REQ.cookies
+    - metavariable-regex:
+        metavariable: $REQ
+        regex: ^(req|request|ctx)$
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: fetch($U, ...)
+      - pattern: axios.$M($U, ...)
+      - pattern: axios($U, ...)
+      - pattern: got($U, ...)
+      - pattern: http.get($U, ...)
+      - pattern: https.get($U, ...)
+    - focus-metavariable: $U
+  metadata:
+    category: ssrf
+    trustcode_severity: high
+    confidence: strong
+    title: Request-controlled URL fetched by the server
+    cwe:
+    - CWE-918
+    owasp:
+    - A10:2021 SSRF
+- id: js-taint-path
+  mode: taint
+  languages:
+  - javascript
+  - typescript
+  severity: WARNING
+  message: Request data is used as a file path.
+  pattern-sources:
+  - patterns:
+    - pattern-either:
+      - pattern: $REQ.query
+      - pattern: $REQ.body
+      - pattern: $REQ.params
+      - pattern: $REQ.headers
+      - pattern: $REQ.cookies
+    - metavariable-regex:
+        metavariable: $REQ
+        regex: ^(req|request|ctx)$
+  pattern-sanitizers:
+  - pattern: path.basename(...)
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: fs.$F($P, ...)
+      - pattern: fs.promises.$F($P, ...)
+      - pattern: $RES.sendFile($P, ...)
+      - pattern: $RES.download($P, ...)
+    - focus-metavariable: $P
+  metadata:
+    category: path-traversal
+    trustcode_severity: high
+    confidence: strong
+    title: Request-controlled file path
+    cwe:
+    - CWE-22
+    owasp:
+    - A01:2021 Broken Access Control
+- id: js-taint-xss
+  mode: taint
+  languages:
+  - javascript
+  - typescript
+  severity: WARNING
+  message: Request data is written into an HTML response or the DOM without escaping.
+  pattern-sources:
+  - patterns:
+    - pattern-either:
+      - pattern: $REQ.query
+      - pattern: $REQ.body
+      - pattern: $REQ.params
+      - pattern: $REQ.headers
+      - pattern: $REQ.cookies
+    - metavariable-regex:
+        metavariable: $REQ
+        regex: ^(req|request|ctx)$
+  pattern-sanitizers:
+  - pattern: escape(...)
+  - pattern: escapeHtml(...)
+  - pattern: encodeURIComponent(...)
+  - pattern: DOMPurify.sanitize(...)
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: $RES.send($X)
+      - pattern: $RES.write($X, ...)
+      - pattern: $RES.end($X, ...)
+    - metavariable-regex:
+        metavariable: $RES
+        regex: ^(res|response)$
+    - focus-metavariable: $X
+  - pattern: $EL.innerHTML = ...
+  - pattern: document.write(...)
+  metadata:
+    category: xss
+    trustcode_severity: high
+    confidence: strong
+    title: Request data in HTML output
+    cwe:
+    - CWE-79
+    owasp:
+    - A03:2021 Injection
+- id: js-taint-redirect
+  mode: taint
+  languages:
+  - javascript
+  - typescript
+  severity: WARNING
+  message: Request data decides where the user is redirected.
+  pattern-sources:
+  - patterns:
+    - pattern-either:
+      - pattern: $REQ.query
+      - pattern: $REQ.body
+      - pattern: $REQ.params
+      - pattern: $REQ.headers
+      - pattern: $REQ.cookies
+    - metavariable-regex:
+        metavariable: $REQ
+        regex: ^(req|request|ctx)$
+  pattern-sinks:
+  - patterns:
+    - pattern: $RES.redirect($X, ...)
+    - focus-metavariable: $X
+  metadata:
+    category: api-security
+    trustcode_severity: medium
+    confidence: strong
+    title: Open redirect
+    cwe:
+    - CWE-601
+    owasp:
+    - A01:2021 Broken Access Control
+- id: js-jwt-none-algorithm
+  languages:
+  - javascript
+  - typescript
+  severity: ERROR
+  message: JWT verification accepts the "none" algorithm, so unsigned tokens pass.
+  pattern-either:
+  - pattern: "$JWT.verify($T, $S, {..., algorithms: [..., 'none', ...], ...}, ...)"
+  - pattern: "$JWT.verify($T, $S, {..., algorithms: [..., 'None', ...], ...}, ...)"
+  metadata:
+    category: authentication
+    trustcode_severity: critical
+    confidence: confirmed
+    title: JWT accepts unsigned tokens
+    cwe:
+    - CWE-347
+    owasp:
+    - A07:2021 Authentication Failures
+- id: js-jwt-decode-without-verify
+  languages:
+  - javascript
+  - typescript
+  severity: WARNING
+  message: jwt.decode() reads a token without checking its signature. Use it only after verify().
+  patterns:
+  - pattern: $JWT.decode($T, ...)
+  - metavariable-regex:
+      metavariable: $JWT
+      regex: ^(jwt|jsonwebtoken|JWT)$
+  - pattern-not-inside: "$JWT.verify(...)\n...\n"
+  metadata:
+    category: authentication
+    trustcode_severity: high
+    confidence: review
+    title: JWT read without signature check
+    cwe:
+    - CWE-347
+    owasp:
+    - A07:2021 Authentication Failures
+- id: js-cors-wildcard-credentials
+  languages:
+  - javascript
+  - typescript
+  severity: WARNING
+  message: CORS reflects or allows every origin together with credentials.
+  pattern-either:
+  - pattern: "cors({..., origin: '*', ..., credentials: true, ...})"
+  - pattern: "cors({..., credentials: true, ..., origin: '*', ...})"
+  - pattern: 'cors({..., origin: true, ..., credentials: true, ...})'
+  - pattern: 'cors({..., credentials: true, ..., origin: true, ...})'
+  metadata:
+    category: cors
+    trustcode_severity: high
+    confidence: confirmed
+    title: CORS open to every origin with credentials
+    cwe:
+    - CWE-942
+    owasp:
+    - A05:2021 Security Misconfiguration
+- id: js-cors-wildcard-header
+  languages:
+  - javascript
+  - typescript
+  severity: INFO
+  message: Access-Control-Allow-Origin is set to "*". Fine for public data, wrong for anything that depends on the caller.
+  pattern-either:
+  - pattern: $RES.setHeader('Access-Control-Allow-Origin', '*')
+  - pattern: $RES.header('Access-Control-Allow-Origin', '*')
+  - pattern: $RES.set('Access-Control-Allow-Origin', '*')
+  metadata:
+    category: cors
+    trustcode_severity: low
+    confidence: review
+    title: CORS allows every origin
+    cwe:
+    - CWE-942
+    owasp:
+    - A05:2021 Security Misconfiguration
+- id: js-session-cookie-insecure
+  languages:
+  - javascript
+  - typescript
+  severity: WARNING
+  message: Session cookie is configured without the secure or httpOnly protection.
+  pattern-either:
+  - pattern: 'session({..., cookie: {..., secure: false, ...}, ...})'
+  - pattern: 'session({..., cookie: {..., httpOnly: false, ...}, ...})'
+  metadata:
+    category: authentication
+    trustcode_severity: medium
+    confidence: confirmed
+    title: Insecure session cookie
+    cwe:
+    - CWE-614
+    - CWE-1004
+    owasp:
+    - A05:2021 Security Misconfiguration
+- id: js-sensitive-route-without-middleware
+  languages:
+  - javascript
+  - typescript
+  severity: INFO
+  message: A route with a sensitive-looking path is registered with a handler only - no authentication middleware in the route definition. Protection may exist elsewhere (router-level middleware).
+  patterns:
+  - pattern-either:
+    - pattern: $APP.$METHOD("$PATH", ($REQ, $RES) => {...})
+    - pattern: $APP.$METHOD("$PATH", async ($REQ, $RES) => {...})
+    - pattern: $APP.$METHOD("$PATH", function ($REQ, $RES) {...})
+  - metavariable-regex:
+      metavariable: $METHOD
+      regex: ^(get|post|put|delete|patch)$
+  - metavariable-regex:
+      metavariable: $PATH
+      regex: .*(admin|internal|/delete|/users?/:).*
+  metadata:
+    category: authorization
+    trustcode_severity: medium
+    confidence: review
+    title: Sensitive route without auth middleware
+    cwe:
+    - CWE-306
+    - CWE-862
+    owasp:
+    - A01:2021 Broken Access Control
+- id: js-env-secret-fallback
+  languages: [javascript, typescript]
+  severity: WARNING
+  message: A secret environment variable falls back to a hardcoded literal when it is not set.
+  patterns:
+  - pattern-either:
+    - pattern: process.env.$K || "$V"
+    - pattern: process.env.$K ?? "$V"
+    - pattern: process.env["$K"] || "$V"
+  - metavariable-regex: {metavariable: $K, regex: '(?i).*(secret|password|passwd|token|api_?key|private_?key|credential).*'}
+  - metavariable-regex: {metavariable: $V, regex: '.{4,}'}
+  metadata: {category: environment, trustcode_severity: high, confidence: strong, title: Hardcoded fallback for a secret environment variable, tc_id: TC-ENV-004, cwe: [CWE-1188], owasp: ['A05:2021 Security Misconfiguration']}
+- id: js-tls-reject-unauthorized-false
+  languages: [javascript, typescript]
+  severity: ERROR
+  message: TLS certificate verification is switched off for this connection.
+  pattern-either:
+  - pattern: '{..., rejectUnauthorized: false, ...}'
+  - pattern: process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"
+  - pattern: process.env.NODE_TLS_REJECT_UNAUTHORIZED = 0
+  metadata: {category: cryptography, trustcode_severity: high, confidence: confirmed, title: TLS certificate verification disabled, tc_id: TC-REG-002, cwe: [CWE-295], owasp: ['A02:2021 Cryptographic Failures']}
+- id: js-taint-nosql
+  mode: taint
+  languages: [javascript, typescript]
+  severity: ERROR
+  message: A request object is used directly as a database query filter, so the caller can inject query operators.
+  pattern-sources:
+  - patterns:
+    - pattern-either:
+      - pattern: $REQ.query
+      - pattern: $REQ.body
+      - pattern: $REQ.params
+    - metavariable-regex: {metavariable: $REQ, regex: '^(req|request|ctx)$'}
+  pattern-sanitizers:
+  - pattern: String(...)
+  - pattern: Number(...)
+  - pattern: parseInt(...)
+  pattern-sinks:
+  - patterns:
+    - pattern: $COL.$M($F, ...)
+    - metavariable-regex: {metavariable: $M, regex: '^(find|findOne|findOneAndUpdate|findOneAndDelete|updateOne|updateMany|deleteOne|deleteMany|countDocuments)$'}
+    - focus-metavariable: $F
+  metadata: {category: sql-injection, trustcode_severity: high, confidence: strong, title: Request data used as a NoSQL query filter, cwe: [CWE-943], owasp: ['A03:2021 Injection']}
+- id: js-localstorage-token
+  languages: [javascript, typescript]
+  severity: INFO
+  message: An authentication token is stored in localStorage, where any script on the page can read it.
+  patterns:
+  - pattern: localStorage.setItem("$K", ...)
+  - metavariable-regex: {metavariable: $K, regex: '(?i).*(token|jwt|session|auth).*'}
+  metadata: {category: authentication, trustcode_severity: low, confidence: review, title: Token stored in localStorage, cwe: [CWE-922], owasp: ['A07:2021 Authentication Failures']}
+- id: js-postmessage-wildcard-target
+  languages: [javascript, typescript]
+  severity: WARNING
+  message: postMessage is sent to any origin ("*"), so any page holding a reference to this window can read it.
+  pattern: $W.postMessage($M, '*')
+  metadata: {category: frontend, trustcode_severity: medium, confidence: review, title: postMessage to any origin, cwe: [CWE-346], owasp: ['A01:2021 Broken Access Control']}
+- id: js-log-sensitive-value
+  languages: [javascript, typescript]
+  severity: INFO
+  message: A value whose name suggests a credential is written to the console or log.
+  patterns:
+  - pattern: $L.$M(..., $X, ...)
+  - metavariable-regex: {metavariable: $L, regex: '^(console|logger|log)$'}
+  - metavariable-regex: {metavariable: $M, regex: '^(log|debug|info|warn|error)$'}
+  - metavariable-regex: {metavariable: $X, regex: '(?i)^\w*(password|passwd|secret|token|apiKey|api_key|authorization)\w*$'}
+  metadata: {category: logging, trustcode_severity: medium, confidence: review, title: Credential-like value written to a log, cwe: [CWE-532], owasp: ['A09:2021 Logging Failures']}
+- id: js-error-stack-in-response
+  languages: [javascript, typescript]
+  severity: INFO
+  message: An error stack trace is sent to the client, exposing internals.
+  pattern-either:
+  - pattern: $RES.send($E.stack)
+  - pattern: $RES.status(...).send($E.stack)
+  - pattern: '$RES.json({..., stack: $E.stack, ...})'
+  - pattern: '$RES.status(...).json({..., stack: $E.stack, ...})'
+  metadata: {category: api-security, trustcode_severity: low, confidence: strong, title: Stack trace returned in a response, cwe: [CWE-209], owasp: ['A05:2021 Security Misconfiguration']}
+- id: js-upload-client-filename
+  languages: [javascript, typescript]
+  severity: WARNING
+  message: An uploaded file is stored under the name the client sent, which can contain path segments or a dangerous extension.
+  pattern-either:
+  - pattern: path.join(..., $F.originalname)
+  - pattern: $F.mv(<... $F.name ...>)
+  metadata: {category: path-traversal, trustcode_severity: medium, confidence: review, title: Upload stored under a client-supplied name, cwe: [CWE-434, CWE-22], owasp: ['A04:2021 Insecure Design']}

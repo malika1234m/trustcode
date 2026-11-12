@@ -12,6 +12,17 @@ dependency existence) and shows:
 There is deliberately **no overall "safe" score**. You decide: accept, modify or reject, and record how confident you are.
 TrustCode never edits your files.
 
+## Scan the whole project for security issues (local)
+1. Install the scanner once: `pip install "trustcode-worker[tools]"` (TrustCode never installs it for you).
+2. Open the **Security** tab and choose **Scan entire project** — no account needed, nothing is uploaded.
+3. Findings appear in the tab, in the Problems panel and underlined at the exact code. Step through them with
+   `Ctrl/Cmd+K Alt+N` / `Alt+P`.
+4. Use **Before commit**, **Before push** and **Before production** to apply your blocking policy, or install the
+   Git hooks and the CI workflow so it happens without you.
+
+A report never says a project is secure: it lists the checks that ran, the ones that were skipped or failed, and
+the files that were excluded. Rules, policy and limits: `docs/security_scanner.md`.
+
 ## Verify what your coding agent changed
 1. Run **TrustCode: Start Tracking Session** (or use the **Session** tab) before you give the agent its task.
 2. Let the agent work. Created, modified, renamed and deleted files appear in the Session tab as they happen.

@@ -250,8 +250,8 @@ function dash(s?: ReturnType<typeof session>, over: Partial<DashboardModel> = {}
 }
 const VERDICT = /\b(is safe|are safe|is secure|is correct|verified correct|no bugs|bug-free|all good)\b/i;
 
-test('four tabs; the dashboard explains tracking before a session and never needs a selection', () => {
-  assert.deepStrictEqual(TABS, ['verify', 'session', 'history', 'account']);
+test('tabs; the dashboard explains tracking before a session and never needs a selection', () => {
+  assert.deepStrictEqual(TABS, ['security', 'verify', 'session', 'history', 'account']);
   assert.match(page('session', true, 'x', ''), /data-tab="session"[^>]*>Session</);
   const html = sessionPage(dash());
   assert.match(html, /data-action="sessionStart"/);

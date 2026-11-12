@@ -1,0 +1,1241 @@
+{
+ "engine": "trustcode-scan 1.0",
+ "status": "complete",
+ "duration_ms": 2082,
+ "files_scanned": 96,
+ "overall": {
+  "cases": 96,
+  "tp": 59,
+  "fp": 0,
+  "tn": 37,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "false_positive_rate": 0.0,
+  "false_negative_rate": 0.0
+ },
+ "by_category": {
+  "agent-config": {
+   "cases": 5,
+   "tp": 4,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "api-security": {
+   "cases": 3,
+   "tp": 2,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "authentication": {
+   "cases": 7,
+   "tp": 4,
+   "fp": 0,
+   "tn": 3,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "authorization": {
+   "cases": 2,
+   "tp": 1,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "ci-cd": {
+   "cases": 3,
+   "tp": 2,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "command-injection": {
+   "cases": 5,
+   "tp": 3,
+   "fp": 0,
+   "tn": 2,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "configuration": {
+   "cases": 2,
+   "tp": 1,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "cors": {
+   "cases": 3,
+   "tp": 2,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "cryptography": {
+   "cases": 2,
+   "tp": 2,
+   "fp": 0,
+   "tn": 0,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": null,
+   "false_negative_rate": 0.0
+  },
+  "database": {
+   "cases": 2,
+   "tp": 1,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "dependencies": {
+   "cases": 2,
+   "tp": 1,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "environment": {
+   "cases": 7,
+   "tp": 5,
+   "fp": 0,
+   "tn": 2,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "frontend": {
+   "cases": 2,
+   "tp": 1,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "infrastructure": {
+   "cases": 6,
+   "tp": 3,
+   "fp": 0,
+   "tn": 3,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "logging": {
+   "cases": 3,
+   "tp": 2,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "path-traversal": {
+   "cases": 7,
+   "tp": 5,
+   "fp": 0,
+   "tn": 2,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "secrets": {
+   "cases": 11,
+   "tp": 7,
+   "fp": 0,
+   "tn": 4,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "sql-injection": {
+   "cases": 11,
+   "tp": 6,
+   "fp": 0,
+   "tn": 5,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "ssrf": {
+   "cases": 2,
+   "tp": 1,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "unsafe-deserialization": {
+   "cases": 1,
+   "tp": 1,
+   "fp": 0,
+   "tn": 0,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": null,
+   "false_negative_rate": 0.0
+  },
+  "xss": {
+   "cases": 6,
+   "tp": 3,
+   "fp": 0,
+   "tn": 3,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "xxe": {
+   "cases": 4,
+   "tp": 2,
+   "fp": 0,
+   "tn": 2,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  }
+ },
+ "missed": [],
+ "false_positives": [],
+ "noise_on_safe_files": [],
+ "failed_checks": [],
+ "cases": [
+  {
+   "id": "sqli-py-taint",
+   "category": "sql-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-taint-sql",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "sqli-py-fstring",
+   "category": "sql-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "sql-string-formatting",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "sqli-js-taint",
+   "category": "sql-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-taint-sql",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "sqli-php-taint",
+   "category": "sql-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "php-taint-sql",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "sqli-java-concat",
+   "category": "sql-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "java-sql-concat",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "nosql-js-taint",
+   "category": "sql-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-taint-nosql",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "sqli-py-safe-params",
+   "category": "sql-injection",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "sqli-js-safe-params",
+   "category": "sql-injection",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "sqli-php-safe-prepared",
+   "category": "sql-injection",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "sqli-java-safe-prepared",
+   "category": "sql-injection",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "sqli-py-safe-constant",
+   "category": "sql-injection",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "secret-github",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-001",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "secret-stripe-js",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-001",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "secret-aws-yaml",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-001",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "secret-pem",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-002",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "secret-db-url",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-005",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "secret-sendgrid-json",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-001",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "secret-jwt-generic",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-004",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "secret-safe-env",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "secret-safe-placeholder",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "secret-safe-names",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "secret-safe-aws-doc-example",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "env-committed",
+   "category": "environment",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-ENV-001",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "env-public-secret",
+   "category": "environment",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-ENV-003",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": [
+    "TC-SEC-004"
+   ]
+  },
+  {
+   "id": "env-default-password",
+   "category": "environment",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-ENV-006",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "env-fallback-py",
+   "category": "environment",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-ENV-004",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "env-fallback-js",
+   "category": "environment",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-ENV-004",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "env-safe-example",
+   "category": "environment",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "env-safe-validation",
+   "category": "environment",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "jwt-py-noverify",
+   "category": "authentication",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-jwt-verification-disabled",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "jwt-js-none",
+   "category": "authentication",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-jwt-none-algorithm",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "jwt-js-decode-only",
+   "category": "authentication",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-jwt-decode-without-verify",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "auth-md5-password-php",
+   "category": "cryptography",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "php-weak-password-hash",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "auth-plain-compare",
+   "category": "authentication",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-plaintext-password-compare",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "jwt-py-safe",
+   "category": "authentication",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "jwt-js-safe",
+   "category": "authentication",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "auth-safe-bcrypt",
+   "category": "authentication",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "xss-js-reflect",
+   "category": "xss",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-taint-xss",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "xss-php-echo",
+   "category": "xss",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "php-taint-xss",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "xss-py-template",
+   "category": "xss",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-taint-template",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "xss-js-safe-escaped",
+   "category": "xss",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "xss-php-safe-escaped",
+   "category": "xss",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "xss-js-safe-json",
+   "category": "xss",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "cmd-py-taint",
+   "category": "command-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-taint-command",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "cmd-js-taint",
+   "category": "command-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-taint-command",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": [
+    "js-taint-sql"
+   ]
+  },
+  {
+   "id": "cmd-php-taint",
+   "category": "command-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "php-taint-command",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "cmd-py-safe-list",
+   "category": "command-injection",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "cmd-php-safe-escaped",
+   "category": "command-injection",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "path-py-taint",
+   "category": "path-traversal",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-taint-path",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "path-js-taint",
+   "category": "path-traversal",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-taint-path",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": [
+    "js-taint-xss"
+   ]
+  },
+  {
+   "id": "path-php-include",
+   "category": "path-traversal",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "php-taint-file",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "path-py-safe-basename",
+   "category": "path-traversal",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "cors-js-wildcard-creds",
+   "category": "cors",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-cors-wildcard-credentials",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "cors-py-wildcard-creds",
+   "category": "cors",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-cors-wildcard-credentials",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "ssrf-py-taint",
+   "category": "ssrf",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-taint-ssrf",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "debug-flask",
+   "category": "configuration",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-debug-enabled",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "tls-js-off",
+   "category": "cryptography",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-REG-002",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "deser-py-taint",
+   "category": "unsafe-deserialization",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-taint-deserialize",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "cors-js-safe-list",
+   "category": "cors",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ssrf-py-safe-constant",
+   "category": "ssrf",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "debug-safe",
+   "category": "configuration",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "cicd-pwn-request",
+   "category": "ci-cd",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-CICD-001",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "cicd-injection",
+   "category": "ci-cd",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-CICD-002",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "cicd-safe",
+   "category": "ci-cd",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "docker-curl-sh",
+   "category": "infrastructure",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-DOCKER-001",
+   "severity": "medium",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "docker-safe",
+   "category": "infrastructure",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "agent-autoapprove",
+   "category": "agent-config",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-AGT-001",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "agent-mcp-curl",
+   "category": "agent-config",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-AGT-002",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "agent-flag-script",
+   "category": "agent-config",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-AGT-005",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "agent-hidden-unicode",
+   "category": "agent-config",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-AGT-004",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "agent-safe-settings",
+   "category": "agent-config",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "db-rls-off",
+   "category": "database",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-DB-001",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "db-rls-safe",
+   "category": "database",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "dep-install-script",
+   "category": "dependencies",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-DEP-003",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "dep-safe-scripts",
+   "category": "dependencies",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "log-py-secret",
+   "category": "logging",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-log-sensitive-value",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "log-js-secret",
+   "category": "logging",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-log-sensitive-value",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "log-py-safe",
+   "category": "logging",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "err-js-stack",
+   "category": "api-security",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-error-stack-in-response",
+   "severity": "low",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "err-py-traceback",
+   "category": "api-security",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-traceback-in-response",
+   "severity": "low",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "err-js-safe",
+   "category": "api-security",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "xxe-py-lxml",
+   "category": "xxe",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-xxe-entities-enabled",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "xxe-java-default",
+   "category": "xxe",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "java-xxe-default-parser",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "xxe-py-safe",
+   "category": "xxe",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "xxe-java-safe",
+   "category": "xxe",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "front-postmessage",
+   "category": "frontend",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-postmessage-wildcard-target",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "front-postmessage-safe",
+   "category": "frontend",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "upload-js-clientname",
+   "category": "path-traversal",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-upload-client-filename",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "upload-py-clientname",
+   "category": "path-traversal",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-taint-path",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "upload-py-safe",
+   "category": "path-traversal",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "k8s-privileged",
+   "category": "infrastructure",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-K8S-001",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "k8s-safe",
+   "category": "infrastructure",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "iam-wildcard",
+   "category": "infrastructure",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-IAM-001",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "iam-safe",
+   "category": "infrastructure",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "authz-express-admin",
+   "category": "authorization",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-sensitive-route-without-middleware",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "authz-express-safe",
+   "category": "authorization",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  }
+ ]
+}

@@ -1,0 +1,364 @@
+# Project-scanner rules (trustcode-scan only). Not part of the frozen study ruleset (ADR-005).
+# metadata: category, trustcode_severity, confidence (confirmed | strong | review), title, cwe, owasp
+rules:
+- id: py-taint-sql
+  mode: taint
+  languages:
+  - python
+  severity: ERROR
+  message: Request data reaches a SQL statement without parameters.
+  pattern-sources:
+  - pattern-either:
+    - pattern: request.args
+    - pattern: request.form
+    - pattern: request.values
+    - pattern: request.json
+    - pattern: request.data
+    - pattern: request.cookies
+    - pattern: request.headers
+    - pattern: request.files
+    - pattern: request.get_json(...)
+    - pattern: request.GET
+    - pattern: request.POST
+    - pattern: request.query_params
+    - pattern: request.path_params
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: $C.execute($Q, ...)
+      - pattern: $C.executemany($Q, ...)
+      - pattern: $C.executescript($Q, ...)
+      - pattern: $M.objects.raw($Q, ...)
+      - pattern: sqlalchemy.text($Q)
+      - pattern: text($Q)
+    - focus-metavariable: $Q
+  metadata:
+    category: sql-injection
+    trustcode_severity: critical
+    confidence: strong
+    title: Request data in SQL statement
+    cwe:
+    - CWE-89
+    owasp:
+    - A03:2021 Injection
+- id: py-taint-command
+  mode: taint
+  languages:
+  - python
+  severity: ERROR
+  message: Request data reaches a shell command.
+  pattern-sources:
+  - pattern-either:
+    - pattern: request.args
+    - pattern: request.form
+    - pattern: request.values
+    - pattern: request.json
+    - pattern: request.data
+    - pattern: request.cookies
+    - pattern: request.headers
+    - pattern: request.files
+    - pattern: request.get_json(...)
+    - pattern: request.GET
+    - pattern: request.POST
+    - pattern: request.query_params
+    - pattern: request.path_params
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: os.system($X)
+      - pattern: os.popen($X, ...)
+      - pattern: subprocess.$F($X, ..., shell=True, ...)
+    - focus-metavariable: $X
+  metadata:
+    category: command-injection
+    trustcode_severity: critical
+    confidence: strong
+    title: Request data in shell command
+    cwe:
+    - CWE-78
+    owasp:
+    - A03:2021 Injection
+- id: py-taint-ssrf
+  mode: taint
+  languages:
+  - python
+  severity: WARNING
+  message: Request data is used as the URL of a server-side HTTP request.
+  pattern-sources:
+  - pattern-either:
+    - pattern: request.args
+    - pattern: request.form
+    - pattern: request.values
+    - pattern: request.json
+    - pattern: request.data
+    - pattern: request.cookies
+    - pattern: request.headers
+    - pattern: request.files
+    - pattern: request.get_json(...)
+    - pattern: request.GET
+    - pattern: request.POST
+    - pattern: request.query_params
+    - pattern: request.path_params
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: requests.$M($U, ...)
+      - pattern: httpx.$M($U, ...)
+      - pattern: urllib.request.urlopen($U, ...)
+    - focus-metavariable: $U
+  metadata:
+    category: ssrf
+    trustcode_severity: high
+    confidence: strong
+    title: Request-controlled URL fetched by the server
+    cwe:
+    - CWE-918
+    owasp:
+    - A10:2021 SSRF
+- id: py-taint-path
+  mode: taint
+  languages:
+  - python
+  severity: WARNING
+  message: Request data is used as a file path.
+  pattern-sources:
+  - pattern-either:
+    - pattern: request.args
+    - pattern: request.form
+    - pattern: request.values
+    - pattern: request.json
+    - pattern: request.data
+    - pattern: request.cookies
+    - pattern: request.headers
+    - pattern: request.files
+    - pattern: request.get_json(...)
+    - pattern: request.GET
+    - pattern: request.POST
+    - pattern: request.query_params
+    - pattern: request.path_params
+  pattern-sanitizers:
+  - pattern: werkzeug.utils.secure_filename(...)
+  - pattern: secure_filename(...)
+  - pattern: os.path.basename(...)
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: open($P, ...)
+      - pattern: flask.send_file($P, ...)
+      - pattern: send_file($P, ...)
+      - pattern: os.remove($P)
+      - pattern: $F.save($P)
+    - focus-metavariable: $P
+  metadata:
+    category: path-traversal
+    trustcode_severity: high
+    confidence: strong
+    title: Request-controlled file path
+    cwe:
+    - CWE-22
+    owasp:
+    - A01:2021 Broken Access Control
+- id: py-taint-template
+  mode: taint
+  languages:
+  - python
+  severity: ERROR
+  message: Request data is rendered as a template or as unescaped markup.
+  pattern-sources:
+  - pattern-either:
+    - pattern: request.args
+    - pattern: request.form
+    - pattern: request.values
+    - pattern: request.json
+    - pattern: request.data
+    - pattern: request.cookies
+    - pattern: request.headers
+    - pattern: request.files
+    - pattern: request.get_json(...)
+    - pattern: request.GET
+    - pattern: request.POST
+    - pattern: request.query_params
+    - pattern: request.path_params
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: render_template_string($X, ...)
+      - pattern: flask.render_template_string($X, ...)
+      - pattern: Markup($X)
+      - pattern: markupsafe.Markup($X)
+      - pattern: django.utils.safestring.mark_safe($X)
+      - pattern: mark_safe($X)
+    - focus-metavariable: $X
+  metadata:
+    category: xss
+    trustcode_severity: high
+    confidence: strong
+    title: Request data rendered without escaping
+    cwe:
+    - CWE-79
+    - CWE-1336
+    owasp:
+    - A03:2021 Injection
+- id: py-taint-deserialize
+  mode: taint
+  languages:
+  - python
+  severity: ERROR
+  message: Request data is deserialized with an unsafe loader.
+  pattern-sources:
+  - pattern-either:
+    - pattern: request.args
+    - pattern: request.form
+    - pattern: request.values
+    - pattern: request.json
+    - pattern: request.data
+    - pattern: request.cookies
+    - pattern: request.headers
+    - pattern: request.files
+    - pattern: request.get_json(...)
+    - pattern: request.GET
+    - pattern: request.POST
+    - pattern: request.query_params
+    - pattern: request.path_params
+  pattern-sinks:
+  - patterns:
+    - pattern-either:
+      - pattern: pickle.loads($X, ...)
+      - pattern: yaml.load($X, ...)
+      - pattern: marshal.loads($X)
+    - focus-metavariable: $X
+  metadata:
+    category: unsafe-deserialization
+    trustcode_severity: critical
+    confidence: strong
+    title: Request data deserialized unsafely
+    cwe:
+    - CWE-502
+    owasp:
+    - A08:2021 Integrity Failures
+- id: py-jwt-verification-disabled
+  languages:
+  - python
+  severity: ERROR
+  message: JWT is decoded with signature verification switched off, or the "none" algorithm is accepted.
+  pattern-either:
+  - pattern: jwt.decode(..., verify=False, ...)
+  - pattern: 'jwt.decode(..., options={..., "verify_signature": False, ...}, ...)'
+  - pattern: jwt.decode(..., algorithms=[..., "none", ...], ...)
+  - pattern: jwt.decode(..., algorithms=[..., "None", ...], ...)
+  metadata:
+    category: authentication
+    trustcode_severity: critical
+    confidence: confirmed
+    title: JWT signature not verified
+    cwe:
+    - CWE-347
+    owasp:
+    - A07:2021 Authentication Failures
+- id: py-debug-enabled
+  languages:
+  - python
+  severity: WARNING
+  message: The web server is started in debug mode (interactive debugger and detailed errors).
+  pattern-either:
+  - pattern: $APP.run(..., debug=True, ...)
+  - pattern: uvicorn.run(..., debug=True, ...)
+  metadata:
+    category: configuration
+    trustcode_severity: high
+    confidence: confirmed
+    title: Debug mode enabled
+    cwe:
+    - CWE-489
+    owasp:
+    - A05:2021 Security Misconfiguration
+- id: py-cors-wildcard-credentials
+  languages:
+  - python
+  severity: WARNING
+  message: CORS allows every origin together with credentials.
+  pattern-either:
+  - pattern: CORS(..., origins="*", ..., supports_credentials=True, ...)
+  - pattern: CORS(..., supports_credentials=True, ..., origins="*", ...)
+  - pattern: $APP.add_middleware(CORSMiddleware, ..., allow_origins=["*"], ..., allow_credentials=True, ...)
+  - pattern: $APP.add_middleware(CORSMiddleware, ..., allow_credentials=True, ..., allow_origins=["*"], ...)
+  metadata:
+    category: cors
+    trustcode_severity: high
+    confidence: confirmed
+    title: CORS wildcard with credentials
+    cwe:
+    - CWE-942
+    owasp:
+    - A05:2021 Security Misconfiguration
+- id: py-plaintext-password-compare
+  languages:
+  - python
+  severity: WARNING
+  message: A stored password is compared directly with the submitted one, which implies passwords are stored unhashed.
+  patterns:
+  - pattern-either:
+    - pattern: $U.password == $P
+    - pattern: $P == $U.password
+  - metavariable-regex:
+      metavariable: $P
+      regex: ^(?!None$|""$|''$).+
+  metadata:
+    category: authentication
+    trustcode_severity: high
+    confidence: review
+    title: Password compared in plain text
+    cwe:
+    - CWE-256
+    owasp:
+    - A02:2021 Cryptographic Failures
+- id: py-env-secret-fallback
+  languages: [python]
+  severity: WARNING
+  message: A secret environment variable falls back to a hardcoded literal when it is not set.
+  patterns:
+  - pattern-either:
+    - pattern: os.getenv("$K", "$V")
+    - pattern: os.environ.get("$K", "$V")
+  - metavariable-regex: {metavariable: $K, regex: '(?i).*(secret|password|passwd|token|api_?key|private_?key|credential).*'}
+  - metavariable-regex: {metavariable: $V, regex: '.{4,}'}
+  metadata: {category: environment, trustcode_severity: high, confidence: strong, title: Hardcoded fallback for a secret environment variable, tc_id: TC-ENV-004, cwe: [CWE-1188], owasp: ['A05:2021 Security Misconfiguration']}
+- id: py-yaml-unsafe-load
+  languages: [python]
+  severity: WARNING
+  message: yaml.load() without a safe loader can construct arbitrary objects.
+  patterns:
+  - pattern-either:
+    - pattern: yaml.load($X)
+    - pattern: yaml.load($X, Loader=yaml.Loader)
+    - pattern: yaml.load($X, Loader=yaml.UnsafeLoader)
+    - pattern: yaml.unsafe_load($X)
+  metadata: {category: unsafe-deserialization, trustcode_severity: high, confidence: strong, title: Unsafe YAML loader, cwe: [CWE-502], owasp: ['A08:2021 Integrity Failures']}
+- id: py-log-sensitive-value
+  languages: [python]
+  severity: INFO
+  message: A value whose name suggests a credential is written to the log.
+  patterns:
+  - pattern-either:
+    - pattern: $L.$M(..., $X, ...)
+    - pattern: $L.$M(f"...{$X}...")
+  - metavariable-regex: {metavariable: $L, regex: '^(logging|logger|log|LOG|LOGGER)$'}
+  - metavariable-regex: {metavariable: $M, regex: '^(debug|info|warning|error|critical|exception)$'}
+  - metavariable-regex: {metavariable: $X, regex: '(?i)^\w*(password|passwd|secret|token|api_?key|authorization)\w*$'}
+  metadata: {category: logging, trustcode_severity: medium, confidence: review, title: Credential-like value written to a log, cwe: [CWE-532], owasp: ['A09:2021 Logging Failures']}
+- id: py-traceback-in-response
+  languages: [python]
+  severity: INFO
+  message: A stack trace is returned to the caller, exposing internals.
+  pattern-either:
+  - pattern: return <... traceback.format_exc() ...>
+  - pattern: jsonify(<... traceback.format_exc() ...>)
+  metadata: {category: api-security, trustcode_severity: low, confidence: strong, title: Stack trace returned in a response, cwe: [CWE-209], owasp: ['A05:2021 Security Misconfiguration']}
+- id: py-xxe-entities-enabled
+  languages: [python]
+  severity: WARNING
+  message: The XML parser resolves external entities.
+  pattern-either:
+  - pattern: lxml.etree.XMLParser(..., resolve_entities=True, ...)
+  - pattern: etree.XMLParser(..., resolve_entities=True, ...)
+  metadata: {category: xxe, trustcode_severity: high, confidence: strong, title: XML external entities enabled, cwe: [CWE-611], owasp: ['A05:2021 Security Misconfiguration']}

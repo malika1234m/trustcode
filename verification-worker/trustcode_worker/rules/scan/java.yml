@@ -1,0 +1,122 @@
+# Project-scanner rules (trustcode-scan only). Not part of the frozen study ruleset (ADR-005).
+# metadata: category, trustcode_severity, confidence (confirmed | strong | review), title, cwe, owasp
+rules:
+- id: java-sql-concat
+  languages:
+  - java
+  severity: ERROR
+  message: SQL text is built by string concatenation and passed to a statement.
+  patterns:
+  - pattern-either:
+    - pattern: $S.$M("..." + $X, ...)
+    - pattern: $S.$M("..." + $X + "...", ...)
+    - patterns:
+      - pattern-inside: "String $Q = \"...\" + $X;\n...\n"
+      - pattern: $S.$M($Q, ...)
+    - patterns:
+      - pattern-inside: "String $Q = \"...\" + $X + \"...\";\n...\n"
+      - pattern: $S.$M($Q, ...)
+  - metavariable-regex:
+      metavariable: $M
+      regex: ^(executeQuery|executeUpdate|execute|prepareStatement|createQuery|createNativeQuery|queryForObject|queryForList)$
+  metadata:
+    category: sql-injection
+    trustcode_severity: high
+    confidence: strong
+    title: SQL built by concatenation
+    cwe:
+    - CWE-89
+    owasp:
+    - A03:2021 Injection
+- id: java-command-concat
+  languages:
+  - java
+  severity: ERROR
+  message: A shell command is built by string concatenation.
+  pattern-either:
+  - pattern: Runtime.getRuntime().exec("..." + $X, ...)
+  - pattern: Runtime.getRuntime().exec($A + $B, ...)
+  metadata:
+    category: command-injection
+    trustcode_severity: high
+    confidence: strong
+    title: Command built by concatenation
+    cwe:
+    - CWE-78
+    owasp:
+    - A03:2021 Injection
+- id: java-weak-hash
+  languages:
+  - java
+  severity: WARNING
+  message: MD5 / SHA-1 is broken for security purposes.
+  pattern-either:
+  - pattern: MessageDigest.getInstance("MD5")
+  - pattern: MessageDigest.getInstance("SHA-1")
+  - pattern: MessageDigest.getInstance("SHA1")
+  metadata:
+    category: cryptography
+    trustcode_severity: medium
+    confidence: review
+    title: Weak hash algorithm
+    cwe:
+    - CWE-327
+    owasp:
+    - A02:2021 Cryptographic Failures
+- id: java-reflected-parameter
+  languages:
+  - java
+  severity: WARNING
+  message: A request parameter is written straight into the response.
+  pattern-either:
+  - pattern: $RES.getWriter().$W($REQ.getParameter(...))
+  - pattern: $RES.getWriter().$W("..." + $REQ.getParameter(...))
+  - pattern: $RES.getWriter().$W("..." + $REQ.getParameter(...) + "...")
+  metadata:
+    category: xss
+    trustcode_severity: high
+    confidence: strong
+    title: Request parameter reflected in response
+    cwe:
+    - CWE-79
+    owasp:
+    - A03:2021 Injection
+- id: java-unsafe-deserialization
+  languages:
+  - java
+  severity: WARNING
+  message: ObjectInputStream.readObject() deserializes arbitrary classes.
+  pattern: (ObjectInputStream $O).readObject()
+  metadata:
+    category: unsafe-deserialization
+    trustcode_severity: high
+    confidence: review
+    title: Java native deserialization
+    cwe:
+    - CWE-502
+    owasp:
+    - A08:2021 Integrity Failures
+- id: java-trust-all-certificates
+  languages:
+  - java
+  severity: ERROR
+  message: A TrustManager accepts every certificate, which disables TLS verification.
+  pattern: "class $C implements X509TrustManager {\n  ...\n  public void checkServerTrusted(...) { }\n  ...\n}\n"
+  metadata:
+    category: cryptography
+    trustcode_severity: high
+    confidence: confirmed
+    title: TLS certificate validation disabled
+    cwe:
+    - CWE-295
+    owasp:
+    - A02:2021 Cryptographic Failures
+- id: java-xxe-default-parser
+  languages: [java]
+  severity: WARNING
+  message: An XML parser factory is created with default settings, which resolve external entities.
+  patterns:
+  - pattern: DocumentBuilderFactory.newInstance()
+  - pattern-not-inside: |
+      $RET $METHOD(...) { ... $F.setFeature(...); ... }
+  metadata: {category: xxe, trustcode_severity: medium, confidence: review, title: XML parser without entity restrictions, cwe: [CWE-611], owasp: ['A05:2021 Security Misconfiguration']}

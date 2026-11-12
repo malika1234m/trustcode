@@ -3,6 +3,7 @@
 #   1. the single-selection journey (no workspace folder)
 #   2. session tracking scenarios in a Git workspace
 #   3. session tracking scenarios in a large workspace without Git
+#   4. the local project security scanner (mode: security)
 # Needs: VSCODE_EXECUTABLE (path to the VS Code binary), the Python venv, and ~/.trustcode/local-secret
 # (created by starting the backend once in local mode). Usage: scripts/e2e/run_vscode_integration.sh [default|session-git|session-nogit ...]
 set -uo pipefail
@@ -48,9 +49,10 @@ make_workspace() {  # $1 = dir, $2 = git|nogit
 
 cd "$ROOT/extension" && npm run -s compile || exit 1
 STATUS=0
-for MODE in "${@:-default session-git session-nogit}"; do for M in $MODE; do
+for MODE in "${@:-default session-git session-nogit security}"; do for M in $MODE; do
   echo "=== $M"
   unset TRUSTCODE_TEST_WORKSPACE
+  if [ "$M" = security ]; then make_workspace "$TMP/ws-sec" git; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-sec" TRUSTCODE_TEST_SCANNER="$ROOT/.venv/bin/trustcode-scan"; fi
   if [ "$M" = session-git ]; then make_workspace "$TMP/ws-git" git; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-git"; fi
   if [ "$M" = session-nogit ]; then make_workspace "$TMP/ws-plain" nogit; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-plain"; fi
   rm -rf "${TMPDIR:-/tmp}/trustcode-vscode-test-$M"

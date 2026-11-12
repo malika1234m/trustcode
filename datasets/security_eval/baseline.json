@@ -1,0 +1,305 @@
+{
+ "note": "Recorded by scripts/security_eval/evaluate_scanner.py. Regenerate deliberately.",
+ "overall": {
+  "cases": 96,
+  "tp": 59,
+  "fp": 0,
+  "tn": 37,
+  "fn": 0,
+  "precision": 1.0,
+  "recall": 1.0,
+  "f1": 1.0,
+  "false_positive_rate": 0.0,
+  "false_negative_rate": 0.0
+ },
+ "cases": {
+  "sqli-py-taint": {
+   "detected": true
+  },
+  "sqli-py-fstring": {
+   "detected": true
+  },
+  "sqli-js-taint": {
+   "detected": true
+  },
+  "sqli-php-taint": {
+   "detected": true
+  },
+  "sqli-java-concat": {
+   "detected": true
+  },
+  "nosql-js-taint": {
+   "detected": true
+  },
+  "sqli-py-safe-params": {
+   "flagged": false
+  },
+  "sqli-js-safe-params": {
+   "flagged": false
+  },
+  "sqli-php-safe-prepared": {
+   "flagged": false
+  },
+  "sqli-java-safe-prepared": {
+   "flagged": false
+  },
+  "sqli-py-safe-constant": {
+   "flagged": false
+  },
+  "secret-github": {
+   "detected": true
+  },
+  "secret-stripe-js": {
+   "detected": true
+  },
+  "secret-aws-yaml": {
+   "detected": true
+  },
+  "secret-pem": {
+   "detected": true
+  },
+  "secret-db-url": {
+   "detected": true
+  },
+  "secret-sendgrid-json": {
+   "detected": true
+  },
+  "secret-jwt-generic": {
+   "detected": true
+  },
+  "secret-safe-env": {
+   "flagged": false
+  },
+  "secret-safe-placeholder": {
+   "flagged": false
+  },
+  "secret-safe-names": {
+   "flagged": false
+  },
+  "secret-safe-aws-doc-example": {
+   "flagged": false
+  },
+  "env-committed": {
+   "detected": true
+  },
+  "env-public-secret": {
+   "detected": true
+  },
+  "env-default-password": {
+   "detected": true
+  },
+  "env-fallback-py": {
+   "detected": true
+  },
+  "env-fallback-js": {
+   "detected": true
+  },
+  "env-safe-example": {
+   "flagged": false
+  },
+  "env-safe-validation": {
+   "flagged": false
+  },
+  "jwt-py-noverify": {
+   "detected": true
+  },
+  "jwt-js-none": {
+   "detected": true
+  },
+  "jwt-js-decode-only": {
+   "detected": true
+  },
+  "auth-md5-password-php": {
+   "detected": true
+  },
+  "auth-plain-compare": {
+   "detected": true
+  },
+  "jwt-py-safe": {
+   "flagged": false
+  },
+  "jwt-js-safe": {
+   "flagged": false
+  },
+  "auth-safe-bcrypt": {
+   "flagged": false
+  },
+  "xss-js-reflect": {
+   "detected": true
+  },
+  "xss-php-echo": {
+   "detected": true
+  },
+  "xss-py-template": {
+   "detected": true
+  },
+  "xss-js-safe-escaped": {
+   "flagged": false
+  },
+  "xss-php-safe-escaped": {
+   "flagged": false
+  },
+  "xss-js-safe-json": {
+   "flagged": false
+  },
+  "cmd-py-taint": {
+   "detected": true
+  },
+  "cmd-js-taint": {
+   "detected": true
+  },
+  "cmd-php-taint": {
+   "detected": true
+  },
+  "cmd-py-safe-list": {
+   "flagged": false
+  },
+  "cmd-php-safe-escaped": {
+   "flagged": false
+  },
+  "path-py-taint": {
+   "detected": true
+  },
+  "path-js-taint": {
+   "detected": true
+  },
+  "path-php-include": {
+   "detected": true
+  },
+  "path-py-safe-basename": {
+   "flagged": false
+  },
+  "cors-js-wildcard-creds": {
+   "detected": true
+  },
+  "cors-py-wildcard-creds": {
+   "detected": true
+  },
+  "ssrf-py-taint": {
+   "detected": true
+  },
+  "debug-flask": {
+   "detected": true
+  },
+  "tls-js-off": {
+   "detected": true
+  },
+  "deser-py-taint": {
+   "detected": true
+  },
+  "cors-js-safe-list": {
+   "flagged": false
+  },
+  "ssrf-py-safe-constant": {
+   "flagged": false
+  },
+  "debug-safe": {
+   "flagged": false
+  },
+  "cicd-pwn-request": {
+   "detected": true
+  },
+  "cicd-injection": {
+   "detected": true
+  },
+  "cicd-safe": {
+   "flagged": false
+  },
+  "docker-curl-sh": {
+   "detected": true
+  },
+  "docker-safe": {
+   "flagged": false
+  },
+  "agent-autoapprove": {
+   "detected": true
+  },
+  "agent-mcp-curl": {
+   "detected": true
+  },
+  "agent-flag-script": {
+   "detected": true
+  },
+  "agent-hidden-unicode": {
+   "detected": true
+  },
+  "agent-safe-settings": {
+   "flagged": false
+  },
+  "db-rls-off": {
+   "detected": true
+  },
+  "db-rls-safe": {
+   "flagged": false
+  },
+  "dep-install-script": {
+   "detected": true
+  },
+  "dep-safe-scripts": {
+   "flagged": false
+  },
+  "log-py-secret": {
+   "detected": true
+  },
+  "log-js-secret": {
+   "detected": true
+  },
+  "log-py-safe": {
+   "flagged": false
+  },
+  "err-js-stack": {
+   "detected": true
+  },
+  "err-py-traceback": {
+   "detected": true
+  },
+  "err-js-safe": {
+   "flagged": false
+  },
+  "xxe-py-lxml": {
+   "detected": true
+  },
+  "xxe-java-default": {
+   "detected": true
+  },
+  "xxe-py-safe": {
+   "flagged": false
+  },
+  "xxe-java-safe": {
+   "flagged": false
+  },
+  "front-postmessage": {
+   "detected": true
+  },
+  "front-postmessage-safe": {
+   "flagged": false
+  },
+  "upload-js-clientname": {
+   "detected": true
+  },
+  "upload-py-clientname": {
+   "detected": true
+  },
+  "upload-py-safe": {
+   "flagged": false
+  },
+  "k8s-privileged": {
+   "detected": true
+  },
+  "k8s-safe": {
+   "flagged": false
+  },
+  "iam-wildcard": {
+   "detected": true
+  },
+  "iam-safe": {
+   "flagged": false
+  },
+  "authz-express-admin": {
+   "detected": true
+  },
+  "authz-express-safe": {
+   "flagged": false
+  }
+ }
+}

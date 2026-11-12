@@ -1,0 +1,23 @@
+# Copy to .github/workflows/trustcode-scan.yml
+# Runs the TrustCode security scan on every push and pull request. A local Git hook can be skipped with
+# --no-verify, so this is the check that cannot be bypassed from a developer machine.
+name: TrustCode security scan
+on: [push, pull_request]
+permissions:
+  contents: read
+  security-events: write   # upload findings to GitHub code scanning
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Install the scanner
+        run: pip install "trustcode-worker[tools] @ git+https://github.com/malika1234m/trustcode.git#subdirectory=verification-worker"
+      - name: Scan (exit 1 = blocked by policy, exit 2 = scan incomplete)
+        run: trustcode-scan --mode ci --format sarif --output trustcode.sarif
+      - name: Upload findings
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with: { sarif_file: trustcode.sarif, category: trustcode }

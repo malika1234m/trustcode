@@ -44,7 +44,11 @@ export async function run(): Promise<void> {
   });
   const backend = process.env.TRUSTCODE_TEST_BACKEND;
   const mode = process.env.TRUSTCODE_TEST_MODE ?? '';
-  if (backend && mode.startsWith('session')) {
+  if (mode === 'security') {
+    const hook = (ext as any)?.exports?.__test;
+    const { runSecurityScenarios } = await import('./security');
+    for (const r of await runSecurityScenarios(hook, process.env.TRUSTCODE_TEST_SCANNER ?? 'trustcode-scan')) if (!r.ok) failures.push(r.name);
+  } else if (backend && mode.startsWith('session')) {
     const hook = (ext as any)?.exports?.__test;
     const { runSessionScenarios } = await import('./session');
     for (const r of await runSessionScenarios(hook, backend, mode === 'session-git')) if (!r.ok) failures.push(r.name);

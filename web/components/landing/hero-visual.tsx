@@ -109,7 +109,7 @@ export function HeroVisual() {
   const onLeave = () => { if (card.current) card.current.style.transform = ''; };
 
   return (
-    <figure className="relative mx-auto aspect-[6/5] w-full max-w-[640px]" onPointerMove={onMove} onPointerLeave={onLeave}>
+    <figure className="relative mx-auto aspect-[6/5] w-full max-w-[640px] 2xl:max-w-[780px]" onPointerMove={onMove} onPointerLeave={onLeave}>
       <figcaption className="sr-only">Illustration of a TrustCode project scan using demonstration data: 128 files, 12 changed, findings for an exposed credential and a SQL injection.</figcaption>
       {webgl ? <HeroScene /> : <StaticRings />}
       <div aria-hidden="true" className="absolute inset-0 flex items-center justify-end pl-[4%] lg:pl-[14%] [perspective:1400px]">

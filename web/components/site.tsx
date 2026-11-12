@@ -8,7 +8,7 @@ import { Logo } from './logo';
 function HeaderFallback() {
   return (
     <header className="sticky top-0 z-40 border-b border-transparent">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-5"><Link href="/" aria-label="TrustCode home" className="inline-flex min-h-11 items-center"><Logo /></Link></div>
+      <div className="mx-auto flex h-16 wrap items-center justify-between"><Link href="/" aria-label="TrustCode home" className="inline-flex min-h-11 items-center"><Logo /></Link></div>
     </header>
   );
 }
@@ -27,7 +27,7 @@ const FOOT = {
 export function SiteFooter() {
   return (
     <footer className="border-t border-line bg-bg2">
-      <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-[1.4fr_repeat(4,1fr)]">
+      <div className="mx-auto grid wrap gap-10 py-14 md:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div>
           <Logo />
           <p className="mt-3 max-w-xs text-sm leading-relaxed text-muted">Project-wide security checks in VS Code for code written by you or your AI agent. Evidence for every finding, and a clear list of what was not checked.</p>
@@ -41,7 +41,7 @@ export function SiteFooter() {
           </div>
         ))}
       </div>
-      <div className="mx-auto max-w-6xl border-t border-line px-5 py-6 text-xs leading-relaxed text-dim">© <Year /> TrustCode. TrustCode reports evidence from automated checks; it does not guarantee that code is correct or secure.</div>
+      <div className="mx-auto wrap border-t border-line py-6 text-xs leading-relaxed text-dim">© <Year /> TrustCode. TrustCode reports evidence from automated checks; it does not guarantee that code is correct or secure.</div>
     </footer>
   );
 }
@@ -49,7 +49,7 @@ export function SiteFooter() {
 export function PageHero({ eyebrow, title, children }: { eyebrow?: string; title: string; children?: React.ReactNode }) {
   return (
     <section className="glow relative overflow-hidden border-b border-line">
-      <div className="mx-auto max-w-6xl px-5 pb-12 pt-16 md:pt-20">
+      <div className="mx-auto wrap pb-12 pt-16 md:pt-20">
         {eyebrow && <p className="text-sm font-medium text-brand">{eyebrow}</p>}
         <h1 className="mt-2 max-w-3xl text-4xl font-semibold leading-[1.1] md:text-[3.25rem]">{title}</h1>
         {children && <div className="mt-5 max-w-2xl text-lg leading-relaxed text-muted">{children}</div>}
@@ -60,7 +60,7 @@ export function PageHero({ eyebrow, title, children }: { eyebrow?: string; title
 }
 
 export function Container({ children, className = '' }: { children: React.ReactNode; className?: string }) {
-  return <div className={`mx-auto max-w-6xl px-5 ${className}`}>{children}</div>;
+  return <div className={`wrap ${className}`}>{children}</div>;
 }
 
 async function Year() {

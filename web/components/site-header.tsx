@@ -79,7 +79,7 @@ export function SiteHeaderClient() {
 
   return (
     <header className={`sticky top-0 z-40 transition-[background-color,border-color,backdrop-filter] duration-200 ${scrolled || open ? 'border-b border-line bg-bg/80 backdrop-blur-xl' : 'border-b border-transparent bg-transparent'}`}>
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-5">
+      <div className="mx-auto flex h-16 wrap items-center justify-between gap-4">
         <Link href="/" aria-label="TrustCode home" className="inline-flex min-h-11 items-center"><Logo /></Link>
 
         <div ref={navRef} className="relative hidden lg:block" onMouseLeave={() => setHover(null)}>
@@ -111,7 +111,7 @@ export function SiteHeaderClient() {
       </div>
 
       <div id="mobile-nav" hidden={!open} className="border-t border-line bg-bg lg:hidden">
-        <nav aria-label="Main (mobile)" className="mx-auto flex h-[calc(100dvh-4rem)] max-w-6xl flex-col overflow-y-auto px-5 pb-8 pt-3">
+        <nav aria-label="Main (mobile)" className="mx-auto flex h-[calc(100dvh-4rem)] wrap flex-col overflow-y-auto pb-8 pt-3">
           {NAV.map((n) => (
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="flex min-h-14 items-center border-b border-line text-lg text-fg">{n.label}</Link>
           ))}

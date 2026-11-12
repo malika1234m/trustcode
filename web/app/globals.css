@@ -149,3 +149,6 @@ details[open]::details-content { block-size: auto; }
 @keyframes tc-beam { from { background-position: 200% 0; } to { background-position: -100% 0; } }
 .beam { background: linear-gradient(90deg, transparent 0%, transparent 35%, var(--neon-cyan) 50%, transparent 65%, transparent 100%) , linear-gradient(90deg, rgba(142,150,255,.25), rgba(56,225,255,.25));
   background-size: 200% 100%, 100% 100%; animation: tc-beam 2.4s linear infinite; }
+
+/* Page width: grows with the screen up to 1600px; side padding scales from 20px (phones) to 80px (large screens). */
+.wrap { width: 100%; max-width: 100rem; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 5rem); }

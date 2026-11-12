@@ -24,6 +24,8 @@ PROVIDER_TOKENS: list[tuple[str, str, re.Pattern]] = [
     ("openai-api-key", "OpenAI API key", re.compile(r"\bsk-(?:proj-)?[A-Za-z0-9_-]*T3BlbkFJ[A-Za-z0-9_-]{10,}\b")),
     ("sendgrid-api-key", "SendGrid API key", re.compile(r"\bSG\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\b")),
     ("npm-token", "npm access token", re.compile(r"\bnpm_[A-Za-z0-9]{36}\b")),
+    ("google-oauth-client-secret", "Google OAuth client secret", re.compile(r"\bGOCSPX-[A-Za-z0-9_-]{28}\b")),
+    ("mailgun-api-key", "Mailgun API key", re.compile(r"\bkey-[0-9a-f]{32}\b")),
     ("twilio-api-key", "Twilio API key", re.compile(r"\bSK[0-9a-f]{32}\b")),
     ("azure-storage-key", "Azure storage account key", re.compile(r"AccountKey=[A-Za-z0-9+/]{60,}={0,2}")),
 ]
@@ -48,6 +50,9 @@ ENV_FILE = re.compile(r"(^|/)\.env(\.[\w.-]+)?$")
 ENV_TEMPLATE = re.compile(r"(?i)\.(example|sample|template|dist|defaults?)$")
 SCRIPT_LIKE = re.compile(r"(?i)(\.(sh|bash|zsh|ps1|ya?ml)$|(^|/)(makefile|dockerfile[^/]*|package\.json|justfile)$)")
 GH_UNTRUSTED = re.compile(r"\$\{\{\s*(github\.event\.(issue|pull_request|comment|review|head_commit|discussion)\.[\w.]*(title|body|message|name|ref|label|email)[\w.]*|github\.head_ref)\s*\}\}")
+
+
+DEDICATED_SECRET = re.compile(r"(?i)(smtp|mail|email)[\w.-]*pass|client[-_]?secret|oauth[\w.-]*secret")
 
 
 def entropy(s: str) -> float:
@@ -102,6 +107,12 @@ def secrets(path: str, text: str) -> Iterator[Raw]:
             if not SECRET_NAME.search(name) or _is_placeholder(value) or " " in value.strip():
                 continue
             if re.search(r"(?i)(env|getenv|process\.|config\[|settings\.|\$\(|os\.)", value) or value.startswith(("http://", "https://", "/", "./")):
+                continue
+            dedicated = DEDICATED_SECRET.search(name)
+            if dedicated and value.lower() not in WEAK_PASSWORDS and len(value) >= 6:
+                kind = "smtp-password" if re.search(r"(?i)smtp|mail", name) else "oauth-client-secret"
+                yield ("TC-SEC-004", i, m.start(3) + 1, i, m.end(3) + 1, mask(line, m.start(3), m.end(3)),
+                       f"`{name}` holds a literal {'mail server password' if kind == 'smtp-password' else 'OAuth client secret'}.", {"detector": kind, "confidence": "strongly_suspected"})
                 continue
             if value.lower() in WEAK_PASSWORDS:
                 yield ("TC-ENV-006", i, m.start(3) + 1, i, m.end(3) + 1, mask(line, m.start(3), m.end(3)), f"`{name}` is set to a default or trivial password.", {"detector": "weak-password"})
@@ -271,11 +282,22 @@ def container(path: str, text: str) -> Iterator[Raw]:
     compose = bool(re.match(r"(docker-)?compose[\w.-]*\.ya?ml$", base))
     if not docker and not compose:
         return
-    for i, line in enumerate(text.splitlines(), 1):
+    lines = text.splitlines()
+    if docker and any(re.match(r"\s*FROM\s", ln, re.I) for ln in lines) and not any(re.match(r"\s*USER\s+(?!root\b|0\b)\S", ln, re.I) for ln in lines):
+        n = next(i for i, ln in enumerate(lines, 1) if re.match(r"\s*FROM\s", ln, re.I))
+        yield ("TC-DOCKER-001", n, 1, n, 1, "no non-root USER instruction", "The image runs as root because no unprivileged USER is set.", {"severity": "low", "confidence": "potential", "file_level": True})
+    for i, line in enumerate(lines, 1):
         if docker:
             m = re.search(r"\b(curl|wget)\b[^\n|]*\|\s*(sudo\s+)?(ba)?sh\b", line)
             if m:
                 yield ("TC-DOCKER-001", i, m.start() + 1, i, m.end() + 1, line.strip()[:160], "A download is piped straight into a shell during the image build.", {})
+            m = re.match(r"\s*ADD\s+https?://\S+", line, re.I) or re.search(r"\bchmod\s+(-R\s+)?0?777\b", line) or re.search(r"--privileged\b", line)
+            if m:
+                yield ("TC-DOCKER-001", i, m.start() + 1, i, m.end() + 1, line.strip()[:160], "Unverified remote content, world-writable permissions or privileged mode in the image build.", {"severity": "low", "confidence": "potential"})
+            m = re.match(r"\s*(ENV|ARG)\s+(\w*(PASSWORD|PASSWD|SECRET|TOKEN|API_?KEY)\w*)[=\s]+(\S+)", line, re.I)
+            if m and not _is_placeholder(m.group(4)) and not m.group(4).startswith("$") and len(m.group(4).strip('"\'')) >= 6:
+                yield ("TC-SEC-004", i, m.start(4) + 1, i, m.end(4) + 1, mask(line, m.start(4), m.end(4)), f"`{m.group(2)}` is baked into the image as a build argument or environment value.",
+                       {"detector": "docker-secret", "confidence": "strongly_suspected"})
         if compose:
             m = re.search(r"privileged:\s*true", line)
             if m:
@@ -396,7 +418,9 @@ def redact(line: str) -> str:
     line = URL_CREDS.sub(lambda m: m.group(0).replace(m.group(1), "…[masked]"), line)
     def hide(m):
         return m.group(0) if not SECRET_NAME.search(m.group(1)) or _is_placeholder(m.group(3)) else m.group(0).replace(m.group(3), m.group(3)[:2] + "…[masked]")
-    return GENERIC_ASSIGN.sub(hide, line)
+    line = GENERIC_ASSIGN.sub(hide, line)
+    # unquoted KEY=value (environment files, Docker ENV, shell exports)
+    return re.sub(r"(?i)^(\s*(?:export\s+|ENV\s+|ARG\s+)?\w*(?:SECRET|PASSWORD|PASSWD|TOKEN|KEY|CREDENTIAL)\w*\s*[=:]\s*)(?!…)(\S{4})\S+", r"\1\2…[masked]", line)
 
 
 def history_secrets(log_text: str, limit: int = 200) -> Iterator[tuple[str, str, str, str]]:

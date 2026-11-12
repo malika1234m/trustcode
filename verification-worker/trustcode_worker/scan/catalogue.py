@@ -103,6 +103,8 @@ RULES: dict[str, dict] = {
                     "Drop privileged / host access and run as a non-root user.", "System components that need host access.", ["CWE-250"]),
     "TC-IAM-001": R("infrastructure", "IAM policy allows every action on every resource", "high", S, "config", "P2", "BLOCK-CI",
                     "Grant only the actions and resources that are needed.", "Break-glass administrator roles.", ["CWE-732"]),
+    "TC-SEC-007": R("secrets", "Credential in build output", "high", S, "pattern", "P1", "BLOCK-CI",
+                    "Find where the value enters the build (often a public-prefixed variable), remove it and rotate the credential.", "Publishable keys.", ["CWE-200"]),
     "TC-SEC-006": R("secrets", "Credential in Git history", "critical", S, "pattern", "P1", "BLOCK-CI",
                     "Rotate the credential: removing it from the current files does not remove it from history.", "Revoked or example keys.", ["CWE-798"]),
     "TC-DOCKER-002": R("infrastructure", "Database port published to the host", "low", P, "config", "P3", "INFO",

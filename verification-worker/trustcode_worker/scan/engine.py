@@ -326,6 +326,158 @@ def run_bandit(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], dic
     return out, check
 
 
+def _mask_span(line: str, start_col: int, end_col: int) -> str:
+    """Evidence for a credential found by an external tool: the reported span is always cut out, then the rest is redacted."""
+    a, b = max(0, start_col - 1), max(start_col, end_col)
+    cut = (line[:a] + "…[masked]" + line[b:]) if 0 <= a < len(line) else "…[masked]"
+    return patterns.redact(cut.strip())[:200]
+
+
+def run_gitleaks(root: Path, scanned: set[str], texts: dict[str, str]) -> tuple[list[dict], dict | None]:
+    """Credential detection by Gitleaks (optional). Project-supplied Gitleaks configuration, ignore files and
+    inline allow markers are not honoured, and values are redacted by the tool before they reach this process."""
+    exe = shutil.which("gitleaks")
+    if not exe:
+        return [], None
+    check = {"id": "gitleaks", "name": "Credential detection (Gitleaks)", "status": "completed", "detail": ""}
+    neutral = Path(tempfile.mkdtemp(prefix="trustcode-gitleaks-"))
+    try:
+        (neutral / "config.toml").write_text("[extend]\nuseDefault = true\n")
+        r = run([exe, "dir", "--no-banner", "--redact", "--exit-code", "0", "--ignore-gitleaks-allow", "--config", str(neutral / "config.toml"),
+                 "--gitleaks-ignore-path", str(neutral), "--report-format", "json", "--report-path", str(neutral / "out.json"), str(root)], cwd=str(neutral), timeout=600)
+        try:
+            data = json.loads((neutral / "out.json").read_text())
+            assert isinstance(data, list)
+        except Exception:
+            check.update(status="failed", detail=f"Gitleaks did not return a readable result ({(r.stderr or '').strip()[-120:]}).")
+            return [], check
+    finally:
+        shutil.rmtree(neutral, ignore_errors=True)
+    out = []
+    for res in data:
+        try:
+            path = os.path.relpath(os.path.realpath(str(res["File"])), os.path.realpath(root)).replace(os.sep, "/")
+            if path not in scanned:
+                continue   # the project's own exclusions apply to every scanner
+            line, rid = int(res["StartLine"]), str(res["RuleID"])
+            src = texts.get(path, "").splitlines()
+            text_line = src[line - 1] if 0 < line <= len(src) else ""
+            m = patterns.GENERIC_ASSIGN.search(text_line)
+            if (m and patterns._is_placeholder(m.group(3))) or patterns.ENV_TEMPLATE.search(path) or patterns.PLACEHOLDER.search(text_line) and rid.startswith("generic"):
+                continue
+            generic = rid.startswith("generic")
+            meta = RULES["TC-SEC-004" if generic else "TC-SEC-001"]
+            out.append({"rule_id": "TC-SEC-004" if generic else "TC-SEC-001", "category": "secrets", "title": meta["title"], "severity": meta["severity"],
+                        "confidence": "potential" if generic else "strongly_suspected", "path": path, "line": line, "col": max(1, int(res.get("StartColumn", 1))),
+                        "end_line": max(line, int(res.get("EndLine", line))), "end_col": max(1, int(res.get("EndColumn", 1))) + 1, "file_level": False,
+                        "evidence": _mask_span(text_line, int(res.get("StartColumn", 1)), int(res.get("EndColumn", 0))), "reason": str(res.get("Description", "Credential detected."))[:200],
+                        "remediation": meta["remediation"], "source": f"gitleaks:{rid}", "cwe": meta["cwe"], "owasp": [], "block": meta["block"], "priority": meta["priority"]})
+        except (KeyError, TypeError, ValueError):
+            continue
+    check["detail"] = f"{len(scanned)} file(s) in scope."
+    return out, check
+
+
+def run_osv_scanner(root: Path, texts: dict[str, str]) -> tuple[list[dict], str | None, bool]:
+    """Dependency advisories through the OSV-Scanner CLI (more lockfile formats than the built-in lookup).
+    Returns (findings, error, ran). It contacts osv.dev, so it only runs when network lookups are enabled."""
+    exe = shutil.which("osv-scanner")
+    if not exe:
+        return [], None, False
+    neutral = Path(tempfile.mkdtemp(prefix="trustcode-osv-"))
+    try:
+        (neutral / "empty.toml").write_text("")   # a project-supplied osv-scanner.toml could hide advisories
+        r = run([exe, "scan", "source", "--format", "json", "--config", str(neutral / "empty.toml"), "-r", str(root)], cwd=str(neutral), timeout=600)
+    finally:
+        shutil.rmtree(neutral, ignore_errors=True)
+    try:
+        data = json.loads(r.stdout[r.stdout.index("{"):])
+        results = data["results"]
+    except (ValueError, KeyError, TypeError):
+        if r.returncode == 128 or "No package sources found" in (r.stderr or ""):
+            return [], None, True
+        return [], f"OSV-Scanner did not return a readable result ({(r.stderr or '').strip()[-120:]}).", True
+    meta, out = RULES["TC-DEP-004"], []
+    for res in results:
+        try:
+            path = os.path.relpath(os.path.realpath(str(res["source"]["path"])), os.path.realpath(root)).replace(os.sep, "/")
+            if path.startswith(".."):
+                continue
+            for pkg in res.get("packages", []):
+                name, version = str(pkg["package"]["name"]), str(pkg["package"]["version"])
+                ids = sorted({str(i) for g in pkg.get("groups", []) for i in g.get("ids", [])})
+                if not ids:
+                    continue
+                line = next((i for i, ln in enumerate(texts.get(path, "").splitlines(), 1) if name.lower() in ln.lower()), 1)
+                malicious = any(i.startswith("MAL-") for i in ids)
+                out.append({"rule_id": "TC-DEP-004", "category": "dependencies", "title": "Malicious package version" if malicious else meta["title"],
+                            "severity": "critical" if malicious else "high", "confidence": "confirmed", "path": path, "line": line, "col": 1, "end_line": line, "end_col": 1,
+                            "file_level": line <= 1, "evidence": f"{name} {version} ({pkg['package'].get('ecosystem', '')})",
+                            "reason": f"{len(ids)} advisory record(s) match this exact version: {', '.join(ids[:4])}{'…' if len(ids) > 4 else ''}.",
+                            "remediation": meta["remediation"], "source": "osv-scanner:" + ids[0], "cwe": meta["cwe"], "owasp": ["A06:2021 Vulnerable Components"],
+                            "block": "BLOCK" if malicious else meta["block"], "priority": meta["priority"]})
+        except (KeyError, TypeError, ValueError):
+            continue
+    return out, None, True
+
+
+def scan_artifacts(root: Path, dirs: list[str], limit: int = 3000) -> list[dict]:
+    """Provider-format credentials inside build output (bundles shipped to users). Only credential formats are
+    checked there: build output is generated code, so no other rule is meaningful for it."""
+    meta, out, seen = RULES["TC-SEC-007"], [], 0
+    for d in dirs:
+        for dirpath, dirnames, filenames in os.walk(root / d.rstrip("/"), followlinks=False):
+            dirnames[:] = [x for x in dirnames if x not in DEPENDENCY_DIRS and x != ".git"]
+            for f in filenames:
+                full = Path(dirpath) / f
+                seen += 1
+                if seen > limit or full.is_symlink() or not re.search(r"(?i)\.(js|mjs|cjs|css|html?|json|map|txt|xml|ya?ml|env|py|php)$", f):
+                    continue
+                try:
+                    if full.stat().st_size > 5 * 1024 * 1024:
+                        continue
+                    text = full.read_text(errors="replace")
+                except OSError:
+                    continue
+                rel = str(full.relative_to(root)).replace(os.sep, "/")
+                for i, line in enumerate(text.splitlines(), 1):
+                    for rule, title, pat in patterns.PROVIDER_TOKENS:
+                        for m in pat.finditer(line[:200000]):
+                            if patterns._is_placeholder(m.group(0)):
+                                continue
+                            out.append({"rule_id": "TC-SEC-007", "category": meta["category"], "title": meta["title"], "severity": meta["severity"],
+                                        "confidence": meta["confidence"], "path": rel, "line": i, "col": m.start() + 1, "end_line": i, "end_col": m.end() + 1,
+                                        "file_level": False, "evidence": m.group(0)[:4] + "…[masked]", "reason": f"Text in the format of a {title} is present in build output.",
+                                        "remediation": meta["remediation"], "source": f"trustcode-artifacts:{rule}", "cwe": meta["cwe"], "owasp": [],
+                                        "block": meta["block"], "priority": meta["priority"]})
+                            break
+    return out
+
+
+PACKAGE_MANIFESTS = {"package.json", "pyproject.toml", "requirements.txt", "pom.xml", "build.gradle", "go.mod", "Cargo.toml", "composer.json"}
+
+
+def package_summary(included: list[str], findings: list[dict]) -> list[dict]:
+    """Per-package totals for repositories that contain several projects (monorepos)."""
+    roots = sorted({os.path.dirname(p) for p in included if os.path.basename(p) in PACKAGE_MANIFESTS}, key=len, reverse=True)
+    if len(roots) < 2:
+        return []
+    def owner(path: str) -> str:
+        return next((r for r in roots if r == "" or path == r or path.startswith(r + "/")), "")
+    out: dict[str, dict] = {r: {"root": r or ".", "files": 0, "findings": 0, "critical": 0, "high": 0} for r in roots}
+    out.setdefault("", {"root": ".", "files": 0, "findings": 0, "critical": 0, "high": 0})
+    for p in included:
+        out[owner(p)]["files"] += 1
+    for f in findings:
+        if f.get("state") == "suppressed":
+            continue
+        o = out[owner(f["path"])]
+        o["findings"] += 1
+        if f["severity"] in ("critical", "high"):
+            o[f["severity"]] += 1
+    return sorted(out.values(), key=lambda x: x["root"])
+
+
 def _lines(path: Path) -> list[str]:
     try:
         return path.read_text(errors="replace").splitlines()
@@ -399,6 +551,15 @@ def _write_json(path: Path, data) -> None:
     os.replace(tmp, path)
 
 
+def _tool_ver(name: str, flag: str) -> str | None:
+    exe = shutil.which(name)
+    if not exe:
+        return None
+    r = run([exe, flag], cwd=tempfile.gettempdir(), timeout=20)
+    m = re.search(r"\d+\.\d+(\.\d+)?", (r.stdout or "") + (r.stderr or ""))
+    return m.group(0) if m else None
+
+
 def tools_status() -> list[dict]:
     sg = semgrep_cmd()
     version = tool_version("semgrep") if sg else None
@@ -412,6 +573,13 @@ def tools_status() -> list[dict]:
         {"name": "bandit", "role": "second set of Python security rules (optional)", "installed": bandit_available() is not None, "version": bandit_available(),
          "compatible": True if bandit_available() else None, "status": "ready" if bandit_available() else "not installed (optional)",
          "detail": "" if bandit_available() else "Optional: pip install bandit. Python files are still covered by the Semgrep rules."},
+        {"name": "gitleaks", "role": "second credential detector (optional)", "installed": bool(shutil.which("gitleaks")), "version": _tool_ver("gitleaks", "version"),
+         "compatible": True if shutil.which("gitleaks") else None, "status": "ready" if shutil.which("gitleaks") else "not installed (optional)",
+         "detail": "" if shutil.which("gitleaks") else "Optional. Credentials are still covered by the built-in rules."},
+        {"name": "osv-scanner", "role": "dependency advisories for more lockfile formats (optional, network)", "installed": bool(shutil.which("osv-scanner")),
+         "version": _tool_ver("osv-scanner", "--version"), "compatible": True if shutil.which("osv-scanner") else None,
+         "status": "ready (used when advisory lookups are on)" if shutil.which("osv-scanner") else "not installed (optional)",
+         "detail": "" if shutil.which("osv-scanner") else "Optional. The built-in OSV lookup covers npm and Python lockfiles."},
         {"name": "trustcode-patterns", "role": "credentials, environment files, agent and CI configuration", "installed": True, "version": ENGINE, "compatible": True, "status": "ready", "detail": "Built in."},
         {"name": "git", "role": "ignore rules, staged and outgoing changes", "installed": bool(git_v), "version": git_v, "compatible": True if git_v else None,
          "status": "ready" if git_v else "not installed", "detail": "" if git_v else "Full-project scans still work; staged and outgoing-change scans need Git."},
@@ -437,7 +605,8 @@ def _materialise(root: Path, spec: str, paths: list[str]) -> Path:
 
 
 def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None, use_cache: bool = True, online: bool | None = None,
-         update_baseline: bool = False, history: bool = False, base: str | None = None, allow_policy_change: bool = False) -> dict:
+         update_baseline: bool = False, history: bool = False, base: str | None = None, allow_policy_change: bool = False,
+         artifacts: bool | None = None) -> dict:
     """Runs a scan. `mode`: full | changed | new | staged | push | production | ci. Returns the report (see docs/security_scanner.md).
     `history`: also look for provider-format credentials on lines added in the last 500 commits (opt-in)."""
     t0 = time.monotonic()
@@ -558,6 +727,19 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
         for p, items in extra.items():
             if p in file_findings:
                 file_findings[p] += items
+        leaks, leak_check = run_gitleaks(scan_root, set(scanned), texts)
+        if leak_check:
+            checks.append(leak_check)
+        for f in leaks:
+            file_findings.setdefault(f["path"], []).append(f)
+        artifact_findings: list[dict] = []
+        build_dirs = [d for d in disc["excluded"].get("build output or cache", []) if d.endswith("/")]
+        if (artifacts if artifacts is not None else mode in ("production", "ci")) and scan_root == root:
+            artifact_findings = scan_artifacts(root, build_dirs)
+            checks.append({"id": "artifacts", "name": "Credentials in build output", "status": "completed" if build_dirs else "skipped",
+                           "detail": f"{len(build_dirs)} build director(ies) examined for credential formats." if build_dirs else "No build output directory was found."})
+        else:
+            checks.append({"id": "artifacts", "name": "Credentials in build output", "status": "skipped", "detail": "Runs in production and CI scans, or with --artifacts."})
         if disc["nested_repositories"]:
             notes.append(f"{len(disc['nested_repositories'])} nested repository(ies) are scanned as part of this project: {', '.join(disc['nested_repositories'][:5])}.")
 
@@ -575,9 +757,13 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
             checks.append({"id": "dependencies", "name": "Known-vulnerable dependency versions", "status": "skipped",
                            "detail": f"{len(packages)} pinned package version(s) found but advisory lookups are off (use --online or set \"network\": true)."})
         else:
-            dep_findings, err = osv_lookup(packages)
+            dep_findings, err, ran = run_osv_scanner(scan_root, texts)
+            how = "OSV-Scanner"
+            if not ran:
+                dep_findings, err = osv_lookup(packages)
+                how = "the OSV advisory database"
             checks.append({"id": "dependencies", "name": "Known-vulnerable dependency versions", "status": "failed" if err else "completed",
-                           "detail": err or f"{len(packages)} pinned package version(s) checked against the OSV advisory database."})
+                           "detail": err or f"{len(packages)} pinned package version(s) checked with {how}."})
         for f in dep_findings:
             file_findings.setdefault(f["path"], []).append(f)
         # ---- weakened security controls: what this change removed or switched off, compared with the last commit
@@ -626,7 +812,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
             _write_json(cache_path, {"digest": digest, "files": keep})
 
         findings = dedupe([f for p in scanned for f in file_findings.get(p, []) if f["rule_id"] not in cfg["disabled_rules"]])
-        findings += [f for f in history_findings + regression_findings if f["rule_id"] not in cfg["disabled_rules"] or f["rule_id"] == "TC-REG-009"]
+        findings += [f for f in history_findings + regression_findings + artifact_findings if f["rule_id"] not in cfg["disabled_rules"] or f["rule_id"] == "TC-REG-009"]
         for f in findings:
             lines = texts.get(f["path"], "").splitlines()
             line_text = lines[f["line"] - 1] if 0 < f["line"] <= len(lines) else ""
@@ -696,6 +882,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
                          "suppressed": sum(1 for f in findings if f["state"] == "suppressed")},
             "gate": gate, "policy": {k: cfg[k] for k in ("block", "block_confidence", "block_existing", "on_incomplete")},
             "disabled_rules": sorted(str(x) for x in cfg["disabled_rules"]),
+            "packages": package_summary(disc["included"], findings),
         }
     finally:
         if cleanup is not None:

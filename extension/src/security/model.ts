@@ -18,6 +18,7 @@ export interface SecReport {
   baseline: { present: boolean; resolved: number; notRevalidated: number; suppressed: number };
   gate: { decision: string; reasons: string[] };
   disabledRules: string[];
+  packages: Array<{ root: string; files: number; findings: number; critical: number; high: number }>;
 }
 
 const str = (v: unknown, max = 400) => (typeof v === 'string' ? v.slice(0, max) : '');
@@ -55,6 +56,7 @@ export function parseReport(text: string): SecReport | undefined {
     notes: list(d.notes).map((n: unknown) => str(n, 500)).filter(Boolean),
     baseline: { present: d.baseline?.present === true, resolved: list(d.baseline?.resolved).length, notRevalidated: list(d.baseline?.not_revalidated).length, suppressed: num(d.baseline?.suppressed) },
     gate: { decision: str(d.gate?.decision, 20), reasons: list(d.gate?.reasons).map((r: unknown) => str(r, 500)) },
+    packages: list(d.packages).slice(0, 200).map((p: any) => ({ root: str(p?.root, 300), files: num(p?.files), findings: num(p?.findings), critical: num(p?.critical), high: num(p?.high) })),
     disabledRules: list(d.disabled_rules).map((x: unknown) => str(x, 80)).filter((x: string) => /^[A-Za-z0-9._-]+$/.test(x)).slice(0, 200),
   };
 }
@@ -179,6 +181,7 @@ export function securityPage(m: SecurityModel): string {
       <ul class="plain">${r.checks.map((x) => { const [i, cls] = checkIcon[x.status] ?? ['?', 'st-review']; return `<li><span class="chip ${cls}">${i} ${esc(x.status)}</span> <strong>${esc(x.name)}</strong>${x.detail ? ` <span class="muted small">— ${esc(x.detail)}</span>` : ''}</li>`; }).join('')}</ul></details>
     <details class="card"><summary class="card-title">Coverage and exclusions</summary>
       <ul class="plain">${r.coverage.map((x) => `<li><strong>${esc(x.language)}</strong>: ${plural(x.files, 'file')} — ${esc(x.analysis)}</li>`).join('')}</ul>
+      ${r.packages.length ? `<div class="card-title">Packages in this repository (${r.packages.length})</div><ul class="plain">${r.packages.map((p) => `<li><code>${esc(p.root)}</code> — ${plural(p.files, 'file')}, ${plural(p.findings, 'finding')}${p.critical || p.high ? ` (${p.critical} critical, ${p.high} high)` : ''}</li>`).join('')}</ul>` : ''}
       <p class="muted small">“Generic patterns only” means credentials and configuration were checked, but no language-specific rules exist for that file type.</p>
       <div class="card-title">Not scanned (${excluded.reduce((n, [, v]) => n + v, 0)} of ${r.files.included + excluded.reduce((n, [, v]) => n + v, 0)} entries)</div>
       <ul class="plain">${excluded.map(([reason, n]) => `<li>${n} — ${esc(reason)}${r.files.samples[reason]?.length ? ` <span class="muted small">(${esc(r.files.samples[reason].slice(0, 3).join(', '))}${n > 3 ? '…' : ''})</span>` : ''}</li>`).join('') || '<li class="muted">nothing was excluded</li>'}</ul></details>

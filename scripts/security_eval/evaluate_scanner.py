@@ -57,9 +57,17 @@ def evaluate(dest: Path) -> dict:
         return {"cases": len(sub), "tp": tp, "fp": fp, "tn": tn, "fn": fn, "precision": p, "recall": r,
                 "f1": round(2 * p * r / (p + r), 3) if p and r else None, "false_positive_rate": d(fp, fp + tn), "false_negative_rate": d(fn, fn + tp)}
 
+    from ruamel.yaml import YAML
+    from trustcode_worker.scan.catalogue import RULES
+    known = set(RULES)
+    for yml in sorted((ROOT / "verification-worker" / "trustcode_worker" / "rules").rglob("*.yml")):
+        for rule in YAML(typ="safe").load(yml.read_text())["rules"]:
+            known.add((rule.get("metadata") or {}).get("tc_id") or rule["id"])
+    hit = {f["rule_id"] for f in report["findings"]} | {s.split(":", 1)[1] for f in report["findings"] for s in [f["source"], *f.get("also_reported_by", [])] if ":" in s}
     cats = sorted({r["category"] for r in rows})
     return {"engine": report["engine"], "status": report["status"], "duration_ms": report["duration_ms"], "files_scanned": report["files"]["scanned"],
             "overall": metrics(rows), "by_category": {c: metrics([r for r in rows if r["category"] == c]) for c in cats},
+            "rules_total": len(known), "rules_with_a_case": len(known & hit), "rules_without_a_case": sorted(known - hit),
             "missed": [r["id"] for r in rows if r["vulnerable"] and not r["detected"]],
             "false_positives": [{"id": r["id"], "rules": r["rules"]} for r in rows if not r["vulnerable"] and r["flagged"]],
             "noise_on_safe_files": [{"id": r["id"], "rules": r["other"]} for r in rows if not r["vulnerable"] and r["other"]],
@@ -83,6 +91,7 @@ def main() -> None:
         print(f"  {c:24} cases={m['cases']:2} TP={m['tp']} FP={m['fp']} TN={m['tn']} FN={m['fn']} P={m['precision']} R={m['recall']}")
     print("missed:", res["missed"]); print("false positives:", res["false_positives"]); print("noise on safe files:", res["noise_on_safe_files"])
     print("failed checks:", res["failed_checks"])
+    print(f"rules with a labelled case: {res['rules_with_a_case']} of {res['rules_total']}; without:", res["rules_without_a_case"])
     if a.json:
         Path(a.json).write_text(json.dumps(res, indent=1) + "\n")
 

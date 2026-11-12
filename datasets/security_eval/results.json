@@ -1,13 +1,13 @@
 {
  "engine": "trustcode-scan 1.0",
  "status": "complete",
- "duration_ms": 2072,
- "files_scanned": 105,
+ "duration_ms": 2270,
+ "files_scanned": 138,
  "overall": {
-  "cases": 105,
-  "tp": 63,
+  "cases": 138,
+  "tp": 94,
   "fp": 0,
-  "tn": 42,
+  "tn": 44,
   "fn": 0,
   "precision": 1.0,
   "recall": 1.0,
@@ -17,6 +17,18 @@
  },
  "by_category": {
   "agent-config": {
+   "cases": 6,
+   "tp": 5,
+   "fp": 0,
+   "tn": 1,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "api-security": {
    "cases": 5,
    "tp": 4,
    "fp": 0,
@@ -28,21 +40,9 @@
    "false_positive_rate": 0.0,
    "false_negative_rate": 0.0
   },
-  "api-security": {
-   "cases": 3,
-   "tp": 2,
-   "fp": 0,
-   "tn": 1,
-   "fn": 0,
-   "precision": 1.0,
-   "recall": 1.0,
-   "f1": 1.0,
-   "false_positive_rate": 0.0,
-   "false_negative_rate": 0.0
-  },
   "authentication": {
-   "cases": 7,
-   "tp": 4,
+   "cases": 9,
+   "tp": 6,
    "fp": 0,
    "tn": 3,
    "fn": 0,
@@ -53,10 +53,10 @@
    "false_negative_rate": 0.0
   },
   "authorization": {
-   "cases": 7,
-   "tp": 3,
+   "cases": 9,
+   "tp": 4,
    "fp": 0,
-   "tn": 4,
+   "tn": 5,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -77,6 +77,18 @@
    "false_negative_rate": 0.0
   },
   "command-injection": {
+   "cases": 9,
+   "tp": 7,
+   "fp": 0,
+   "tn": 2,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": 0.0,
+   "false_negative_rate": 0.0
+  },
+  "configuration": {
    "cases": 5,
    "tp": 3,
    "fp": 0,
@@ -88,21 +100,9 @@
    "false_positive_rate": 0.0,
    "false_negative_rate": 0.0
   },
-  "configuration": {
-   "cases": 4,
-   "tp": 2,
-   "fp": 0,
-   "tn": 2,
-   "fn": 0,
-   "precision": 1.0,
-   "recall": 1.0,
-   "f1": 1.0,
-   "false_positive_rate": 0.0,
-   "false_negative_rate": 0.0
-  },
   "cors": {
-   "cases": 3,
-   "tp": 2,
+   "cases": 4,
+   "tp": 3,
    "fp": 0,
    "tn": 1,
    "fn": 0,
@@ -113,8 +113,8 @@
    "false_negative_rate": 0.0
   },
   "cryptography": {
-   "cases": 2,
-   "tp": 2,
+   "cases": 7,
+   "tp": 7,
    "fp": 0,
    "tn": 0,
    "fn": 0,
@@ -148,6 +148,18 @@
    "false_positive_rate": 0.0,
    "false_negative_rate": 0.0
   },
+  "destructive-command": {
+   "cases": 1,
+   "tp": 1,
+   "fp": 0,
+   "tn": 0,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": null,
+   "false_negative_rate": 0.0
+  },
   "environment": {
    "cases": 7,
    "tp": 5,
@@ -173,8 +185,8 @@
    "false_negative_rate": 0.0
   },
   "infrastructure": {
-   "cases": 8,
-   "tp": 4,
+   "cases": 9,
+   "tp": 5,
    "fp": 0,
    "tn": 4,
    "fn": 0,
@@ -197,8 +209,8 @@
    "false_negative_rate": 0.0
   },
   "path-traversal": {
-   "cases": 7,
-   "tp": 5,
+   "cases": 8,
+   "tp": 6,
    "fp": 0,
    "tn": 2,
    "fn": 0,
@@ -209,10 +221,10 @@
    "false_negative_rate": 0.0
   },
   "secrets": {
-   "cases": 11,
-   "tp": 7,
+   "cases": 15,
+   "tp": 10,
    "fp": 0,
-   "tn": 4,
+   "tn": 5,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -221,8 +233,8 @@
    "false_negative_rate": 0.0
   },
   "sql-injection": {
-   "cases": 11,
-   "tp": 6,
+   "cases": 12,
+   "tp": 7,
    "fp": 0,
    "tn": 5,
    "fn": 0,
@@ -233,8 +245,8 @@
    "false_negative_rate": 0.0
   },
   "ssrf": {
-   "cases": 2,
-   "tp": 1,
+   "cases": 3,
+   "tp": 2,
    "fp": 0,
    "tn": 1,
    "fn": 0,
@@ -244,7 +256,7 @@
    "false_positive_rate": 0.0,
    "false_negative_rate": 0.0
   },
-  "unsafe-deserialization": {
+  "suppression": {
    "cases": 1,
    "tp": 1,
    "fp": 0,
@@ -256,9 +268,21 @@
    "false_positive_rate": null,
    "false_negative_rate": 0.0
   },
+  "unsafe-deserialization": {
+   "cases": 4,
+   "tp": 4,
+   "fp": 0,
+   "tn": 0,
+   "fn": 0,
+   "precision": 1.0,
+   "recall": 1.0,
+   "f1": 1.0,
+   "false_positive_rate": null,
+   "false_negative_rate": 0.0
+  },
   "xss": {
-   "cases": 6,
-   "tp": 3,
+   "cases": 8,
+   "tp": 5,
    "fp": 0,
    "tn": 3,
    "fn": 0,
@@ -281,6 +305,25 @@
    "false_negative_rate": 0.0
   }
  },
+ "rules_total": 106,
+ "rules_with_a_case": 91,
+ "rules_without_a_case": [
+  "TC-DEP-004",
+  "TC-REG-001",
+  "TC-REG-003",
+  "TC-REG-005",
+  "TC-REG-008",
+  "TC-REG-009",
+  "TC-SEC-006",
+  "TC-SEC-007",
+  "assert-for-validation",
+  "java-trust-all-certificates",
+  "js-hardcoded-secret",
+  "js-insecure-random",
+  "js-runtime-or-test-tampering",
+  "js-sql-concat",
+  "runtime-or-test-tampering"
+ ],
  "missed": [],
  "false_positives": [],
  "noise_on_safe_files": [],
@@ -510,7 +553,9 @@
    "rule": "TC-ENV-001",
    "severity": "high",
    "confidence": "strongly_suspected",
-   "other": []
+   "other": [
+    "TC-SEC-004"
+   ]
   },
   {
    "id": "env-public-secret",
@@ -1319,6 +1364,365 @@
    "vulnerable": false,
    "flagged": false,
    "rules": [],
+   "other": []
+  },
+  {
+   "id": "authz-django-delete",
+   "category": "authorization",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-django-destructive-view-without-guard",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "authz-django-safe",
+   "category": "authorization",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "secret-smtp",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-004",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "secret-oauth",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-004",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "secret-docker-env",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-004",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "secret-docker-safe",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "rule-agt-hook",
+   "category": "agent-config",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-AGT-003",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-destructive",
+   "category": "destructive-command",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-DESTR-001",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-compose-port",
+   "category": "infrastructure",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-DOCKER-002",
+   "severity": "low",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-django-debug",
+   "category": "configuration",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-ENV-005",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-suppression",
+   "category": "suppression",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-REG-004",
+   "severity": "low",
+   "confidence": "potential",
+   "other": [
+    "shell-command-injection"
+   ]
+  },
+  {
+   "id": "rule-py-eval",
+   "category": "command-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "eval-exec-use",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-py-random",
+   "category": "cryptography",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "insecure-random",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-py-md5",
+   "category": "cryptography",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "bandit-B324",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-py-tls",
+   "category": "cryptography",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "tls-verification-disabled",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-py-open",
+   "category": "path-traversal",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "path-traversal-open",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-py-yaml",
+   "category": "unsafe-deserialization",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-yaml-unsafe-load",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-js-eval",
+   "category": "command-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-eval",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-js-innerhtml",
+   "category": "xss",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-innerhtml",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-js-md5",
+   "category": "cryptography",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-weak-hash",
+   "severity": "medium",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-js-merge",
+   "category": "api-security",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-prototype-pollution-merge",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-js-sqlconcat",
+   "category": "sql-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-sql-concat-any-position",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-js-cors-header",
+   "category": "cors",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-cors-wildcard-header",
+   "severity": "low",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-js-localstorage",
+   "category": "authentication",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-localstorage-token",
+   "severity": "low",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-js-session",
+   "category": "authentication",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-session-cookie-insecure",
+   "severity": "medium",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-js-redirect",
+   "category": "api-security",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-taint-redirect",
+   "severity": "medium",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-js-ssrf",
+   "category": "ssrf",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-taint-ssrf",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-php-eval",
+   "category": "command-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "php-eval",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-php-unserialize",
+   "category": "unsafe-deserialization",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "php-taint-deserialize",
+   "severity": "critical",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-java-exec",
+   "category": "command-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "java-command-concat",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-java-reflect",
+   "category": "xss",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "java-reflected-parameter",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "rule-java-deser",
+   "category": "unsafe-deserialization",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "java-unsafe-deserialization",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "rule-java-md5",
+   "category": "cryptography",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "java-weak-hash",
+   "severity": "medium",
+   "confidence": "potential",
    "other": []
   }
  ]

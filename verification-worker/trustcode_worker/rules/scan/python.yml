@@ -383,3 +383,23 @@ rules:
           ...
   - metavariable-regex: {metavariable: $PATH, regex: '.*(admin|internal|/delete).*'}
   metadata: {category: authorization, trustcode_severity: medium, confidence: review, title: Sensitive route without an auth guard, cwe: [CWE-306, CWE-862], owasp: ['A01:2021 Broken Access Control']}
+- id: py-django-destructive-view-without-guard
+  languages: [python]
+  severity: INFO
+  message: A Django view whose name suggests a destructive or administrative action has no decorator - no login or permission check on the view. Protection may exist in middleware or the URL configuration.
+  paths:
+    include: ['**/views.py', '**/views/*.py']
+  patterns:
+  - pattern: |
+      def $F(request, ...):
+          ...
+  - pattern-not: |
+      @$GUARD
+      def $F(request, ...):
+          ...
+  - pattern-not: |
+      @$GUARD(...)
+      def $F(request, ...):
+          ...
+  - metavariable-regex: {metavariable: $F, regex: '^(delete|remove|destroy|admin|purge|reset)_?\w*$'}
+  metadata: {category: authorization, trustcode_severity: medium, confidence: review, title: Sensitive Django view without an auth decorator, cwe: [CWE-306, CWE-862], owasp: ['A01:2021 Broken Access Control']}

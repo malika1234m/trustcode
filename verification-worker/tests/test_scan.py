@@ -266,6 +266,8 @@ def test_unreadable_scanner_output_is_a_failed_check(tmp_path, monkeypatch):
 
 def test_dependency_advisories_are_opt_in_and_confirmed_only_on_an_exact_version(tmp_path, monkeypatch):
     p = project(tmp_path, {"requirements.txt": "flask==0.12\nrequests>=2\n"})
+    real_which = engine.shutil.which
+    monkeypatch.setattr(engine.shutil, "which", lambda name, *a, **k: None if name == "osv-scanner" else real_which(name, *a, **k))   # this test covers the built-in lookup
     calls = []
 
     def fake(req, timeout=0):
@@ -429,3 +431,49 @@ def test_policy_file_changes_are_reported_and_cannot_be_disabled_or_reviewed_awa
     assert scan(p, "ci", base=base)["gate"]["decision"] == "block"
     ok = scan(p, "ci", base=base, allow_policy_change=True)
     assert not any(x["rule_id"] == "TC-REG-009" for x in ok["findings"]) and any("--allow-policy-change" in n for n in ok["notes"])
+
+
+def test_gitleaks_and_osv_scanner_are_optional_isolated_and_reported(tmp_path, monkeypatch):
+    import shutil as sh
+    token = "gh" + "p_" + "Ww3Kq2LmN8vB4tR7yW1cE5uA3sD6fG0hJ2kLmZ"
+    p = project(tmp_path / "repo", {"k.py": f'TOKEN = "{token}"\n', "ok.py": 'API_KEY = "your_api_key_here"\n',
+                                    ".gitleaks.toml": "[allowlist]\npaths = ['.*']\n", ".gitleaksignore": "k.py:github-pat:1\n"})
+    r = scan(p, "full", use_cache=False)
+    assert {"gitleaks", "osv-scanner", "bandit", "semgrep"} <= {t["name"] for t in r["tools"]}
+    if sh.which("gitleaks"):
+        f = next(x for x in r["findings"] if x["path"] == "k.py")
+        assert any(s.startswith("gitleaks:") for s in [f["source"], *f["also_reported_by"]]), "a project-supplied allowlist silenced Gitleaks"
+        assert next(c for c in r["checks"] if c["id"] == "gitleaks")["status"] == "completed" and token not in json.dumps(r)
+    assert not [x for x in r["findings"] if x["path"] == "ok.py"], "a placeholder was reported"
+    assert len([x for x in r["findings"] if x["path"] == "k.py" and x["category"] == "secrets"]) == 1, "the same secret listed twice by two scanners"
+    real_which = sh.which
+    monkeypatch.setattr(engine.shutil, "which", lambda name, *a, **k: None if name in ("gitleaks", "osv-scanner") else real_which(name, *a, **k))
+    without = scan(p, "full", use_cache=False)
+    assert without["status"] == "complete" and [x["rule_id"] for x in without["findings"] if x["path"] == "k.py"] == ["TC-SEC-001"]
+    assert next(t for t in without["tools"] if t["name"] == "gitleaks")["status"].startswith("not installed")
+
+
+def test_build_output_is_checked_in_production_scans_and_monorepo_packages_are_summarised(tmp_path):
+    key = "sk" + "_live_" + "7aB8cD7eF6gH5iJ4kL3mN2oQ"
+    p = project(tmp_path / "repo", {"apps/web/package.json": '{"name": "web"}', "apps/web/src/a.js": "export const a = 1;\n",
+                                    "apps/api/pyproject.toml": "[project]\nname = 'api'\n", "apps/api/app.py": SQLI,
+                                    "apps/web/dist/bundle.js": f'var k="{key}";\n'})
+    full = scan(p, "full", use_cache=False)
+    assert not [f for f in full["findings"] if f["rule_id"] == "TC-SEC-007"] and next(c for c in full["checks"] if c["id"] == "artifacts")["status"] == "skipped"
+    prod = scan(p, "production")
+    f = next(x for x in prod["findings"] if x["rule_id"] == "TC-SEC-007")
+    assert f["path"] == "apps/web/dist/bundle.js" and key not in json.dumps(prod)
+    pk = {x["root"]: x for x in prod["packages"]}
+    assert set(pk) == {".", "apps/api", "apps/web"} and pk["apps/api"]["critical"] == 1 and pk["apps/web"]["findings"] >= 1
+    assert "Packages" in to_text(prod)
+    assert scan(project(tmp_path / "single", {"package.json": "{}", "a.js": "export const a = 1;\n"}), "full", use_cache=False)["packages"] == []
+
+
+def test_evidence_from_external_scanners_never_contains_the_secret(tmp_path):
+    secret = "f3a9c1e7b5d2486a9c0e1f2a3b4c5d6e7f8091a2"
+    p = project(tmp_path / "repo", {".env.production": f"JWT_SECRET={secret}\nexport API_TOKEN={secret}\n", "Dockerfile": f"FROM alpine\nENV APP_SECRET={secret}\nUSER app\n"})
+    r = scan(p, "full", use_cache=False)
+    assert r["findings"], "nothing was reported"
+    assert secret not in json.dumps(r) and secret[:12] not in json.dumps(r)
+    assert engine.patterns.redact(f"JWT_SECRET={secret}") == "JWT_SECRET=f3a9…[masked]"
+    assert engine.patterns.redact("PORT=3000") == "PORT=3000"

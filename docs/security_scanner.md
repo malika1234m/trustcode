@@ -97,7 +97,12 @@ gets **generic patterns only** (credentials, configuration); the report says so 
 | Bandit (optional) | Second set of Python security rules, merged with Semgrep's by file, line and category | Integrated; detected and version-reported; runs when installed |
 | OSV advisory database | Known-vulnerable and malicious dependency versions | Integrated, opt-in (`--online`): sends package names and versions only. Verified against the live service on 2026-11-12 |
 | Git | Ignore rules, staged and outgoing content | Used when present; full scans work without it |
-| Gitleaks, TruffleHog, Trivy, pip-audit, npm audit, OSV-Scanner CLI, CodeQL, Checkov | — | **Not integrated.** None is installed on the development machine, so no integration could be tested |
+| Gitleaks (optional) | Second credential detector | Integrated and tested (8.30.1). Project-supplied Gitleaks config, ignore file and allow markers are not honoured |
+| OSV-Scanner (optional) | Dependency advisories for more lockfile formats | Integrated and tested live (2.7.1). Used instead of the built-in lookup when advisory lookups are on |
+| TruffleHog | Credentials | Not integrated: overlaps Gitleaks and the built-in rules; its distinguishing feature is live verification of secrets, which sends them to third parties |
+| pip-audit, npm audit | Dependency advisories | Not integrated: same advisory data as OSV; `npm audit` also follows the project's own `.npmrc` registry setting |
+| Trivy, Checkov | Infrastructure-as-code, images | Not integrated: the research report records a 2026 supply-chain compromise of Trivy and recommends pinned, verified binaries, which this project does not yet have a mechanism for; Checkov pulls in a large dependency tree for coverage only partly needed here |
+| CodeQL | Deep data flow | Not integrated: licence restricts use on private code without GitHub Advanced Security, and it needs a build database per language |
 
 Project-supplied Semgrep configuration and inline `nosemgrep` markers are ignored; suppression markers are reported (TC-REG-004).
 
@@ -203,6 +208,15 @@ a secret-protecting `.gitignore` rule removed (TC-REG-005), a CI security step r
   names are passed so they cannot be read as options, and project-supplied scanner configuration is ignored.
 - Evidence copied from a source line is redacted before it is stored or shown.
 - The extension starts the scanner only in trusted workspaces and only from an absolute path outside the workspace.
+
+## Monorepos, build output and more credential formats
+
+- Repositories with several package manifests get a per-package summary (files, findings, critical, high).
+- Production and CI scans (or `--artifacts`) check build output directories for credential formats (TC-SEC-007).
+- Dedicated detection for mail-server passwords, OAuth client secrets, Google OAuth and Mailgun keys, and secrets
+  baked into Docker `ENV` / `ARG`. Dockerfiles are also checked for a missing non-root `USER`, `ADD` from a URL,
+  world-writable permissions and privileged mode.
+- Sensitive Django views without a decorator are flagged for review (`py-django-destructive-view-without-guard`).
 
 ## Not implemented
 

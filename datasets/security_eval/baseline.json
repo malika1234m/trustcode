@@ -1,10 +1,10 @@
 {
  "note": "Recorded by scripts/security_eval/evaluate_scanner.py. Regenerate deliberately.",
  "overall": {
-  "cases": 105,
-  "tp": 63,
+  "cases": 138,
+  "tp": 94,
   "fp": 0,
-  "tn": 42,
+  "tn": 44,
   "fn": 0,
   "precision": 1.0,
   "recall": 1.0,
@@ -327,6 +327,105 @@
   },
   "cloud-private-bucket": {
    "flagged": false
+  },
+  "authz-django-delete": {
+   "detected": true
+  },
+  "authz-django-safe": {
+   "flagged": false
+  },
+  "secret-smtp": {
+   "detected": true
+  },
+  "secret-oauth": {
+   "detected": true
+  },
+  "secret-docker-env": {
+   "detected": true
+  },
+  "secret-docker-safe": {
+   "flagged": false
+  },
+  "rule-agt-hook": {
+   "detected": true
+  },
+  "rule-destructive": {
+   "detected": true
+  },
+  "rule-compose-port": {
+   "detected": true
+  },
+  "rule-django-debug": {
+   "detected": true
+  },
+  "rule-suppression": {
+   "detected": true
+  },
+  "rule-py-eval": {
+   "detected": true
+  },
+  "rule-py-random": {
+   "detected": true
+  },
+  "rule-py-md5": {
+   "detected": true
+  },
+  "rule-py-tls": {
+   "detected": true
+  },
+  "rule-py-open": {
+   "detected": true
+  },
+  "rule-py-yaml": {
+   "detected": true
+  },
+  "rule-js-eval": {
+   "detected": true
+  },
+  "rule-js-innerhtml": {
+   "detected": true
+  },
+  "rule-js-md5": {
+   "detected": true
+  },
+  "rule-js-merge": {
+   "detected": true
+  },
+  "rule-js-sqlconcat": {
+   "detected": true
+  },
+  "rule-js-cors-header": {
+   "detected": true
+  },
+  "rule-js-localstorage": {
+   "detected": true
+  },
+  "rule-js-session": {
+   "detected": true
+  },
+  "rule-js-redirect": {
+   "detected": true
+  },
+  "rule-js-ssrf": {
+   "detected": true
+  },
+  "rule-php-eval": {
+   "detected": true
+  },
+  "rule-php-unserialize": {
+   "detected": true
+  },
+  "rule-java-exec": {
+   "detected": true
+  },
+  "rule-java-reflect": {
+   "detected": true
+  },
+  "rule-java-deser": {
+   "detected": true
+  },
+  "rule-java-md5": {
+   "detected": true
   }
  }
 }

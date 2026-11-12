@@ -5,7 +5,7 @@ import {
   RefreshIcon, ServerIcon, ShieldIcon, LockIcon,
 } from '@/components/icons';
 import { HeroVisual } from '@/components/landing/hero-visual';
-import { ProjectScanDemo } from '@/components/landing/project-scan-demo';
+import { Walkthrough } from '@/components/walkthrough/walkthrough';
 import { CapabilityBadge, StatusBadge } from '@/components/landing/badges';
 import { Reveal } from '@/components/landing/reveal-motion';
 import { WorkspaceScan } from '@/components/visuals/workspace-scan';
@@ -28,10 +28,10 @@ const HIGHLIGHTS: [Icon, string, string][] = [
 const RISKS: { icon: Icon; title: string; line: string; code: [string, string, string]; status: Status }[] = [
   { icon: KeyIcon, title: 'Exposed secrets', line: 'Keys and tokens in code.', code: ['STRIPE_KEY = ', '"sk_live_51Hx…"', ''], status: 'available' },
   { icon: DatabaseIcon, title: 'SQL injection', line: 'User input inside queries.', code: ['db.execute(f"…WHERE id=', '{user_id}', '")'], status: 'available' },
-  { icon: CodeIcon, title: 'Cross-site scripting', line: 'Unsafe HTML rendering.', code: ['el.innerHTML = ', 'req.query.q', ''], status: 'in-development' },
-  { icon: LockIcon, title: 'API vulnerabilities', line: 'JWT, CORS and auth gaps.', code: ['cors({ origin: ', "'*'", ', credentials: true })'], status: 'in-development' },
-  { icon: PackageIcon, title: 'Dependency risks', line: 'Packages that don’t exist.', code: ["import retry from ", "'axios-retry-helper'", ''], status: 'available' },
-  { icon: GlobeIcon, title: 'Configuration problems', line: 'Docker, cloud and CI.', code: ['FROM node:latest  ', 'USER root', ''], status: 'planned' },
+  { icon: CodeIcon, title: 'Cross-site scripting', line: 'Request data in HTML output.', code: ['res.send(`<h1>${', 'req.query.q', '}`)'], status: 'available' },
+  { icon: LockIcon, title: 'API vulnerabilities', line: 'JWT, CORS and missing guards.', code: ['cors({ origin: ', "'*'", ', credentials: true })'], status: 'available' },
+  { icon: PackageIcon, title: 'Dependency risks', line: 'Vulnerable versions, hallucinated names.', code: ["import retry from ", "'axios-retry-helper'", ''], status: 'available' },
+  { icon: GlobeIcon, title: 'Configuration problems', line: 'Docker, IAM, CI and agent settings.', code: ['"Action": ', '"*"', ', "Resource": "*"'], status: 'available' },
 ];
 
 function Title({ id, children, center = false }: { id: string; children: React.ReactNode; center?: boolean }) {
@@ -105,6 +105,17 @@ export default function Home() {
         </Container>
       </section>
 
+      {/* Walkthrough */}
+      <section id="demo" aria-labelledby="demo-title" className="scroll-mt-20 pb-8 pt-20 md:pt-24">
+        <Container>
+          <Reveal className="mb-10 text-center">
+            <Title id="demo-title" center>See what happens when<br className="hidden sm:block" /> <span className="text-neon">your AI writes code.</span></Title>
+            <p className="mt-4 text-lg text-muted">Watch TrustCode inspect every change.</p>
+          </Reveal>
+          <div className="mx-auto max-w-[64rem]"><Walkthrough /></div>
+        </Container>
+      </section>
+
       {/* 3 — Project-wide */}
       <section aria-labelledby="project-title" className="py-20 md:py-24">
         <Container>
@@ -150,18 +161,7 @@ export default function Home() {
               </Reveal>
             ))}
           </ul>
-          <p className="mt-6 text-sm text-dim">Python, JavaScript and TypeScript today. <Link href="/roadmap" className="text-brand hover:underline">See the roadmap</Link></p>
-        </Container>
-      </section>
-
-      {/* 6 — Demo */}
-      <section id="demo" aria-labelledby="demo-title" className="scroll-mt-20 py-20 md:py-24">
-        <Container>
-          <Reveal className="mb-12 text-center">
-            <Title id="demo-title" center>See TrustCode in action.</Title>
-            <p className="mt-4 text-muted">A simulated scan with sample results. Nothing runs in your browser.</p>
-          </Reveal>
-          <Reveal><ProjectScanDemo /></Reveal>
+          <p className="mt-6 text-sm text-dim">Language-aware rules for Python, JavaScript, TypeScript, PHP and Java. <Link href="/roadmap" className="text-brand hover:underline">See the roadmap</Link></p>
         </Container>
       </section>
 

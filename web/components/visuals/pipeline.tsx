@@ -3,12 +3,12 @@ import { StatusBadge } from '@/components/landing/badges';
 import type { Status } from '@/lib/capabilities';
 
 // Illustration: code → scan → review → deploy, with a beam travelling along the connectors.
-// The deploy step is a planned gate, so its node is drawn dashed and labelled.
+// A step whose capability is not available yet is drawn dashed and labelled.
 const STEPS: { label: string; note: string; icon: (p: { className?: string }) => React.ReactNode; status: Status; tone: string }[] = [
   { label: 'Code', note: 'Changes tracked', icon: CodeIcon, status: 'available', tone: 'from-[#4F7BFF] to-[#6C6BFF]' },
   { label: 'Scan', note: 'Every changed file', icon: ShieldIcon, status: 'available', tone: 'from-[#6C6BFF] to-[#A97CFF]' },
   { label: 'Review', note: 'Evidence at the line', icon: EyeIcon, status: 'available', tone: 'from-[#38E1FF] to-[#4F7BFF]' },
-  { label: 'Deploy', note: 'Policy gate', icon: RocketIcon, status: 'planned', tone: '' },
+  { label: 'Deploy', note: 'Hooks, CI, policy', icon: RocketIcon, status: 'available', tone: 'from-[#4FD1B5] to-[#38E1FF]' },
 ];
 
 export function Pipeline() {

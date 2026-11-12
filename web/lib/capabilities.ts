@@ -1,10 +1,10 @@
 // Single source of truth for what the website says TrustCode can do.
-// Status was checked against the extension (extension/package.json 0.6.0, extension/src/session) and the
-// verification worker (verification-worker/trustcode_worker) on 2026-11-12. Change a status only when the
-// capability ships and has been tested — never because the marketing copy needs it.
-//   available       implemented in the released extension / engine
+// Checked against extension 0.9.0 and the local scanner (docs/security_scanner.md, docs/TRUSTCODE_TRUST_AND_PRIVACY.md,
+// verification-worker/trustcode_worker/scan/) on 2026-11-12. Change a status only when the capability ships and
+// has been tested — never because the marketing copy needs it.
+//   available       implemented in the current extension / scanner
 //   in-development  code exists in the repository but is not released or not finished
-//   planned         researched (docs/AI_AGENT_SECURITY_RESEARCH.md) or intended; no implementation yet
+//   planned         researched or intended; no implementation yet
 
 export type Status = 'available' | 'in-development' | 'planned';
 
@@ -27,55 +27,55 @@ export const ROADMAP: { group: string; items: Capability[] }[] = [
   {
     group: 'Scanning scope',
     items: [
-      { name: 'Selection and file checks', detail: 'Check selected code or the current file from the editor.', status: 'available' },
-      { name: 'Whole-workspace scan', detail: 'Scan the files in the workspace, up to a configurable limit (200 by default). Files over the limit are listed as not analysed.', status: 'available' },
-      { name: 'Git-changed files and chosen files', detail: 'Scan only what Git reports as changed, or a set of files you pick.', status: 'available' },
-      { name: 'Java and PHP rules', detail: 'Rule sets for Java and PHP projects. Python, JavaScript and TypeScript are supported today.', status: 'in-development' },
+      { name: 'Whole-workspace scan', detail: 'The Security tab scans every included file in the project on your machine: source, configuration, environment files, manifests, CI workflows and agent settings.', status: 'available' },
+      { name: 'Changed, new, staged and outgoing files', detail: 'Scan only what changed, files Git does not track yet, the staged content of a commit, or the files in outgoing commits.', status: 'available' },
+      { name: 'Selection and file checks', detail: 'Check selected code or the current file from the editor (Verify tab).', status: 'available' },
+      { name: 'Five languages', detail: 'Language-aware rules for Python, JavaScript, TypeScript, PHP and Java. Other text files get credential and configuration patterns only.', status: 'available' },
     ],
   },
   {
     group: 'Change monitoring',
     items: [
-      { name: 'Workspace change tracking', detail: 'Records files created, modified and deleted during a session, including edits made outside VS Code. Works without Git.', status: 'available' },
-      { name: 'Automatic checks after changes', detail: 'Check session changes on save, after a batch of changes, after inactivity or when a session ends.', status: 'available' },
-      { name: 'Agent completion signal', detail: 'A hook that tells TrustCode an agent has finished. Set up for Claude Code today.', status: 'available' },
-      { name: 'Completion signals for more agents', detail: 'Hooks for Cursor, Codex, Gemini CLI, GitHub Copilot and others.', status: 'planned' },
-      { name: 'Commits made by agents', detail: 'Check changes that agents such as Aider commit on their own.', status: 'planned' },
+      { name: 'Workspace change tracking', detail: 'Notices files created, modified and deleted by any tool, including terminals and agents outside VS Code. Works without Git.', status: 'available' },
+      { name: 'Automatic checks after changes', detail: 'Rescans once file changes settle. Unchanged files come from a content-hash cache.', status: 'available' },
+      { name: 'Agent completion signal', detail: 'Any agent that can run a command when it finishes can tell TrustCode by writing a small signal file. Without it, TrustCode waits for changes to settle.', status: 'available' },
+      { name: 'Ready-made hooks for each agent', detail: 'One-click hook set-up for Cursor, Codex, Gemini CLI, GitHub Copilot and others.', status: 'planned' },
     ],
   },
   {
     group: 'Security detection',
     items: [
-      { name: 'Security pattern rules', detail: 'Semgrep rules mapped to CWE and OWASP: SQL and command injection, unsafe deserialization, weak hashing and more.', status: 'available' },
-      { name: 'Credential formats in code', detail: 'Known key formats such as AWS, GitHub, Stripe, Google, OpenAI and Anthropic keys, and private-key blocks. Matches are masked.', status: 'available' },
-      { name: 'Package existence check', detail: 'Flags imported packages that cannot be found on PyPI or npm, a sign of a hallucinated dependency.', status: 'available' },
-      { name: 'Data-flow (taint) rules', detail: 'Follows user input into SQL, shell, file paths, URLs (SSRF), templates and HTML output.', status: 'in-development' },
-      { name: 'Auth, JWT, CORS and cookie rules', detail: 'JWT verification disabled, wildcard CORS with credentials, insecure session cookies, sensitive routes without middleware.', status: 'in-development' },
-      { name: 'Environment and key files', detail: 'Checking .env and key files locally, without sending them anywhere. Today they are excluded from checks by default.', status: 'planned' },
-      { name: 'Known-vulnerable dependencies', detail: 'Match dependency versions against public advisories (OSV).', status: 'planned' },
-      { name: 'Docker, cloud and CI/CD configuration', detail: 'Dockerfiles, Kubernetes, Terraform and GitHub Actions workflows.', status: 'planned' },
-      { name: 'Agent configuration files', detail: 'Warn when agent or editor settings that can run commands are changed (.vscode/settings.json, MCP configs, agent hooks).', status: 'planned' },
-      { name: 'Removed safeguards', detail: 'Compare before and after to catch removed auth checks, skipped tests and new scanner suppressions.', status: 'planned' },
+      { name: 'Security pattern rules', detail: 'Semgrep rules mapped to CWE and OWASP: SQL and command injection, unsafe deserialization, weak cryptography and more.', status: 'available' },
+      { name: 'Data-flow (taint) rules', detail: 'Follows request data into SQL, shell commands, file paths, URLs, templates and HTML output within a file.', status: 'available' },
+      { name: 'Auth, JWT, CORS and cookie rules', detail: 'JWT verification disabled, wildcard CORS with credentials, insecure cookies, sensitive routes without a guard.', status: 'available' },
+      { name: 'Credential formats in code', detail: 'Provider keys, private keys, credentials in URLs; optional Gitleaks as a second detector. Matches are redacted.', status: 'available' },
+      { name: 'Environment and key files', detail: '.env files are checked on your machine, even when Git ignores them, and never sent anywhere.', status: 'available' },
+      { name: 'Package existence check', detail: 'Flags imported packages that cannot be found on PyPI or npm (Verify tab).', status: 'available' },
+      { name: 'Known-vulnerable dependencies', detail: 'Dependency versions matched against OSV advisories. Opt-in: sends package names and versions only.', status: 'available' },
+      { name: 'Docker, cloud and CI/CD configuration', detail: 'Dockerfiles, privileged Kubernetes workloads, wildcard IAM policies and risky GitHub Actions workflows.', status: 'available' },
+      { name: 'Agent configuration files', detail: 'Agents allowed to run tools without approval, MCP server commands, auto-run hooks and hidden Unicode.', status: 'available' },
+      { name: 'Removed safeguards', detail: 'Compared with the last commit: removed auth guards, skipped or deleted tests, removed ignore rules, weakened CI steps.', status: 'available' },
       { name: 'Cross-file analysis', detail: 'Follow data across files and modules.', status: 'planned' },
+      { name: 'Route authorization checks', detail: 'Object-level access (IDOR), role escalation and rate limiting.', status: 'planned' },
     ],
   },
   {
     group: 'Workflow gates',
     items: [
-      { name: 'Pre-commit checks', detail: 'Check staged changes before a commit.', status: 'planned' },
-      { name: 'Pre-push checks', detail: 'Check outgoing changes against your policy before a push.', status: 'planned' },
-      { name: 'CI/CD integration', detail: 'Run the same checks in a pipeline and publish results as SARIF.', status: 'planned' },
-      { name: 'Severity-based blocking', detail: 'Choose which severities block a commit, push or deployment.', status: 'planned' },
+      { name: 'Pre-commit checks', detail: 'A Git hook scans the staged content. It never replaces an existing hook.', status: 'available' },
+      { name: 'Pre-push checks', detail: 'A Git hook scans the files in outgoing commits.', status: 'available' },
+      { name: 'CI/CD integration', detail: 'CI and production modes with SARIF output; an incomplete scan blocks.', status: 'available' },
+      { name: 'Severity-based blocking', detail: 'Choose which severity and confidence block a commit, push, CI run or production scan.', status: 'available' },
     ],
   },
   {
     group: 'Findings and privacy',
     items: [
-      { name: 'Evidence and not-checked list', detail: 'Every finding shows file, line, rule and reason. Anything no check covered is listed.', status: 'available' },
-      { name: 'Copy a fix prompt for your agent', detail: 'Hand the findings back to your coding agent as a ready-made prompt.', status: 'available' },
-      { name: 'Local mode', detail: 'Run the TrustCode backend on your own machine, with no account.', status: 'available' },
-      { name: 'Confidence levels', detail: 'Label each finding Confirmed, Strongly suspected or Potential, separately from severity.', status: 'planned' },
-      { name: 'Scanning entirely inside the editor', detail: 'Run the checks in VS Code with nothing sent to a server.', status: 'planned' },
+      { name: 'Evidence and not-checked list', detail: 'Every finding shows file, exact range, rule and redacted evidence. Every report lists what was skipped and why.', status: 'available' },
+      { name: 'Confidence levels', detail: 'Confirmed, strongly suspected or potential, separate from severity.', status: 'available' },
+      { name: 'Reviews and baselines', detail: 'Mark a finding as a reviewed false positive (who, when, why) or accept existing findings as a baseline.', status: 'available' },
+      { name: 'Scanning entirely inside the editor', detail: 'The Security tab runs on your machine. Nothing is uploaded and no account is needed.', status: 'available' },
+      { name: 'Copy a fix prompt for your agent', detail: 'Hand findings back to your coding agent as a ready-made prompt.', status: 'available' },
     ],
   },
 ];

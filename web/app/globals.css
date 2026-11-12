@@ -152,3 +152,10 @@ details[open]::details-content { block-size: auto; }
 
 /* Page width: grows with the screen up to 1600px; side padding scales from 20px (phones) to 80px (large screens). */
 .wrap { width: 100%; max-width: 100rem; margin-inline: auto; padding-inline: clamp(1.25rem, 4vw, 5rem); }
+
+/* ---- Walkthrough player ---- */
+.tc-range::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; border-radius: 999px; background: #fff; box-shadow: 0 0 0 4px rgba(56,225,255,.35); }
+.tc-range::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 999px; background: #fff; box-shadow: 0 0 0 4px rgba(56,225,255,.35); }
+.tc-range:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; border-radius: 6px; }
+@keyframes tc-chapter { 0% { opacity: 0; transform: translateY(-6px); } 15%, 80% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+.chapter-card { animation: tc-chapter 2.2s ease-out both; }

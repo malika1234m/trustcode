@@ -96,9 +96,26 @@ The homepage presents TrustCode as a project-wide security scanner, told mostly 
 | Workspace scan | `components/visuals/workspace-scan.tsx` | File tree plus a grid of file tiles: new, modified, findings, not checked; a beam sweeps across |
 | Agent hub | `components/visuals/agent-hub.tsx` | Agent names (plain text, no logos) connected to a central TrustCode shield; stacks on phones |
 | Pipeline | `components/visuals/pipeline.tsx` | Code → Scan → Review → Deploy with travelling beams; Deploy is drawn dashed (coming soon) |
-| Demo | `components/landing/project-scan-demo.tsx` | Simulated scan in an editor: findings by severity, exact line highlight, inline finding card |
+| Walkthrough | `components/walkthrough/` | A 78-second, seven-scene product film rendered as live UI (see below) |
 | Closing backdrop | `public/visuals/shield-glow.svg` | Static shield and rings behind the final call to action |
 
 **Motion:** ambient loops (scan sweeps, flowing connectors, soft pulses, drifting chips) are slow and low-contrast. Every animation's resting frame is the finished illustration, and `prefers-reduced-motion` disables all of them through the global rule in `globals.css`. Keyframes: `tc-sweep`, `tc-sweep-x`, `tc-flag`, `tc-pop`, `tc-dash`, `tc-drift`, `tc-pulse`, `tc-beam`.
 
 The earlier selected-code components (`inspector.tsx`, `tilt-card.tsx`, `features.tsx`, `versus.tsx`) are no longer used by the homepage.
+
+## Walkthrough (`components/walkthrough/`)
+
+A video-style, interactive demonstration placed right after the hero (`#demo`). `script.ts` is the storyboard: scenes,
+durations, captions, camera moves and all sample data. `walkthrough.tsx` is the player.
+
+- **Truthful by construction.** Rule IDs, severities, confidence levels, engines, policy defaults and the "not checked" list
+  come from the real scanner (`docs/security_scanner.md`). Files, findings and numbers are invented, and the player is
+  labelled "Simulated demo · sample data". Update `script.ts` when the scanner's behaviour changes.
+- **One continuous stage.** A 1120×630 VS Code-style workspace scaled to fit like a video frame; a virtual camera
+  (`Scene.camera`) pans and zooms between regions while playing. Paused or exploring shows the full frame.
+- **Controls.** Play/pause, replay, previous/next scene, scrubbable timeline with chapter ticks, chapter buttons,
+  captions (lower thirds), full screen where supported. Keys: Space/K, ←/→, C, F.
+- **Interaction.** Any click on the simulated interface pauses the film and shows the visitor's choice (open files,
+  findings, severity filters, engines, pipeline stages). "Explore yourself" turns the clock off and shows each scene complete.
+- **Phones** get a focused panel per scene instead of the scaled stage. **Reduced motion** disables the camera,
+  chapter cards and all CSS animation; captions and controls are unchanged. No audio.

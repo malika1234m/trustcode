@@ -1,6 +1,8 @@
 // Security scan controller: starts the local scanner, shows findings at their exact ranges, and keeps the
 // project scanned as files change. The scanner is a local program (trustcode-scan); nothing is uploaded.
 import { ChildProcess, execFile } from 'child_process';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { GroupBy, neighbour, parseReport, SecFinding, SecReport, SecurityModel, visible } from './model';
 
@@ -14,7 +16,8 @@ const IGNORED_EVENT = /(^|[\\/])(\.git|\.trustcode|node_modules|\.venv|venv|dist
 
 export class SecurityController implements vscode.Disposable {
   report?: SecReport;
-  scanning?: { mode: string };
+  scanning?: { mode: string; detail?: string; done?: number; total?: number };
+  private progressTimer?: NodeJS.Timeout;
   error?: string;
   groupBy: GroupBy = 'severity';
   private availability: SecurityModel['availability'] = 'ready';
@@ -43,11 +46,46 @@ export class SecurityController implements vscode.Disposable {
   private command(): string { return this.cfg().get<string>('scanner.path', 'trustcode-scan') || 'trustcode-scan'; }
 
   /** Runs the scanner with an argument array (never through a shell) and returns its standard output. */
+  /**
+   * Absolute path of the scanner. A bare command name is looked up in PATH by this code - never in the
+   * workspace folder (which some platforms search first) - and a path inside the workspace is refused.
+   */
+  private resolveScanner(): string | undefined {
+    const cmd = this.command();
+    const root = this.root();
+    const inside = (p: string) => !!root && (p === root || p.startsWith(root + path.sep));
+    const usable = (p: string) => { try { return path.isAbsolute(p) && !inside(p) && fs.statSync(p).isFile(); } catch { return false; } };
+    if (cmd.includes('/') || cmd.includes('\\')) return usable(cmd) ? cmd : undefined;
+    const exts = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
+    for (const dir of (process.env.PATH ?? '').split(path.delimiter)) {
+      if (!dir || !path.isAbsolute(dir)) continue;
+      for (const e of exts) if (usable(path.join(dir, cmd + e))) return path.join(dir, cmd + e);
+    }
+    return undefined;
+  }
+
   private run(args: string[], input?: string): Promise<{ code: number | null; stdout: string; stderr: string; missing: boolean }> {
+    // Every path that starts the scanner goes through here, so the trust check cannot be skipped by a new caller.
+    if (!vscode.workspace.isTrusted || !this.root()) return Promise.resolve({ code: null, stdout: '', stderr: 'The workspace is not trusted: the scanner was not started.', missing: false });
+    const exe = this.resolveScanner();
+    if (!exe) return Promise.resolve({ code: null, stdout: '', stderr: 'scanner not found', missing: true });
     return new Promise((resolve) => {
-      const child = execFile(this.command(), args, { cwd: this.root(), maxBuffer: 256 * 1024 * 1024, timeout: Math.max(60, this.cfg().get<number>('scanner.timeoutSeconds', 900)) * 1000 },
+      const child = execFile(exe, args, { cwd: this.root(), env: { ...process.env, TRUSTCODE_PROGRESS: '1' }, maxBuffer: 256 * 1024 * 1024, timeout: Math.max(60, this.cfg().get<number>('scanner.timeoutSeconds', 900)) * 1000 },
         (err: any, stdout, stderr) => resolve({ code: err ? (typeof err.code === 'number' ? err.code : null) : 0, stdout: String(stdout), stderr: String(stderr), missing: err?.code === 'ENOENT' }));
       this.proc = child;
+      child.stderr?.on('data', (chunk: Buffer | string) => {
+        // progress lines only; they carry a short message and two numbers, validated before use
+        const line = String(chunk).split('\n').reverse().find((l) => l.startsWith('TRUSTCODE_PROGRESS '));
+        if (!line || !this.scanning) return;
+        try {
+          const p = JSON.parse(line.slice(19));
+          this.scanning.detail = typeof p.message === 'string' ? p.message.slice(0, 80) : undefined;
+          this.scanning.done = Number.isFinite(p.done) ? Math.max(0, p.done) : 0;
+          this.scanning.total = Number.isFinite(p.total) ? Math.max(0, p.total) : 0;
+          clearTimeout(this.progressTimer);
+          this.progressTimer = setTimeout(() => this.refresh(), 200);
+        } catch { /* not a progress line */ }
+      });
       if (input !== undefined) child.stdin?.end(input); else child.stdin?.end();
     });
   }
@@ -205,6 +243,34 @@ export class SecurityController implements vscode.Disposable {
     }
     await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(uri));
     vscode.window.showInformationMessage('TrustCode: "disabled_rules" takes rule IDs, "exclude" takes path patterns. Save, then rescan. Rule IDs are listed with: trustcode-scan rules');
+  }
+
+  /** Turns one rule off or on for this project by editing .trustcode/config.json, then rescans. */
+  async toggleRule(ruleId: string, disable: boolean): Promise<void> {
+    const root = this.root();
+    if (!root || !/^[A-Za-z0-9._-]{1,80}$/.test(ruleId)) return;
+    if (disable) {
+      const ok = await vscode.window.showWarningMessage(`Stop reporting rule ${ruleId} in this project? Every finding from this rule disappears from reports, including in the Git and CI gates. The change is recorded in .trustcode/config.json.`,
+        { modal: true }, 'Disable rule');
+      if (ok !== 'Disable rule') return;
+    }
+    const dir = vscode.Uri.joinPath(vscode.Uri.file(root), '.trustcode');
+    const uri = vscode.Uri.joinPath(dir, 'config.json');
+    let cfg: any = {};
+    try { cfg = JSON.parse(Buffer.from(await vscode.workspace.fs.readFile(uri)).toString('utf8')); } catch { cfg = {}; }
+    if (!cfg || typeof cfg !== 'object' || Array.isArray(cfg)) cfg = {};
+    const set = new Set<string>(Array.isArray(cfg.disabled_rules) ? cfg.disabled_rules.filter((x: unknown) => typeof x === 'string') : []);
+    if (disable) set.add(ruleId); else set.delete(ruleId);
+    cfg.disabled_rules = [...set].sort();
+    await vscode.workspace.fs.createDirectory(dir);
+    await vscode.workspace.fs.writeFile(uri, Buffer.from(JSON.stringify(cfg, null, 2) + '\n', 'utf8'));
+    await this.scan(this.lastMode, { noCache: true, quiet: true });
+  }
+
+  /** First scan of a session, without being asked: so a project is covered as soon as it is opened. */
+  startup() {
+    if (!this.cfg().get('scanner.scanOnStartup', true) || !this.root() || !vscode.workspace.isTrusted) return;
+    setTimeout(() => { if (!this.report && !this.scanning) void this.scan('full', { quiet: true }).catch(() => undefined); }, 4000);
   }
 
   private async loadHooks() {

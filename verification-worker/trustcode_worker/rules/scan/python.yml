@@ -362,3 +362,24 @@ rules:
   - pattern: lxml.etree.XMLParser(..., resolve_entities=True, ...)
   - pattern: etree.XMLParser(..., resolve_entities=True, ...)
   metadata: {category: xxe, trustcode_severity: high, confidence: strong, title: XML external entities enabled, cwe: [CWE-611], owasp: ['A05:2021 Security Misconfiguration']}
+- id: py-flask-sensitive-route-without-guard
+  languages: [python]
+  severity: INFO
+  message: A route with a sensitive-looking path has no decorator besides the route itself - no authentication guard on the handler. Protection may exist elsewhere (blueprint or before_request).
+  patterns:
+  - pattern: |
+      @$APP.route("$PATH", ...)
+      def $F(...):
+          ...
+  - pattern-not: |
+      @$APP.route("$PATH", ...)
+      @$GUARD
+      def $F(...):
+          ...
+  - pattern-not: |
+      @$APP.route("$PATH", ...)
+      @$GUARD(...)
+      def $F(...):
+          ...
+  - metavariable-regex: {metavariable: $PATH, regex: '.*(admin|internal|/delete).*'}
+  metadata: {category: authorization, trustcode_severity: medium, confidence: review, title: Sensitive route without an auth guard, cwe: [CWE-306, CWE-862], owasp: ['A01:2021 Broken Access Control']}

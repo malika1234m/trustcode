@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.0
+
+- **Weakened controls are reported from the change itself**: removed authentication guards, skipped or deleted
+  tests, removed secret-protecting ignore rules, and CI security steps that were removed or made unable to fail.
+- More rules: missing guards on sensitive Flask routes and state-changing Spring endpoints (needs review),
+  unencrypted HTTP endpoints, public cloud resources in Terraform, plus logging of credentials, stack traces in
+  responses, XXE, `postMessage` to any origin, client-named uploads, Kubernetes and IAM misconfiguration.
+- **Disable / enable a rule** from a finding or the Scanners section; **Rules & exclusions** opens the policy file.
+- Real scan progress (phase and file counts), a **New files** scan, optional Git-history credential scan.
+- A full scan now starts shortly after a trusted folder is opened (`trustcode.scanner.scanOnStartup`).
+- Optional Bandit integration; the dependency advisory lookup was verified against the live service.
+- Hardening: scanners run isolated from the project, changes to the policy files are themselves reported,
+  copied evidence is redacted, and the scanner is only started in trusted workspaces from a path outside the workspace.
+
 ## 0.7.0
 
 - **Security tab: scan the whole project locally.** No account and no upload. Covers tracked and untracked files,

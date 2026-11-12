@@ -187,9 +187,26 @@ The 21 frozen study rules and the extended rule file also run and are mapped to 
 - `trustcode-scan config` prints the default policy; the extension's **Rules & exclusions…** button creates and opens `.trustcode/config.json`.
 - Added since the first version: credential-like values in logs, stack traces in responses, XXE, `postMessage` to any origin, uploads stored under a client-supplied name, Kubernetes privileged workloads (TC-K8S-001), wildcard IAM policies (TC-IAM-001).
 
+## Weakened controls (compared with the last commit)
+
+When Git is available the scanner also reads the change itself (`git diff`) and reports controls that were
+removed or switched off: an authentication guard removed (TC-REG-001), a test skipped or deleted (TC-REG-003),
+a secret-protecting `.gitignore` rule removed (TC-REG-005), a CI security step removed or made unable to fail
+(TC-REG-008). A guard that is replaced by another guard in the same hunk is not reported.
+
+## Protecting the gate itself
+
+- A change to `.trustcode/config.json`, `reviewed.json` or `baseline.json` is reported as TC-REG-009. It cannot be
+  disabled or marked as reviewed. In CI pass `--base <target branch>` so pull requests are compared with the
+  branch they merge into; after a maintainer has reviewed the change, run once with `--allow-policy-change`.
+- Scanners run isolated from the project: Python tools start in isolated mode from a neutral directory, file
+  names are passed so they cannot be read as options, and project-supplied scanner configuration is ignored.
+- Evidence copied from a source line is redacted before it is stored or shown.
+- The extension starts the scanner only in trusted workspaces and only from an absolute path outside the workspace.
+
 ## Not implemented
 
 Authorization of individual routes (IDOR / object-level access, role escalation), rate limiting, missing input
-validation, excessive data exposure, missing environment-variable validation, second-order SQL injection, removed-guard and test-tampering regressions (TC-REG-001/003/005–009), Kubernetes / Terraform
+validation, excessive data exposure, missing environment-variable validation, second-order SQL injection, Kubernetes / Terraform
 rules beyond the two above, secrets in build artifacts, cross-file data flow, live verification of secrets, and languages other than
 the five above. Every report lists the first three and "runtime behaviour" as checks that were not performed.

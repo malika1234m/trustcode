@@ -608,3 +608,54 @@ app.delete("/admin/users/:id", requireAdmin, async (req, res) => {
   res.end();
 });
 """)
+
+# ---------------------------------------------------------------- missing guards (Flask, Spring), plain HTTP, public cloud resources
+case("authz-flask-admin", "authorization", "authz/admin.py", """
+@app.route("/admin/users/<int:user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    return remove(user_id)
+""", at='@app.route("/admin/users')
+case("authz-flask-safe", "authorization", "authz_safe/admin.py", """
+@app.route("/admin/users/<int:user_id>", methods=["DELETE"])
+@login_required
+def delete_user(user_id):
+    return remove(user_id)
+""")
+case("authz-flask-public-ok", "authorization", "authz_safe/public.py", """
+@app.route("/health")
+def health():
+    return "ok"
+""")
+case("authz-spring-delete", "authorization", "authz/UserController.java", """
+class UserController {
+  @DeleteMapping("/users/{id}")
+  public void delete(@PathVariable Long id) { service.delete(id); }
+}
+""", at="@DeleteMapping")
+case("authz-spring-safe", "authorization", "authz_safe/UserController.java", """
+class UserController {
+  @PreAuthorize("hasRole('ADMIN')")
+  @DeleteMapping("/users/{id}")
+  public void delete(@PathVariable Long id) { service.delete(id); }
+}
+""")
+case("net-http-endpoint", "configuration", "net/client.py", """
+API_BASE = "http://api.payments-partner.com/v1"
+""", at="API_BASE")
+case("net-http-safe", "configuration", "net_safe/client.py", """
+API_BASE = "https://api.payments-partner.com/v1"
+LOCAL = "http://localhost:8000"
+SCHEMA = "http://www.w3.org/2001/XMLSchema"
+""")
+case("cloud-public-bucket", "infrastructure", "infra/storage.tf", """
+resource "aws_s3_bucket_acl" "data" {
+  bucket = aws_s3_bucket.data.id
+  acl    = "public-read"
+}
+""", at='acl    = "public-read"')
+case("cloud-private-bucket", "infrastructure", "infra_safe/storage.tf", """
+resource "aws_s3_bucket_acl" "data" {
+  bucket = aws_s3_bucket.data.id
+  acl    = "private"
+}
+""")

@@ -17,6 +17,7 @@ export interface SecReport {
   tools: Array<{ name: string; role: string; installed: boolean; version?: string; status: string; detail: string }>; notes: string[];
   baseline: { present: boolean; resolved: number; notRevalidated: number; suppressed: number };
   gate: { decision: string; reasons: string[] };
+  disabledRules: string[];
 }
 
 const str = (v: unknown, max = 400) => (typeof v === 'string' ? v.slice(0, max) : '');
@@ -54,6 +55,7 @@ export function parseReport(text: string): SecReport | undefined {
     notes: list(d.notes).map((n: unknown) => str(n, 500)).filter(Boolean),
     baseline: { present: d.baseline?.present === true, resolved: list(d.baseline?.resolved).length, notRevalidated: list(d.baseline?.not_revalidated).length, suppressed: num(d.baseline?.suppressed) },
     gate: { decision: str(d.gate?.decision, 20), reasons: list(d.gate?.reasons).map((r: unknown) => str(r, 500)) },
+    disabledRules: list(d.disabled_rules).map((x: unknown) => str(x, 80)).filter((x: string) => /^[A-Za-z0-9._-]+$/.test(x)).slice(0, 200),
   };
 }
 
@@ -78,7 +80,7 @@ export function neighbour(findings: SecFinding[], at: { path?: string; line: num
 
 export type GroupBy = 'severity' | 'file' | 'category';
 export interface SecurityModel {
-  availability: 'ready' | 'missing' | 'untrusted' | 'no-workspace'; scanning?: { mode: string }; report?: SecReport; error?: string; groupBy: GroupBy;
+  availability: 'ready' | 'missing' | 'untrusted' | 'no-workspace'; scanning?: { mode: string; detail?: string; done?: number; total?: number }; report?: SecReport; error?: string; groupBy: GroupBy;
   automatic: boolean; scannerCommand: string; hooks?: Record<string, string>; online: boolean;
 }
 const CONFIDENCE: Record<string, [string, string]> = { confirmed: ['Confirmed', 'st-failed'], strongly_suspected: ['Strongly suspected', 'st-issue'], potential: ['Needs review', 'st-review'] };
@@ -96,7 +98,8 @@ export function findingRow(f: SecFinding): string {
     <p class="sec-reason">${esc(f.reason)}</p>
     ${f.evidence ? `<pre class="sec-ev">${esc(f.evidence)}</pre>` : ''}
     <p class="muted small">${esc(f.ruleId)} · ${esc(f.source)}${f.alsoReportedBy.length ? ` · also ${esc(f.alsoReportedBy.join(', '))}` : ''}${f.remediation ? ` · Fix: ${esc(f.remediation)}` : ''}</p>
-    <div class="f-actions"><button class="mini" data-action="secReview" data-finding="${esc(f.fingerprint)}">Mark as reviewed false positive…</button></div></li>`;
+    <div class="f-actions"><button class="mini" data-action="secReview" data-finding="${esc(f.fingerprint)}">Mark as reviewed false positive…</button>
+      <button class="mini" data-action="secDisableRule" data-key="${esc(f.ruleId)}" title="Stop reporting this rule in this project (recorded in .trustcode/config.json)">Disable rule ${esc(f.ruleId)}…</button></div></li>`;
 }
 
 export function findingsPanel(r: SecReport, groupBy: GroupBy): string {
@@ -141,6 +144,8 @@ export function securityPage(m: SecurityModel): string {
   }
   const r = m.report;
   const progress = busy ? `<section class="card progress" aria-busy="true"><div class="spinner" aria-hidden="true"></div><div><strong>Scanning — ${esc(MODE[m.scanning!.mode] ?? m.scanning!.mode)}…</strong>
+    ${m.scanning!.detail ? `<div class="muted small">${esc(m.scanning!.detail)}${m.scanning!.total ? ` — ${m.scanning!.done ?? 0} of ${m.scanning!.total} files` : ''}</div>` : ''}
+    ${m.scanning!.total ? `<progress max="${m.scanning!.total}" value="${m.scanning!.done ?? 0}" aria-label="Scan progress"></progress>` : ''}
     <div class="row"><button data-action="secCancel">Cancel</button></div></div></section>` : '';
   if (!r) {
     return `${progress}${controls}${m.error ? `<section class="card alert" role="alert"><p>${esc(m.error)}</p></section>` : ''}
@@ -179,6 +184,7 @@ export function securityPage(m: SecurityModel): string {
       <ul class="plain">${excluded.map(([reason, n]) => `<li>${n} — ${esc(reason)}${r.files.samples[reason]?.length ? ` <span class="muted small">(${esc(r.files.samples[reason].slice(0, 3).join(', '))}${n > 3 ? '…' : ''})</span>` : ''}</li>`).join('') || '<li class="muted">nothing was excluded</li>'}</ul></details>
     <details class="card"><summary class="card-title">Scanners and Git gates</summary>
       <ul class="plain">${r.tools.map((t) => `<li><span class="chip ${t.status === 'ready' ? 'st-notrun' : t.installed ? 'st-review' : 'st-failed'}">${esc(t.status)}</span> <strong>${esc(t.name)}</strong> <span class="muted small">${esc(t.version ?? '')} — ${esc(t.role)}${t.detail ? `. ${esc(t.detail)}` : ''}</span></li>`).join('')}</ul>
+      ${r.disabledRules.length ? `<div class="card-title">Disabled rules (${r.disabledRules.length})</div><ul class="plain">${r.disabledRules.map((id) => `<li><code>${esc(id)}</code> <button class="mini" data-action="secEnableRule" data-key="${esc(id)}">Enable</button></li>`).join('')}</ul>` : ''}
       ${m.hooks ? `<div class="card-title">Git hooks</div><ul class="plain">${Object.entries(m.hooks).map(([k, v]) => `<li><strong>${esc(k)}</strong>: ${esc(v)}</li>`).join('')}</ul>` : ''}
       <div class="row"><button data-action="secHooks">Install Git hooks…</button><button data-action="secCi">CI workflow example</button><button data-action="secSettings">Scanner settings…</button><button data-action="secConfig">Rules &amp; exclusions…</button></div>
       <p class="muted small">Hooks are only written when no other hook exists. A local hook can be skipped with <code>--no-verify</code>, so use the CI workflow as the backstop.</p></details>`;

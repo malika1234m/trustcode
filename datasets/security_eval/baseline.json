@@ -1,10 +1,10 @@
 {
  "note": "Recorded by scripts/security_eval/evaluate_scanner.py. Regenerate deliberately.",
  "overall": {
-  "cases": 96,
-  "tp": 59,
+  "cases": 105,
+  "tp": 63,
   "fp": 0,
-  "tn": 37,
+  "tn": 42,
   "fn": 0,
   "precision": 1.0,
   "recall": 1.0,
@@ -299,6 +299,33 @@
    "detected": true
   },
   "authz-express-safe": {
+   "flagged": false
+  },
+  "authz-flask-admin": {
+   "detected": true
+  },
+  "authz-flask-safe": {
+   "flagged": false
+  },
+  "authz-flask-public-ok": {
+   "flagged": false
+  },
+  "authz-spring-delete": {
+   "detected": true
+  },
+  "authz-spring-safe": {
+   "flagged": false
+  },
+  "net-http-endpoint": {
+   "detected": true
+  },
+  "net-http-safe": {
+   "flagged": false
+  },
+  "cloud-public-bucket": {
+   "detected": true
+  },
+  "cloud-private-bucket": {
    "flagged": false
   }
  }

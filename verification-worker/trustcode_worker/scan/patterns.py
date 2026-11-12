@@ -300,6 +300,105 @@ def infrastructure(path: str, text: str) -> Iterator[Raw]:
                 yield ("TC-IAM-001", i, m.start() + 1, i, m.end() + 1, line.strip()[:160], "The policy grants every action, and the same document grants every resource.", {})
 
 
+GUARD = re.compile(r"@login_required|@permission_required|@jwt_required|@requires_auth|Depends\(\s*get_current_user|@PreAuthorize|@Secured|@RolesAllowed|"
+                   r"\[Authorize|@UseGuards|\brequireAuth\b|\bisAuthenticated\b|\bensureLoggedIn\b|\bauthenticate\(|\bverifyToken\b|\bauthMiddleware\b")
+OPEN_ACCESS = re.compile(r"\bAllowAny\b|@PermitAll|\[AllowAnonymous\]|\bauth:\s*false\b|@csrf_exempt")
+TEST_SKIP = re.compile(r"\b(it|test|describe)\.(skip|only)\(|\bx(it|describe)\(|@pytest\.mark\.(skip|xfail)|@unittest\.skip|@Disabled\b|\bt\.Skip\(|--passWithNoTests")
+TEST_PATH = re.compile(r"(?i)(^|/)(tests?|__tests__|spec)/|(^|/)test_[^/]+\.py$|_test\.(py|go)$|\.(test|spec)\.[cm]?[jt]sx?$")
+IGNORE_SECRET = re.compile(r"\.env|\.pem|\.key\b|tfstate|secrets?|id_rsa|credentials")
+CI_SCANNER = re.compile(r"codeql-action|trivy-action|semgrep|dependency-review-action|gitleaks|trustcode-scan|snyk|bandit")
+
+
+def regressions(diff_text: str) -> Iterator[tuple[str, str, int, str, str, dict]]:
+    """Weakened security controls in a unified diff (`git diff -U0`): (rule, path, line, evidence, reason, extra).
+    A removed guard is not reported when the same hunk adds one back (a guard that was only reworded or moved)."""
+    path = old_path = ""
+    hunk_line = 1
+    removed: list[str] = []
+    added: list[str] = []
+
+    def flush() -> Iterator[tuple]:
+        if not path and not old_path:
+            return
+        p = path or old_path
+        low = p.lower()
+        add_text = "\n".join(added)
+        for ln in removed:
+            if GUARD.search(ln) and not GUARD.search(add_text):
+                yield ("TC-REG-001", p, hunk_line, "removed: " + ln.strip()[:150], "An authentication or authorization guard was removed in this change.", {})
+            if low.endswith(".gitignore") and IGNORE_SECRET.search(ln) and ln.strip() not in add_text:
+                yield ("TC-REG-005", p, hunk_line, "removed: " + ln.strip()[:150], "An ignore rule that keeps secret files out of Git was removed.", {})
+            if "/workflows/" in low and CI_SCANNER.search(ln) and not CI_SCANNER.search(add_text):
+                yield ("TC-REG-008", p, hunk_line, "removed: " + ln.strip()[:150], "A security scanning step was removed from the pipeline.", {})
+        for i, ln in enumerate(added):
+            if OPEN_ACCESS.search(ln):
+                yield ("TC-REG-001", p, hunk_line + i, ln.strip()[:150], "Access was opened to unauthenticated callers in this change.", {"confidence": "potential"})
+            if TEST_PATH.search(p) and TEST_SKIP.search(ln):
+                yield ("TC-REG-003", p, hunk_line + i, ln.strip()[:150], "A test was skipped or narrowed in this change.", {})
+            if low.endswith(".gitignore") and re.match(r"\s*!\s*\.env(\s|$)", ln):
+                yield ("TC-REG-005", p, hunk_line + i, ln.strip()[:150], "An environment file was explicitly un-ignored.", {})
+            if "/workflows/" in low and re.search(r"continue-on-error:\s*true|\bif:\s*false\b|\|\|\s*true\b", ln):
+                yield ("TC-REG-008", p, hunk_line + i, ln.strip()[:150], "A pipeline step was made unable to fail the build.", {"confidence": "potential", "severity": "medium"})
+
+    for line in diff_text.splitlines():
+        if line.startswith("diff --git "):
+            pm = re.search(r" b/(\.trustcode/(config|reviewed|baseline)\.json)$", line)
+            if pm:
+                yield ("TC-REG-009", pm.group(1), 1, f"changed: {pm.group(1)}", "The file that controls what the security gate reports or blocks was changed.", {"file_level": True, "policy": True})
+            yield from flush()
+            path = old_path = ""
+            removed, added = [], []
+        elif line.startswith("--- "):
+            old_path = line[6:] if line.startswith("--- a/") else ""
+        elif line.startswith("+++ "):
+            path = line[6:] if line.startswith("+++ b/") else ""
+            if not path and old_path and TEST_PATH.search(old_path):
+                yield ("TC-REG-003", old_path, 1, f"deleted: {old_path}", "A test file was deleted in this change.", {"file_level": True, "confidence": "potential"})
+        elif line.startswith("@@"):
+            yield from flush()
+            removed, added = [], []
+            m = re.search(r"\+(\d+)", line)
+            hunk_line = max(1, int(m.group(1))) if m else 1
+        elif line.startswith("-") and not line.startswith("---"):
+            removed.append(line[1:])
+        elif line.startswith("+") and not line.startswith("+++"):
+            added.append(line[1:])
+    yield from flush()
+
+
+HTTP_URL = re.compile(r"""['"](http://[A-Za-z0-9.-]+(?::\d+)?[^'"\s]*)['"]""")
+HTTP_OK = re.compile(r"(?i)^http://(localhost|127\.|0\.0\.0\.0|\[?::1|[\w.-]*\.(local|test|internal|example)(/|:|$)|example\.|www\.w3\.org|schemas\.|xmlns|json-schema\.org|"
+                     r"maven\.apache\.org|(xml\.|www\.)?apache\.org/xml|xml\.org/sax|javax\.xml|java\.sun\.com|purl\.org|ns\.adobe\.com|docbook\.org|www\.apache\.org/licenses|169\.254\.)")
+
+
+def network(path: str, text: str) -> Iterator[Raw]:
+    """Plain-HTTP endpoints in code and configuration, and publicly open cloud resources in Terraform."""
+    low = path.lower()
+    if low.endswith((".py", ".js", ".jsx", ".ts", ".tsx", ".php", ".java", ".json", ".yml", ".yaml", ".toml", ".env", ".properties")) or ENV_FILE.search(path):
+        if not low.endswith(("package-lock.json", ".lock")):
+            for i, line in enumerate(text.splitlines(), 1):
+                if len(line) > 2000:
+                    continue
+                m = HTTP_URL.search(line)
+                if m and not HTTP_OK.search(m.group(1)):
+                    yield ("TC-NET-001", i, m.start(1) + 1, i, m.end(1) + 1, line.strip()[:160], "Traffic to this address is not encrypted.", {})
+    if low.endswith((".tf", ".tf.json")):
+        for i, line in enumerate(text.splitlines(), 1):
+            m = re.search(r"""acl\s*=\s*"public-read(-write)?"|cidr_blocks\s*=\s*\[\s*"0\.0\.0\.0/0"\s*\]|publicly_accessible\s*=\s*true""", line)
+            if m and not re.search(r"(?i)egress", "\n".join(text.splitlines()[max(0, i - 6):i])):
+                yield ("TC-CLOUD-001", i, m.start() + 1, i, m.end() + 1, line.strip()[:160], "The resource is readable or reachable from the whole internet.", {})
+
+
+def redact(line: str) -> str:
+    """Masks anything credential-like in a source line before it is shown as evidence."""
+    for _rule, _title, pat in PROVIDER_TOKENS:
+        line = pat.sub(lambda m: m.group(0)[:4] + "…[masked]", line)
+    line = URL_CREDS.sub(lambda m: m.group(0).replace(m.group(1), "…[masked]"), line)
+    def hide(m):
+        return m.group(0) if not SECRET_NAME.search(m.group(1)) or _is_placeholder(m.group(3)) else m.group(0).replace(m.group(3), m.group(3)[:2] + "…[masked]")
+    return GENERIC_ASSIGN.sub(hide, line)
+
+
 def history_secrets(log_text: str, limit: int = 200) -> Iterator[tuple[str, str, str, str]]:
     """(commit, path, detector, masked line) for provider-format credentials on lines ADDED in `git log -p` output."""
     commit = path = ""

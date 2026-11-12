@@ -155,6 +155,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--output", help="write the report to this file instead of standard output")
     ap.add_argument("--online", action="store_true", default=None, help="look pinned dependency versions up in the OSV advisory database (sends names and versions)")
     ap.add_argument("--no-cache", action="store_true", help="ignore and rebuild the incremental cache")
+    ap.add_argument("--base", help="branch or commit this change will be merged into (ci / production): policy and control changes are compared with it")
+    ap.add_argument("--allow-policy-change", action="store_true", help="accept a reviewed change to .trustcode/ policy files for this run")
     ap.add_argument("--history", action="store_true", help="also look for credentials on lines added in the last 500 commits")
     ap.add_argument("--paths-from", help="file with one path per line ('-' = standard input): scan exactly these files (mode 'changed')")
     ap.add_argument("--reason", help="why a finding is a false positive (command: review)")
@@ -199,7 +201,7 @@ def main(argv: list[str] | None = None) -> int:
         paths = [ln.strip() for ln in raw.splitlines() if ln.strip()]
     baseline = a.command == "baseline"
     report = scan(root, "full" if baseline else ("changed" if paths is not None else a.mode), paths=paths, use_cache=not a.no_cache and not baseline,
-                  online=a.online, update_baseline=baseline, history=a.history)
+                  online=a.online, update_baseline=baseline, history=a.history, base=a.base, allow_policy_change=a.allow_policy_change)
     text = {"json": lambda: json.dumps(report, indent=1), "sarif": lambda: json.dumps(to_sarif(report), indent=1),
             "markdown": lambda: to_text(report, True), "text": lambda: to_text(report)}[a.format]()
     if a.output:

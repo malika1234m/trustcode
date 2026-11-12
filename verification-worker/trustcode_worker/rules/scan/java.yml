@@ -120,3 +120,25 @@ rules:
   - pattern-not-inside: |
       $RET $METHOD(...) { ... $F.setFeature(...); ... }
   metadata: {category: xxe, trustcode_severity: medium, confidence: review, title: XML parser without entity restrictions, cwe: [CWE-611], owasp: ['A05:2021 Security Misconfiguration']}
+- id: java-spring-destructive-mapping-without-guard
+  languages: [java]
+  severity: INFO
+  message: A state-changing Spring endpoint has no method-level authorization annotation. Protection may exist in the security configuration.
+  patterns:
+  - pattern-either:
+    - pattern: |
+        @DeleteMapping(...)
+        $RET $M(...) { ... }
+    - pattern: |
+        @PutMapping(...)
+        $RET $M(...) { ... }
+  - pattern-not: |
+      @PreAuthorize(...)
+      $RET $M(...) { ... }
+  - pattern-not: |
+      @Secured(...)
+      $RET $M(...) { ... }
+  - pattern-not: |
+      @RolesAllowed(...)
+      $RET $M(...) { ... }
+  metadata: {category: authorization, trustcode_severity: medium, confidence: review, title: State-changing endpoint without an authorization annotation, cwe: [CWE-862], owasp: ['A01:2021 Broken Access Control']}

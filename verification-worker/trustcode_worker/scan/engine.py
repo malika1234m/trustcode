@@ -47,6 +47,13 @@ SEV_RANK = {s: i for i, s in enumerate(SEVERITIES)}
 CONF_RANK = {c: i for i, c in enumerate(CONFIDENCES)}
 
 
+def _progress(message: str, done: int = 0, total: int = 0) -> None:
+    """Progress for a front end (the VS Code extension sets TRUSTCODE_PROGRESS=1); never mixed into the report."""
+    if os.environ.get("TRUSTCODE_PROGRESS") == "1":
+        import sys
+        print("TRUSTCODE_PROGRESS " + json.dumps({"message": message, "done": done, "total": total}), file=sys.stderr, flush=True)
+
+
 def _sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -182,7 +189,7 @@ def _finding(rule_id: str, path: str, raw: tuple, source: str) -> dict:
 def analyse_text(path: str, text: str, git_state: str) -> list[dict]:
     out = [_finding(r[0], path, r, "trustcode-patterns") for r in patterns.secrets(path, text)]
     out += [_finding(r[0], path, r, "trustcode-patterns") for r in patterns.text_rules(path, text)]
-    for fn in (patterns.json_config, patterns.workflow, patterns.container, patterns.infrastructure):
+    for fn in (patterns.json_config, patterns.workflow, patterns.container, patterns.infrastructure, patterns.network):
         out += [_finding(r[0], path, r, "trustcode-config") for r in fn(path, text)]
     if patterns.ENV_FILE.search(path):
         out += [_finding(r[0], path, r, "trustcode-config") for r in patterns.env_file(path, text, git_state)]
@@ -201,6 +208,8 @@ def run_semgrep(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], di
     if not sg:
         check.update(status="failed", detail="Semgrep is not installed, so injection, authentication and other code-level rules did not run.")
         return {}, check
+    if "-c" in sg[1:3]:
+        sg = [sg[0], "-I", *sg[1:]]   # `python -c` would put the scanned directory on the import path
     configs = [a for p in sorted(RULES_DIR.glob("*.yml")) + sorted((RULES_DIR / "extended").glob("*.yml")) + sorted((RULES_DIR / "scan").glob("*.yml"))
                for a in ("--config", str(p))]
     failed = 0
@@ -209,6 +218,7 @@ def run_semgrep(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], di
     line_cache: dict[str, list[str]] = {}
     for i in range(0, len(files), 300):
         chunk = files[i:i + 300]
+        _progress("Analysing code (data flow and patterns)", i, len(files))
         r = run(sg + ["scan", "--metrics=off", "--disable-version-check", "--quiet", "--json", "--disable-nosem", "--no-git-ignore",
                       "--timeout", "20", *configs, *["./" + c for c in chunk]], cwd=str(root), timeout=600)
         try:
@@ -279,22 +289,28 @@ def run_bandit(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], dic
     py = [f for f in files if f.endswith(".py")]
     if not py or bandit_available() is None:
         return {}, None
+    # Isolated interpreter (-I), neutral working directory and absolute paths: a `bandit.py`, `.bandit` or
+    # other file inside the project being scanned must never be imported or read as configuration.
+    neutral = tempfile.mkdtemp(prefix="trustcode-bandit-")
     check = {"id": "bandit", "name": "Python security rules (Bandit)", "status": "completed", "detail": f"{len(py)} file(s) analysed."}
     out: dict[str, list[dict]] = {}
     for i in range(0, len(py), 300):
-        r = run([sys.executable, "-m", "bandit", "-q", "-f", "json", "--exit-zero", *["./" + f for f in py[i:i + 300]]], cwd=str(root), timeout=300)
+        r = run([sys.executable, "-I", "-m", "bandit", "-q", "-f", "json", "--exit-zero", *[str(root / f) for f in py[i:i + 300]]], cwd=neutral, timeout=300)
         try:
             data = json.loads(r.stdout[r.stdout.index("{"):])
             results = data["results"]
         except (ValueError, KeyError, TypeError):
             check.update(status="failed", detail="Bandit did not return a readable result.")
+            shutil.rmtree(neutral, ignore_errors=True)
             return {}, check
         for res in results:
             try:
                 tid, category = str(res["test_id"]), BANDIT.get(str(res["test_id"]))
                 if category is None:
                     continue
-                path = os.path.normpath(str(res["filename"])).replace(os.sep, "/")
+                path = os.path.relpath(os.path.realpath(str(res["filename"])), os.path.realpath(root)).replace(os.sep, "/")
+                if path.startswith(".."):
+                    continue
                 sev = {"HIGH": "high", "MEDIUM": "medium", "LOW": "low"}.get(str(res["issue_severity"]), "medium")
                 line = int(res["line_number"])
                 out.setdefault(path, []).append({
@@ -306,6 +322,7 @@ def run_bandit(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], dic
                     "owasp": [], "block": SEMGREP_BLOCK.get(category, "WARN"), "priority": "P1"})
             except (KeyError, TypeError, ValueError):
                 continue
+    shutil.rmtree(neutral, ignore_errors=True)
     return out, check
 
 
@@ -420,7 +437,7 @@ def _materialise(root: Path, spec: str, paths: list[str]) -> Path:
 
 
 def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None, use_cache: bool = True, online: bool | None = None,
-         update_baseline: bool = False, history: bool = False) -> dict:
+         update_baseline: bool = False, history: bool = False, base: str | None = None, allow_policy_change: bool = False) -> dict:
     """Runs a scan. `mode`: full | changed | new | staged | push | production | ci. Returns the report (see docs/security_scanner.md).
     `history`: also look for provider-format credentials on lines added in the last 500 commits (opt-in)."""
     t0 = time.monotonic()
@@ -430,6 +447,8 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
     notes: list[str] = [cfg["_error"]] if cfg.get("_error") else []
     checks: list[dict] = []
     scan_root, cleanup, scope = root, None, None  # scope: files examined in this run (None = everything)
+    diff_args: list[str] | None = ["HEAD"]       # what "this change" is compared with, for weakened-control detection
+    _progress("Finding files")
     try:
         if mode == "staged":
             out = _git(root, "diff", "--cached", "--name-only", "-z", "--diff-filter=ACMR")
@@ -437,6 +456,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
                 return _failed(mode, root, "Staged-file scanning needs a Git repository.", t0)
             scope = [p for p in out.split("\0") if p]
             scan_root = cleanup = _materialise(root, ":", scope)
+            diff_args = ["--cached"]
         elif mode == "push":
             base = None
             for ref in ("@{upstream}", "origin/HEAD", "origin/main", "origin/master"):
@@ -447,6 +467,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
                 return _failed(mode, root, "Outgoing-change scanning needs a Git repository with at least one commit.", t0)
             if base:
                 scope = [p for p in (_git(root, "diff", "--name-only", "-z", "--diff-filter=ACMR", f"{base}..HEAD") or "").split("\0") if p]
+                diff_args = [f"{base}..HEAD"]
                 skipped = _unchecked_commits(root, base)
                 if skipped:
                     notes.append(f"{len(skipped)} outgoing commit(s) were not checked when they were made (hook not installed, skipped with --no-verify, or made elsewhere): {', '.join(skipped[:5])}. They are checked now.")
@@ -479,6 +500,10 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
                         i += 1
         if mode in ("production", "ci"):
             use_cache = False
+            if base:   # compare the change with the branch it will be merged into
+                diff_args = [f"{base}...HEAD"] if _git(root, "rev-parse", "--verify", "-q", base) is not None else ["HEAD"]
+                if diff_args == ["HEAD"]:
+                    notes.append(f"The base '{base}' was not found, so policy and control changes were compared with the last commit only.")
 
         disc = discover(scan_root, cfg)
         wanted = set(scope) if scope is not None else None
@@ -516,6 +541,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
             if os.path.splitext(p)[1].lower() in SEMGREP_LANGS:
                 need_semgrep.append(p)
         scanned = [p for p in targets if p in shas]
+        _progress("Checking credentials and configuration", len(scanned), len(targets))
         checks.append({"id": "patterns", "name": "Credentials, environment files, agent and CI/container configuration", "status": "completed",
                        "detail": f"{len(scanned)} file(s) examined" + (f", {unreadable} unreadable" if unreadable else "") + "."})
         sast, sast_check = run_semgrep(scan_root, need_semgrep)
@@ -554,6 +580,26 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
                            "detail": err or f"{len(packages)} pinned package version(s) checked against the OSV advisory database."})
         for f in dep_findings:
             file_findings.setdefault(f["path"], []).append(f)
+        # ---- weakened security controls: what this change removed or switched off, compared with the last commit
+        regression_findings: list[dict] = []
+        diff = _git(root, "diff", "-U0", "--no-color", "--no-ext-diff", *diff_args) if diff_args and _git(root, "rev-parse", "--verify", "-q", "HEAD") else None
+        if diff is None:
+            checks.append({"id": "regressions", "name": "Weakened security controls (compared with the last commit)", "status": "skipped",
+                           "detail": "Needs a Git repository with at least one commit."})
+        else:
+            for rule, rpath, rline, evidence, reason, extra in patterns.regressions(diff):
+                if wanted is not None and rpath not in wanted and not extra.get("file_level"):
+                    continue
+                meta = RULES[rule]
+                if extra.get("policy") and allow_policy_change:
+                    notes.append(f"{rpath} changed; accepted for this run with --allow-policy-change.")
+                    continue
+                regression_findings.append({"rule_id": rule, "category": meta["category"], "title": meta["title"], "severity": extra.get("severity", meta["severity"]),
+                                            "confidence": extra.get("confidence", meta["confidence"]), "path": rpath, "line": rline, "col": 1, "end_line": rline, "end_col": 1,
+                                            "file_level": bool(extra.get("file_level")), "evidence": evidence, "reason": reason, "remediation": meta["remediation"],
+                                            "source": f"trustcode-diff:{rule}", "cwe": meta["cwe"], "owasp": [], "block": meta["block"], "priority": meta["priority"]})
+            checks.append({"id": "regressions", "name": "Weakened security controls (compared with the last commit)", "status": "completed",
+                           "detail": "Removed guards, disabled tests, ignore rules and CI security steps were compared."})
         history_findings: list[dict] = []
         if history:
             log = _git(root, "log", "-p", "--all", "-n", "500", "--no-color", "--unified=0", "--no-ext-diff")
@@ -580,13 +626,13 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
             _write_json(cache_path, {"digest": digest, "files": keep})
 
         findings = dedupe([f for p in scanned for f in file_findings.get(p, []) if f["rule_id"] not in cfg["disabled_rules"]])
-        findings += [f for f in history_findings if f["rule_id"] not in cfg["disabled_rules"]]
+        findings += [f for f in history_findings + regression_findings if f["rule_id"] not in cfg["disabled_rules"] or f["rule_id"] == "TC-REG-009"]
         for f in findings:
             lines = texts.get(f["path"], "").splitlines()
             line_text = lines[f["line"] - 1] if 0 < f["line"] <= len(lines) else ""
             f["fingerprint"] = fingerprint(f, line_text if not f["file_level"] else f["evidence"])
             if not f["evidence"]:
-                f["evidence"] = line_text.strip()[:200]
+                f["evidence"] = patterns.redact(line_text.strip())[:200]
         findings.sort(key=lambda f: (-SEV_RANK[f["severity"]], -CONF_RANK[f["confidence"]], f["path"], f["line"]))
 
         # ---- baseline: new / existing / reintroduced / suppressed; resolved / not revalidated
@@ -598,7 +644,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
         current = set()
         for f in findings:
             current.add(f["fingerprint"])
-            f["state"] = ("suppressed" if f["fingerprint"] in reviewed else "existing" if f["fingerprint"] in active
+            f["state"] = ("suppressed" if f["fingerprint"] in reviewed and f["rule_id"] != "TC-REG-009" else "existing" if f["fingerprint"] in active
                           else "reintroduced" if f["fingerprint"] in gone else "new" if baseline is not None else "unclassified")
             if f["state"] == "suppressed":
                 f["review"] = {k: reviewed[f["fingerprint"]].get(k) for k in ("reason", "reviewed_by", "reviewed_at")}
@@ -649,6 +695,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
             "baseline": {"present": baseline is not None, "resolved": resolved, "not_revalidated": not_revalidated,
                          "suppressed": sum(1 for f in findings if f["state"] == "suppressed")},
             "gate": gate, "policy": {k: cfg[k] for k in ("block", "block_confidence", "block_existing", "on_incomplete")},
+            "disabled_rules": sorted(str(x) for x in cfg["disabled_rules"]),
         }
     finally:
         if cleanup is not None:

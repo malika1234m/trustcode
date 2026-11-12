@@ -333,6 +333,8 @@ class TrustCodeView implements vscode.WebviewViewProvider {
       // ---- security scanner (local)
       case 'secScan': { const mode = oneOf(m.key, ['full', 'changed', 'new', 'staged', 'push', 'production'] as const); return mode ? void (await this.security.scan(mode)) : undefined; }
       case 'secConfig': return this.security.editConfig();
+      case 'secDisableRule': return typeof m.key === 'string' ? this.security.toggleRule(m.key, true) : undefined;
+      case 'secEnableRule': return typeof m.key === 'string' ? this.security.toggleRule(m.key, false) : undefined;
       case 'secRescan': return void (await this.security.rescan());
       case 'secCancel': return this.security.cancel();
       case 'secCheck': return void (await this.security.scan('full'));
@@ -704,6 +706,7 @@ export function activate(ctx: vscode.ExtensionContext) {
     if (text) { item.text = text; item.tooltip = tooltip; item.show(); } else item.hide();
   });
   view.security = security;
+  if (process.env.TRUSTCODE_TEST !== '1') security.startup();
   const CI_EXAMPLE = `# .github/workflows/trustcode-scan.yml
 # Runs the TrustCode security scan on every push and pull request. A local hook can be skipped with
 # --no-verify, so this is the check that cannot be bypassed from a developer machine.

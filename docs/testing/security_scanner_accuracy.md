@@ -5,14 +5,14 @@ Numbers come from `datasets/security_eval/results.json`.
 
 ## Method
 
-96 small files: 59 vulnerable and 37 safe counterparts (parameterised SQL, placeholder
+105 small files: 63 vulnerable and 42 safe counterparts (parameterised SQL, placeholder
 environment files, escaped output, verified JWTs and so on). A vulnerable case counts as detected only when a
 finding of the expected category is reported **on the expected line**. A safe case is a false positive when any
 finding of its category is reported in that file.
 
 ## Result
 
-Overall: 59 of 59 vulnerable cases detected at the exact line, 0 false positives on 37 safe cases
+Overall: 63 of 63 vulnerable cases detected at the exact line, 0 false positives on 42 safe cases
 (precision 1.0, recall 1.0, F1 1.0, false-positive rate 0.0, false-negative rate 0.0).
 
 | Category | Cases | Detected at exact line | Missed | False positives on safe cases | Precision | Recall |
@@ -20,17 +20,17 @@ Overall: 59 of 59 vulnerable cases detected at the exact line, 0 false positives
 | agent-config | 5 | 4 | 0 | 0 | 1.0 | 1.0 |
 | api-security | 3 | 2 | 0 | 0 | 1.0 | 1.0 |
 | authentication | 7 | 4 | 0 | 0 | 1.0 | 1.0 |
-| authorization | 2 | 1 | 0 | 0 | 1.0 | 1.0 |
+| authorization | 7 | 3 | 0 | 0 | 1.0 | 1.0 |
 | ci-cd | 3 | 2 | 0 | 0 | 1.0 | 1.0 |
 | command-injection | 5 | 3 | 0 | 0 | 1.0 | 1.0 |
-| configuration | 2 | 1 | 0 | 0 | 1.0 | 1.0 |
+| configuration | 4 | 2 | 0 | 0 | 1.0 | 1.0 |
 | cors | 3 | 2 | 0 | 0 | 1.0 | 1.0 |
 | cryptography | 2 | 2 | 0 | 0 | 1.0 | 1.0 |
 | database | 2 | 1 | 0 | 0 | 1.0 | 1.0 |
 | dependencies | 2 | 1 | 0 | 0 | 1.0 | 1.0 |
 | environment | 7 | 5 | 0 | 0 | 1.0 | 1.0 |
 | frontend | 2 | 1 | 0 | 0 | 1.0 | 1.0 |
-| infrastructure | 6 | 3 | 0 | 0 | 1.0 | 1.0 |
+| infrastructure | 8 | 4 | 0 | 0 | 1.0 | 1.0 |
 | logging | 3 | 2 | 0 | 0 | 1.0 | 1.0 |
 | path-traversal | 7 | 5 | 0 | 0 | 1.0 | 1.0 |
 | secrets | 11 | 7 | 0 | 0 | 1.0 | 1.0 |

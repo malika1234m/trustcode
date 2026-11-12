@@ -1,13 +1,13 @@
 {
  "engine": "trustcode-scan 1.0",
  "status": "complete",
- "duration_ms": 2082,
- "files_scanned": 96,
+ "duration_ms": 2072,
+ "files_scanned": 105,
  "overall": {
-  "cases": 96,
-  "tp": 59,
+  "cases": 105,
+  "tp": 63,
   "fp": 0,
-  "tn": 37,
+  "tn": 42,
   "fn": 0,
   "precision": 1.0,
   "recall": 1.0,
@@ -53,10 +53,10 @@
    "false_negative_rate": 0.0
   },
   "authorization": {
-   "cases": 2,
-   "tp": 1,
+   "cases": 7,
+   "tp": 3,
    "fp": 0,
-   "tn": 1,
+   "tn": 4,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -89,10 +89,10 @@
    "false_negative_rate": 0.0
   },
   "configuration": {
-   "cases": 2,
-   "tp": 1,
+   "cases": 4,
+   "tp": 2,
    "fp": 0,
-   "tn": 1,
+   "tn": 2,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -173,10 +173,10 @@
    "false_negative_rate": 0.0
   },
   "infrastructure": {
-   "cases": 6,
-   "tp": 3,
+   "cases": 8,
+   "tp": 4,
    "fp": 0,
-   "tn": 3,
+   "tn": 4,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -1232,6 +1232,90 @@
   {
    "id": "authz-express-safe",
    "category": "authorization",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "authz-flask-admin",
+   "category": "authorization",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "py-flask-sensitive-route-without-guard",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "authz-flask-safe",
+   "category": "authorization",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "authz-flask-public-ok",
+   "category": "authorization",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "authz-spring-delete",
+   "category": "authorization",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "java-spring-destructive-mapping-without-guard",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "authz-spring-safe",
+   "category": "authorization",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "net-http-endpoint",
+   "category": "configuration",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-NET-001",
+   "severity": "low",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "net-http-safe",
+   "category": "configuration",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "cloud-public-bucket",
+   "category": "infrastructure",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-CLOUD-001",
+   "severity": "high",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "cloud-private-bucket",
+   "category": "infrastructure",
    "vulnerable": false,
    "flagged": false,
    "rules": [],

@@ -354,3 +354,78 @@ def test_file_names_that_look_like_options_are_scanned_as_files(tmp_path):
     assert r["status"] == "complete", [c for c in r["checks"] if c["status"] == "failed"]
     assert sorted({f["path"] for f in r["findings"]}) == ["--config=../evil.yml.py", "-rf.py"], "a dash-prefixed file was skipped or treated as an option"
     assert next(c for c in r["checks"] if c["id"] == "bandit")["status"] == "completed"
+
+
+def test_weakened_controls_are_detected_from_the_change_itself(tmp_path):
+    p = project(tmp_path / "repo", {
+        "app/views.py": "@app.route('/reports')\n@login_required\ndef reports():\n    return data()\n",
+        "app/api.py": "@app.route('/items')\n@login_required\ndef items():\n    return data()\n",
+        "tests/test_views.py": "def test_reports():\n    assert reports()\n",
+        "tests/test_old.py": "def test_old():\n    assert True\n",
+        ".gitignore": ".env\n*.pem\nnode_modules/\n",
+        ".github/workflows/ci.yml": "on: push\njobs:\n  scan:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: github/codeql-action/analyze@v3\n      - run: npm test\n"})
+    git(p, "add", "-A"); git(p, "commit", "-q", "-m", "init")
+    assert not [f for f in scan(p, "full", use_cache=False)["findings"] if f["category"] == "regression"], "nothing changed yet"
+    (p / "app/views.py").write_text("@app.route('/reports')\ndef reports():\n    return data()\n")                               # guard removed
+    (p / "app/api.py").write_text("@app.route('/items')\n@jwt_required\ndef items():\n    return data()\n")                   # guard replaced: fine
+    (p / "tests/test_views.py").write_text("import pytest\n@pytest.mark.skip\ndef test_reports():\n    assert reports()\n")   # test disabled
+    (p / "tests/test_old.py").unlink()                                                                                      # test deleted
+    (p / ".gitignore").write_text("*.pem\nnode_modules/\n")                                                                 # .env no longer ignored
+    (p / ".github/workflows/ci.yml").write_text("on: push\njobs:\n  scan:\n    runs-on: ubuntu-latest\n    steps:\n      - run: npm test\n")
+    r = scan(p, "full", use_cache=False)
+    got = sorted((f["rule_id"], f["path"]) for f in r["findings"] if f["category"] == "regression")
+    assert got == [("TC-REG-001", "app/views.py"), ("TC-REG-003", "tests/test_old.py"), ("TC-REG-003", "tests/test_views.py"),
+                   ("TC-REG-005", ".gitignore"), ("TC-REG-008", ".github/workflows/ci.yml")], got
+    guard = next(f for f in r["findings"] if f["rule_id"] == "TC-REG-001")
+    assert "login_required" in guard["evidence"] and guard["line"] >= 1
+    assert next(c for c in r["checks"] if c["id"] == "regressions")["status"] == "completed"
+    git(p, "add", "app/views.py")
+    staged = scan(p, "staged")
+    assert [f["rule_id"] for f in staged["findings"] if f["category"] == "regression"] == ["TC-REG-001"]
+    assert staged["gate"]["decision"] == "allow", "the default commit policy blocks critical findings only"
+    (p / ".trustcode").mkdir(exist_ok=True)
+    (p / ".trustcode" / "config.json").write_text(json.dumps({"block": {"commit": "high"}}))
+    assert scan(p, "staged")["gate"]["decision"] == "block"
+    assert next(c for c in scan(project(tmp_path / "plain", {"a.py": CLEAN}, init=False), "full")["checks"] if c["id"] == "regressions")["status"] == "skipped"
+
+
+def test_disabled_rules_are_listed_in_the_report_and_progress_goes_to_stderr_only(tmp_path, monkeypatch, capsys):
+    p = project(tmp_path / "repo", {"a.py": SQLI, "c.py": 'API = "http://api.partner-site.com/v1"\n'})
+    (p / ".trustcode").mkdir()
+    (p / ".trustcode" / "config.json").write_text(json.dumps({"disabled_rules": ["TC-NET-001"]}))
+    monkeypatch.setenv("TRUSTCODE_PROGRESS", "1")
+    r = scan(p, "full", use_cache=False)
+    assert r["disabled_rules"] == ["TC-NET-001"] and "TC-NET-001" not in rules(r) and rules(r, "a.py")
+    err = capsys.readouterr().err
+    assert "TRUSTCODE_PROGRESS " in err and json.loads(err.strip().splitlines()[0].split(" ", 1)[1])["message"]
+    json.dumps(r)   # the report itself stays valid JSON, with no progress text in it
+
+
+def test_scanned_project_cannot_hijack_the_scanners_or_leak_secrets_through_evidence(tmp_path):
+    marker = tmp_path / "hijacked"
+    p = project(tmp_path / "repo", {"bandit.py": f"open({str(marker)!r}, 'w').write('x')\n", "semgrep.py": f"open({str(marker)!r}, 'w').write('x')\n",
+                                    "a.py": "import pickle\ndef f(b):\n    return pickle.loads(b)\n",
+                                    "s.py": 'password = "Zq8Lm2Xv9Rt4KpW7"\n'})
+    r = scan(p, "full", use_cache=False)
+    assert not marker.exists(), "a file in the scanned project was executed by a scanner"
+    assert next(c for c in r["checks"] if c["id"] == "bandit")["status"] == "completed"
+    assert any(f["path"] == "a.py" for f in r["findings"])
+    assert "Zq8Lm2Xv9Rt4KpW7" not in json.dumps(r), "a secret reached the report through copied evidence"
+
+
+def test_policy_file_changes_are_reported_and_cannot_be_disabled_or_reviewed_away(tmp_path):
+    p = project(tmp_path / "repo", {"a.py": SQLI})
+    git(p, "add", "-A"); git(p, "commit", "-q", "-m", "init")
+    git(p, "checkout", "-q", "-b", "feature")
+    (p / ".trustcode").mkdir()
+    (p / ".trustcode" / "config.json").write_text(json.dumps({"disabled_rules": ["py-taint-sql", "sql-string-formatting", "TC-REG-009"], "block": {"ci": "critical"}}))
+    git(p, "add", "-f", ".trustcode/config.json"); git(p, "commit", "-q", "-m", "quietly switch the gate off")
+    r = scan(p, "ci", base="master" if "master" in git(p, "branch") else "main")
+    f = next(x for x in r["findings"] if x["rule_id"] == "TC-REG-009")
+    assert f["path"] == ".trustcode/config.json" and f["state"] != "suppressed"
+    (p / ".trustcode" / "config.json").write_text(json.dumps({"block": {"ci": "high"}}))
+    git(p, "add", "-f", ".trustcode/config.json"); git(p, "commit", "-q", "-m", "policy")
+    base = "master" if "master" in git(p, "branch") else "main"
+    assert scan(p, "ci", base=base)["gate"]["decision"] == "block"
+    ok = scan(p, "ci", base=base, allow_policy_change=True)
+    assert not any(x["rule_id"] == "TC-REG-009" for x in ok["findings"]) and any("--allow-policy-change" in n for n in ok["notes"])

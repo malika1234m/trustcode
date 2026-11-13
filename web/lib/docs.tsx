@@ -12,9 +12,8 @@ export const DOCS: Doc[] = [
     <ul><li>VS Code 1.90 or later.</li><li>Python 3.11 or newer for the local engine.</li><li>About 300 MB of disk space for the engine, and an internet connection for the one-time setup (the tools come from PyPI).</li><li>Docker, only if you want supplied unit tests to run. Without it the tests check is reported as not run.</li><li>Developed and tested on macOS (Apple silicon). Windows and Linux have not been tested.</li></ul>
     <h2>Install from a VSIX</h2><p>Download <code>trustcode-1.0.0.vsix</code> from the <a href="https://github.com/malika1234m/trustcode/releases/tag/v1.0.0">v1.0.0 release</a>, then run <strong>Extensions: Install from VSIX…</strong>, or:</p><pre><code>code --install-extension trustcode-1.0.0.vsix</code></pre><p>Then run <strong>Developer: Reload Window</strong>.</p></>) },
   { slug: 'account', section: 'Start', title: 'Accounts & sign-in', summary: 'When you need an account, browser sign-in and account deletion.', body: (<>
-    <p>You do not need an account to use TrustCode: the Security, Verify and Session tabs run on your computer. An account is only for a paid plan (not on sale yet), the research study, or server analysis if you choose it.</p>
+    <p>You do not need an account to use TrustCode: the Security, Verify and Session tabs run on your computer. An account is only for server analysis, if you choose it, or a paid plan once plans are on sale.</p>
     <p>TrustCode uses browser sign-in based on OAuth 2.0 with PKCE: your password is entered only on this website, and VS Code receives a short-lived, single-use code that only it can exchange.</p>
-    <h2>Your own server</h2><p>If you use server analysis, you can point <code>trustcode.backendUrl</code> at a backend you run yourself and set <code>trustcode.mode</code> to <code>local</code> for a single-user server without an account.</p>
     <h2>Delete your account</h2><p>In VS Code run <strong>TrustCode: Delete My Account and Data</strong>, or use <em>Settings → Delete account</em> in the dashboard. This removes your account, history, decisions and feedback.</p></>) },
   { slug: 'configuration', section: 'Use', title: 'Configuration', summary: 'All extension settings and what they do.', body: (<>
     <ul><li><code>trustcode.analysis.location</code> — <code>local</code> (default: Verify and Session run on this computer) or <code>server</code> (the code you choose is sent to the TrustCode server after a consent dialog; needs an account).</li>
@@ -22,8 +21,7 @@ export const DOCS: Doc[] = [
     <li><code>trustcode.engine.runTests</code> — run supplied unit tests in the Docker sandbox when Docker is available.</li>
     <li><code>trustcode.engine.basePython</code> / <code>trustcode.engine.pythonPath</code> — which Python sets up or runs the engine.</li>
     <li><code>trustcode.backendUrl</code> — the TrustCode server, used only for an account or server analysis. Application-scoped: a workspace cannot change it.</li>
-    <li><code>trustcode.mode</code> — for server analysis: <code>account</code> (sign in) or <code>local</code> (your own single-user backend).</li>
-    <li><code>trustcode.requestTimeoutSeconds</code> — per-request timeout (default 30).</li>
+        <li><code>trustcode.requestTimeoutSeconds</code> — per-request timeout (default 30).</li>
     <li><code>trustcode.useLlmExplanations</code> — request AI-worded explanations (off by default; server analysis only).</li></ul>
     <p>History, decisions and feedback from local analysis are stored on your computer, in VS Code’s storage.</p></>) },
   { slug: 'reading-results', section: 'Use', title: 'Reading results', summary: 'Statuses, findings, the “Not verified” list and explanation levels.', body: (<>
@@ -31,7 +29,7 @@ export const DOCS: Doc[] = [
     <h2>Findings</h2><p>Each finding shows where it is, which tool detected it, why it matters, the suggested next step and — under <em>Evidence &amp; limits</em> — the raw tool output and what could not be verified.</p>
     <h2>Not verified</h2><p>Hidden defects are most likely here: functions or lines your tests never executed, and whether the code matches your task.</p></>) },
   { slug: 'languages', section: 'Use', title: 'Languages & special cases', summary: 'Python, JavaScript, TypeScript, declaration files and partial selections.', body: (<>
-    <ul><li><strong>Python</strong> — syntax, code checks, type checks, security, dependencies, tests in the Docker sandbox when Docker is available.</li><li><strong>JavaScript</strong> — syntax, security, dependencies, tests in the Docker sandbox when Docker is available. No linter yet.</li><li><strong>TypeScript</strong> — syntax, security, dependencies. Tests are not yet supported.</li></ul>
+    <ul><li><strong>Python</strong> — syntax, code checks, type checks, security, dependencies, tests in the Docker sandbox when Docker is available.</li><li><strong>JavaScript</strong> — syntax, security, dependencies, tests in the Docker sandbox when Docker is available.</li><li><strong>TypeScript</strong> — syntax, security, dependencies.</li></ul>
     <h2>Type declarations</h2><p>Code containing only type declarations (for example a <code>.d.ts</code> file) is reported as “type declarations only (no runnable code)”; behaviour checks are not applicable.</p>
     <h2>Partial selections</h2><p>If your selection starts inside a comment or in the middle of a block, TrustCode says so and suggests selecting the whole function.</p>
     <h2>Library code</h2><p>Code inside <code>node_modules</code>, <code>site-packages</code> or a virtual environment is not AI-generated; TrustCode asks before verifying it. Use a dependency scanner for library vulnerabilities.</p></>) },
@@ -42,11 +40,6 @@ export const DOCS: Doc[] = [
     <h2>The browser did not return to VS Code</h2><p>Click <strong>Open VS Code</strong> on the success page, and allow your browser to open VS Code. Sign-in links expire after 10 minutes — start again from the panel.</p>
     <h2>Unit tests show “Not run”</h2><p>Supplied tests run only in the Docker sandbox. Start Docker and make sure <code>trustcode.engine.runTests</code> is on. The hosted server never executes code.</p>
     <h2>I still see the old panel</h2><p>Run <strong>Developer: Reload Window</strong> after installing a new version.</p></>) },
-  { slug: 'self-hosting', section: 'Help', title: 'Self-hosting', summary: 'Run the optional TrustCode server yourself.', body: (<>
-    <p>You do not need a server: analysis runs on your computer by default. This page is for teams that want server analysis on their own infrastructure. The backend, verification engine and sandbox are open source. See the repository’s <code>deployment/README.md</code> for local mode, Docker Compose and cloud options.</p>
-    <pre><code>{`python3 -m venv .venv
-.venv/bin/pip install -r backend/requirements-dev.txt -e verification-worker
-docker build -t trustcode-sandbox:0.1 verification-worker/trustcode_worker/sandbox/image`}</code></pre></>) },
 ];
 
 export const docBySlug = (slug: string) => DOCS.find((d) => d.slug === slug);

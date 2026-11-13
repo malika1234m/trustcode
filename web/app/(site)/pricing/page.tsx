@@ -59,7 +59,7 @@ export default async function Pricing() {
         <div className="mx-auto mt-14 max-w-3xl space-y-4">
           {[
             ['Will the Free plan stay?', 'Yes. A free tier is part of the plan; limits may change with notice.'],
-            ['Do I need an account?', 'No. The Security, Verify and Session tabs run on your computer without one. An account is only for server analysis, the research study, or a paid plan once they exist.'],
+            ['Do I need an account?', 'No. The Security, Verify and Session tabs run on your computer without one. An account is only for server analysis, if you choose it, or a paid plan once plans are on sale.'],
             ['What happens at the monthly limit?', 'The limit applies to server analysis only; local analysis is not metered. On the server, new verifications pause until the next month and results you already have stay available.'],
             ['How will payment work?', 'When paid plans launch, checkout will be handled by a Merchant of Record that takes care of payments, invoices and sales tax. TrustCode never stores card details.'],
           ].map(([q, a]) => <div key={q} className="card p-5"><h3 className="font-semibold">{q}</h3><p className="mt-1 text-sm text-muted">{a}</p></div>)}

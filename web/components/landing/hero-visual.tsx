@@ -87,7 +87,7 @@ function ScanDashboard() {
         </div>
       </div>
       <div className="flex items-center gap-2 border-t border-white/[.06] px-4 py-2 text-[11px] text-dim">
-        <span className="h-1.5 w-1.5 rounded-full bg-ok" />Local engine · Ruff · Pyflakes · mypy · Semgrep · tree-sitter
+        <span className="h-1.5 w-1.5 rounded-full bg-ok" />Local engine · runs on this computer
       </div>
     </div>
   );

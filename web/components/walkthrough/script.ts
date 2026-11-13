@@ -127,12 +127,12 @@ export const SEVERITY_ORDER: Severity[] = ['critical', 'high', 'medium', 'low'];
 
 export type Engine = { name: string; role: string; state: 'ran' | 'missing' | 'off'; note: string; detail: string };
 export const ENGINES: Engine[] = [
-  { name: 'Semgrep', role: 'Code rules and data flow', state: 'ran', note: '4 files', detail: 'Pattern and intra-file data-flow rules for Python, JavaScript, TypeScript, PHP and Java.' },
-  { name: 'Built-in rules', role: 'Credentials, env, config', state: 'ran', note: '6 files', detail: 'Credential formats, environment files, agent, CI and container configuration.' },
-  { name: 'Gitleaks', role: 'Second credential detector', state: 'ran', note: 'optional', detail: 'Runs when installed. Its findings are merged with the built-in credential rules.' },
+  { name: 'Security rules', role: 'Code patterns and data flow', state: 'ran', note: '4 files', detail: 'Pattern and data-flow rules for Python, JavaScript, TypeScript, PHP and Java.' },
+  { name: 'Secrets and config', role: 'Credentials, env files, config', state: 'ran', note: '6 files', detail: 'Credential formats, environment files, agent, CI and container configuration.' },
+  { name: 'Second secret check', role: 'Extra credential detection', state: 'ran', note: 'optional', detail: 'A second, independent credential check. Its findings are merged with the first.' },
   { name: 'Weakened controls', role: 'Compared with last commit', state: 'ran', note: 'git diff', detail: 'Removed auth guards, skipped or deleted tests, removed ignore rules, weakened CI steps.' },
-  { name: 'Bandit', role: 'Extra Python rules', state: 'missing', note: 'not installed', detail: 'Optional. The report says it did not run, instead of staying silent.' },
-  { name: 'OSV advisories', role: 'Vulnerable dependencies', state: 'off', note: 'off · opt-in', detail: 'Opt-in because it sends package names and versions to the OSV service.' },
+  { name: 'Extra Python rules', role: 'Optional', state: 'missing', note: 'not installed', detail: 'Optional. The report says it did not run, instead of staying silent.' },
+  { name: 'Dependency advisories', role: 'Vulnerable dependencies', state: 'off', note: 'off · opt-in', detail: 'Opt-in because it looks up package names and versions online.' },
 ];
 
 export const NOT_CHECKED = ['Authorization of routes', 'Rate limiting', 'Missing input validation', 'Runtime behaviour'];
@@ -158,8 +158,8 @@ export const COMMIT_LOG: { at: number; text: string; tone?: 'err' | 'ok' | 'dim'
 // ---- One-time engine setup (scene 1) ------------------------------------------------------------------------
 /** Tools installed into the private environment, with the second (into the scene) each one finishes. */
 export const SETUP_TOOLS: { name: string; at: number }[] = [
-  { name: 'TrustCode engine', at: 2.9 }, { name: 'Ruff', at: 3.5 }, { name: 'Pyflakes', at: 4.0 }, { name: 'mypy', at: 4.6 },
-  { name: 'Bandit', at: 5.1 }, { name: 'Semgrep', at: 5.8 },
+  { name: 'TrustCode engine', at: 2.9 }, { name: 'Code checks', at: 3.5 }, { name: 'Type checks', at: 4.0 }, { name: 'Secret detection', at: 4.6 },
+  { name: 'Python security rules', at: 5.1 }, { name: 'Security rules', at: 5.8 },
 ];
 export const SETUP_CLICK = 2.0;     // the visitor-facing "Set up" button is pressed here
 export const SETUP_READY = 6.4;     // self-check passed

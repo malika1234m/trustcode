@@ -458,7 +458,7 @@ function Panel({ visible, si, local, view, ov, touch }: StageProps & { visible: 
               <span aria-hidden="true" className="hatch absolute inset-x-0 top-0 h-1.5 rounded-t-lg" />
               <p className="text-xs font-semibold text-fg">Not checked by this scan</p>
               <ul className="mt-1.5 space-y-0.5 text-[11.5px] text-muted">{NOT_CHECKED.map((n) => <li key={n}>– {n}</li>)}</ul>
-              <p className="mt-2 text-[11px] text-dim">Bandit not installed · advisories off</p>
+              <p className="mt-2 text-[11px] text-dim">1 optional check not installed · advisories off</p>
             </div>
           )}
         </>
@@ -543,7 +543,7 @@ function SetupDialog({ local, explore, inline = false }: { local: number; explor
     <div className={inline ? '' : 'absolute inset-0 z-10 flex items-center justify-center'}>
       <div className={`enter w-full rounded-2xl border border-white/10 bg-[#0F1830] p-6 text-left shadow-[0_40px_120px_-40px_rgba(91,140,255,.6)] ${inline ? '' : 'max-w-[520px]'}`}>
         <p className="flex items-center gap-2 font-semibold text-fg"><LogoMark className="h-5 w-5" />Set up TrustCode’s local engine?</p>
-        <p className="mt-2 text-[13px] leading-relaxed text-muted">Analysis runs on this computer. TrustCode creates a private Python environment in VS Code’s storage and downloads the analysis tools from PyPI (about 300 MB). Needs Python 3.11 or newer. You only do this once.</p>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted">Analysis runs on this computer. TrustCode creates a private Python environment in VS Code’s storage and downloads its analysis tools (about 300 MB). Needs Python 3.11 or newer. You only do this once.</p>
         {!accepted ? (
           <div className="mt-4 flex gap-2">
             <span className="rounded-lg bg-[linear-gradient(135deg,#4F7BFF,#A97CFF)] px-4 py-2 text-sm font-semibold text-white">Set up</span>
@@ -560,7 +560,7 @@ function SetupDialog({ local, explore, inline = false }: { local: number; explor
                 </li>
               );
             })}
-            <li className={`pt-2 font-sans text-sm font-semibold ${ready ? 'text-ok' : 'text-dim'}`}>{ready ? 'Local engine ready · self-check passed' : 'Installing from PyPI…'}</li>
+            <li className={`pt-2 font-sans text-sm font-semibold ${ready ? 'text-ok' : 'text-dim'}`}>{ready ? 'Local engine ready · self-check passed' : 'Installing…'}</li>
           </ul>
         )}
       </div>

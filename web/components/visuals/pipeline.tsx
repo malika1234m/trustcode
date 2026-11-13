@@ -2,14 +2,14 @@ import { CodeIcon, ServerIcon, ShieldIcon } from '@/components/icons';
 
 // Architecture as of extension 1.0.0 (docs/TRUSTCODE_TRUST_AND_PRIVACY.md): the VS Code extension talks to a local
 // engine on the same machine. The TrustCode server is an optional side branch, drawn dashed.
-const TOOLS = ['Ruff', 'Pyflakes', 'mypy', 'Semgrep', 'tree-sitter'];
+const TOOLS = ['Security rules', 'Secret detection', 'Code checks', 'Type checks', 'Dependency checks'];
 
 export function Architecture() {
   return (
     <figure className="grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_5rem_15rem] lg:gap-0">
       <figcaption className="sr-only">
-        The TrustCode extension in VS Code sends code to the local engine on the same computer, which runs Ruff, Pyflakes, mypy, Semgrep and
-        tree-sitter. Results stay on the computer. A TrustCode server is optional, used only for an account, the research study or server analysis.
+        The TrustCode extension in VS Code sends code to the local engine on the same computer, which runs security rules, secret detection,
+        code, type and dependency checks. Results stay on the computer. A TrustCode server is optional, used only for an account, the research study or server analysis.
       </figcaption>
 
       {/* Your computer */}
@@ -26,7 +26,7 @@ export function Architecture() {
             <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-[#38E1FF] to-[#4F7BFF] shadow-[0_0_30px_-6px_rgba(56,225,255,.8)]"><ShieldIcon className="h-6 w-6 text-white" /></span>
             <p className="mt-3 font-semibold">Local engine</p>
             <ul className="mt-2 flex flex-wrap justify-center gap-1.5">
-              {TOOLS.map((t) => <li key={t} className="mono rounded-md border border-white/10 bg-white/[.03] px-2 py-0.5 text-xs text-muted">{t}</li>)}
+              {TOOLS.map((t) => <li key={t} className="rounded-md border border-white/10 bg-white/[.03] px-2 py-0.5 text-xs text-muted">{t}</li>)}
             </ul>
           </div>
         </div>

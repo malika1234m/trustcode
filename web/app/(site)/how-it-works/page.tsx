@@ -10,7 +10,7 @@ const STEPS = [
   ['Set up the local engine once', 'The first time, TrustCode asks, then creates a private Python environment in VS Code’s storage and downloads the analysis tools from PyPI (about 300 MB, needs Python 3.11 or newer). No account is needed.'],
   ['Select AI-generated code', 'Select Python, JavaScript or TypeScript in the editor, then right-click → “TrustCode: Verify Selected Code”.'],
   ['Describe the task (optional)', 'Tell TrustCode what the code should do and paste unit tests that import the selection as solution. With Docker running, the tests run in a sandbox on your computer.'],
-  ['Verify', 'Independent checks run on your computer: Ruff, Pyflakes, mypy, Semgrep and tree-sitter parsers. Nothing is uploaded.'],
+  ['Verify', 'Security, secret, code, type and dependency checks run on your computer. Nothing is uploaded.'],
   ['Read the evidence', 'A headline summarises findings and gaps. Each finding shows where, why it matters, the raw tool evidence and the next step; “Not verified” lists what no check covered.'],
   ['Decide', 'Accept, modify or reject with a confidence rating. TrustCode never edits your files.'],
 ];

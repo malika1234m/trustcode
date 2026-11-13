@@ -45,13 +45,13 @@ export const ROADMAP: { group: string; items: Capability[] }[] = [
   {
     group: 'Security detection',
     items: [
-      { name: 'Security pattern rules', detail: 'Semgrep rules mapped to CWE and OWASP: SQL and command injection, unsafe deserialization, weak cryptography and more.', status: 'available' },
+      { name: 'Security pattern rules', detail: 'Rules mapped to CWE and OWASP: SQL and command injection, unsafe deserialization, weak cryptography and more.', status: 'available' },
       { name: 'Data-flow (taint) rules', detail: 'Follows request data into SQL, shell commands, file paths, URLs, templates and HTML output within a file.', status: 'available' },
       { name: 'Auth, JWT, CORS and cookie rules', detail: 'JWT verification disabled, wildcard CORS with credentials, insecure cookies, sensitive routes without a guard.', status: 'available' },
-      { name: 'Credential formats in code', detail: 'Provider keys, private keys, credentials in URLs; optional Gitleaks as a second detector. Matches are redacted.', status: 'available' },
+      { name: 'Credential formats in code', detail: 'Provider keys, private keys, credentials in URLs, with an optional second detector. Matches are redacted.', status: 'available' },
       { name: 'Environment and key files', detail: '.env files are checked on your machine, even when Git ignores them, and never sent anywhere.', status: 'available' },
       { name: 'Package existence check', detail: 'Optional, off by default: looks up imported package names on PyPI or npm. Without it, third-party imports are marked for review.', status: 'available' },
-      { name: 'Known-vulnerable dependencies', detail: 'Dependency versions matched against OSV advisories. Opt-in: sends package names and versions only.', status: 'available' },
+      { name: 'Known-vulnerable dependencies', detail: 'Dependency versions matched against published advisories. Opt-in: sends package names and versions only.', status: 'available' },
       { name: 'Docker, cloud and CI/CD configuration', detail: 'Dockerfiles, privileged Kubernetes workloads, wildcard IAM policies and risky GitHub Actions workflows.', status: 'available' },
       { name: 'Agent configuration files', detail: 'Agents allowed to run tools without approval, MCP server commands, auto-run hooks and hidden Unicode.', status: 'available' },
       { name: 'Removed safeguards', detail: 'Compared with the last commit: removed auth guards, skipped or deleted tests, removed ignore rules, weakened CI steps.', status: 'available' },

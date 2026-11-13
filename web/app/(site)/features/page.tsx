@@ -1,36 +1,53 @@
 import type { Metadata } from 'next';
 import { Container, PageHero } from '@/components/site';
 
-export const metadata: Metadata = { title: 'Features', description: 'Every TrustCode check explained: security patterns, static analysis, dependency checks, sandboxed tests, the “not verified” list and adaptive explanations.', alternates: { canonical: '/features' } };
+export const metadata: Metadata = {
+  title: 'Features',
+  description: 'What TrustCode checks in AI-written code, on your computer: security flaws, exposed secrets, broken code, made-up packages, risky changes — with evidence for every finding.',
+  alternates: { canonical: '/features' },
+};
 
-const F = [
-  { t: 'Security patterns (Semgrep)', p: 'Insecure patterns in AI code go unnoticed because the code looks fine.', how: '21 frozen Semgrep rules covering SQL and command injection, eval / new Function, unsafe deserialisation, weak hashing, insecure randomness, hard-coded secrets, TLS verification, path traversal, prototype pollution and runtime tampering. Each finding links to CWE / OWASP and says how confident the rule is (some, like “insecure randomness”, often raise false alarms).', plan: 'Free', status: 'Available' },
-  { t: 'Syntax & structure', p: 'Snippets are often incomplete or in the wrong language.', how: 'Python is parsed with Python’s own parser; JavaScript and TypeScript with tree-sitter grammars. Partial selections (starting inside a comment or mid-block) and TypeScript type-declaration files are recognised and explained instead of reported as bare errors.', plan: 'Free', status: 'Available' },
-  { t: 'Static analysis', p: 'Undefined names and leftover code hide real bugs.', how: 'ruff (with a pyflakes fallback) checks Python for undefined names, unused imports/variables and common bug patterns. No linter is configured for JavaScript/TypeScript yet — the panel says so.', plan: 'Free', status: 'Available (Python)' },
-  { t: 'Dependency existence', p: 'AI assistants can invent package names; look-alike packages are a supply-chain risk.', how: 'Imports are extracted statically. Standard-library modules are recognised offline; third-party packages are looked up on PyPI or npm only if you turn registry lookups on (off by default), otherwise marked “needs review” — never “OK”.', plan: 'Free', status: 'Available' },
-  { t: 'Sandboxed unit tests', p: 'Code that “looks right” can fail on the first edge case.', how: 'Your tests run on your computer in a throw-away Docker container: no network, read-only filesystem, separate unprivileged user, CPU/memory/process limits and timeouts. Lines and functions the tests never executed are listed as not verified.', plan: 'Free', status: 'Available — needs Docker on your computer' },
-  { t: '“Not verified” list', p: 'Passing checks are easily mistaken for proof of correctness.', how: 'Every result lists what no check covered: untested functions and lines, the match with your task description, and assumptions. There is deliberately no overall “safe” score.', plan: 'Free', status: 'Available' },
-  { t: 'Explanations at your level', p: 'Raw tool output is hard to act on.', how: 'Each finding answers: what, where, detected by, why it matters, evidence, what could not be verified, and next step — in beginner, intermediate or advanced wording. The evidence is identical at every level.', plan: 'Free', status: 'Available' },
-  { t: 'In-editor hints & Go to line', p: 'Findings are useless if you cannot find the line.', how: 'Findings appear as editor hints (never “errors” — they are evidence, not verdicts) and in the Problems panel; “Go to line” jumps to the exact line of the original selection.', plan: 'Free', status: 'Available' },
-  { t: 'Decisions & history', p: 'You need a record of what you accepted and why.', how: 'Accept, modify or reject with a confidence rating and optional note. History, decisions and feedback are kept on your computer, in VS Code’s storage (the last 50 runs).', plan: 'Free', status: 'Available' },
-  { t: 'Privacy controls', p: 'Code is sensitive.', how: 'Analysis runs on your computer and nothing is uploaded. No telemetry. Server analysis is optional and asks before sending anything. If you have an account, deleting it and its data is one click away.', plan: 'Free', status: 'Available' },
-  { t: 'AI-worded explanations', p: 'Some users prefer natural-language explanations.', how: 'Optional LLM wording that may only re-word existing findings, is validated against the evidence and falls back to standard explanations. Off by default.', plan: 'Pro (planned)', status: 'Planned, server analysis only' },
+// Outcomes, not internals: describe what each feature does for the developer. See DESIGN.md (website copy).
+const F: { t: string; lead: string; more: string; status: string }[] = [
+  { t: 'Catch security flaws in AI code', lead: 'Injection, unsafe deserialization, weak cryptography and risky APIs, found before they ship.',
+    more: 'Each finding names the weakness, links it to its CWE and OWASP category, and shows how sure the check is.', status: 'Available' },
+  { t: 'Find exposed keys and secrets', lead: 'API keys, private keys and passwords in code, configuration and .env files.',
+    more: 'Matched values are masked wherever they are shown, so a finding never repeats the secret.', status: 'Available' },
+  { t: 'Spot broken and unfinished code', lead: 'Undefined names, leftover code, type mistakes and syntax errors — even in a partial selection.',
+    more: 'Deepest for Python; JavaScript and TypeScript get syntax and security checks.', status: 'Available' },
+  { t: 'Catch made-up packages', lead: 'AI assistants sometimes import packages that do not exist, or look-alikes of real ones.',
+    more: 'Third-party imports are flagged for review, and with registry lookups turned on, unknown names are reported.', status: 'Available' },
+  { t: 'Watch what your AI agent changed', lead: 'Track a session and every file an agent creates or edits is checked, whichever tool made the change.',
+    more: 'Works without Git. Checks run when edits settle, when a batch finishes or when the agent reports it is done.', status: 'Available' },
+  { t: 'Scan the whole project', lead: 'Check every file, only what changed, or what you are about to commit or push.',
+    more: 'Git hooks and a CI mode apply your own policy before changes reach production.', status: 'Available' },
+  { t: 'Run your tests in isolation', lead: 'Supplied unit tests run in a throw-away sandbox on your computer.',
+    more: 'Lines and functions the tests never reached are listed, so passing tests are not mistaken for full coverage.', status: 'Available — needs Docker' },
+  { t: 'Know exactly what was checked', lead: 'Every result lists what was verified and what was not.',
+    more: 'No overall score: you see the evidence and decide.', status: 'Available' },
+  { t: 'Go straight to the line', lead: 'Findings appear in the editor and the Problems panel, at the exact range.',
+    more: 'Step through findings one by one, and copy a ready-made fix prompt for your coding agent.', status: 'Available' },
+  { t: 'Explanations at your level', lead: 'Beginner, intermediate or advanced wording for every finding.',
+    more: 'The evidence is the same at every level; only the explanation changes.', status: 'Available' },
+  { t: 'Private by design', lead: 'Runs on your computer. Your code is never uploaded and no account is needed.',
+    more: 'No telemetry. Results, decisions and history stay in VS Code’s storage on your machine.', status: 'Available' },
+  { t: 'AI-worded explanations', lead: 'Natural-language explanations of your findings.',
+    more: 'Grounded in the same evidence, and off unless you turn it on.', status: 'Planned' },
 ];
 
 export default function Features() {
   return (
     <>
-      <PageHero eyebrow="Features" title="Every check, and what it can’t tell you">Each feature below is implemented in the current release unless marked planned.</PageHero>
-      <Container className="grid gap-5 pb-10 md:grid-cols-2">
+      <PageHero eyebrow="Features" title="Everything TrustCode checks for you">Built to catch what AI coding tools get wrong, on your own computer, before it reaches your repository.</PageHero>
+      <Container className="grid gap-5 pb-14 md:grid-cols-2 xl:grid-cols-3">
         {F.map((f) => (
-          <article key={f.t} className="card p-7">
-            <div className="flex flex-wrap items-center justify-between gap-2">
+          <article key={f.t} className="card flex flex-col p-7">
+            <div className="flex flex-wrap items-start justify-between gap-2">
               <h2 className="text-lg font-semibold">{f.t}</h2>
               <span className={`rounded-full border px-2.5 py-0.5 text-xs ${f.status.startsWith('Available') ? 'border-ok/40 text-ok' : 'border-line2 text-muted'}`}>{f.status}</span>
             </div>
-            <p className="mt-3 text-sm"><span className="font-medium text-fg">Problem: </span><span className="text-muted">{f.p}</span></p>
-            <p className="mt-2 text-sm leading-6 text-muted">{f.how}</p>
-            <p className="mt-4 text-xs text-dim">Plan: {f.plan}</p>
+            <p className="mt-3 text-[15px] leading-relaxed text-fg">{f.lead}</p>
+            <p className="mt-2 text-sm leading-6 text-muted">{f.more}</p>
           </article>
         ))}
       </Container>

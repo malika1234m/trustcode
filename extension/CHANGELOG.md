@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.2.0
+
+- **Far fewer false alarms in the Security tab.** Ordinary code is no longer reported: test files that import the test
+  framework or use `assert`, scripts that exit, names that only mention a secret (`token_type`), rule definitions,
+  an ignored `.env`, and randomness that protects nothing. Values hard-coded in test files are shown as low severity.
+- **Click a finding to open it.** Clicking anywhere on a finding card opens the file at the reported line.
+- **Account changes take effect sooner** (with the updated TrustCode server). When a device is removed or an account is
+  suspended or deleted, TrustCode stops within an hour while online (15 seconds after a restart) instead of about a day. This adds one small
+  request an hour; see the Trust Center.
+- Server analysis (opt-in) now also proves that the request comes from a device signed in to your account.
+- Fixed: a device whose paid plan had ended could keep working offline without limit.
+
 ## 1.1.1
 
 - The Account tab no longer says an account is optional. TrustCode is free and needs a TrustCode account (see 1.1.0).

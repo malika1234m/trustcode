@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.0
+- **Far fewer false alarms**: the security scan no longer reports ordinary code such as test files and build scripts, so what it shows is worth reading.
+- **Click a finding to open it**: clicking a finding takes you straight to the line in your file.
+- **Account changes take effect sooner** (with the updated TrustCode server): removing a device or closing an account stops TrustCode on that device within an hour while online.
+
 ## 1.1.1
 - The extension’s Account tab now correctly says that TrustCode needs a free account.
 

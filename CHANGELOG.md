@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.2.0] — 2026-11-14
+### Security
+- Licences: a removed, blocked, suspended or deleted account now stops the extension within an hour while online
+  (was about a day), 15 seconds after a restart, and at once on any signed-in request. New device-signed
+  `POST /licence/status`, a revocation version on signed-in responses (`X-TrustCode-Licence-Rev`), and stop times
+  for administrators (migration `0007`).
+- Server analysis requires proof of an active device of the account (`X-TrustCode-Device`;
+  `TRUSTCODE_LICENCE_DEVICE_ENFORCEMENT` = require | log | off).
+- Fixed: a device whose paid plan had ended stayed usable offline without limit; small-order device keys were
+  accepted; identifiers accepted a trailing newline; concurrent policy changes could fail; the webview nonce used
+  `Math.random()`.
+- Integrity signals (extension version and build hash) are logged, never enforced.
+### Changed
+- Security scanner 1.1: ordinary project code is no longer reported (test-framework imports, `assert` in tests,
+  `process.exit` in scripts, names that only mention a secret, rule definitions, ignored `.env` files, non-security
+  randomness). On this repository: 991 findings before, 36 after; the labelled benchmark gained 22 cases
+  (98/98 detected, 0 false positives on 62 safe files).
+- Clicking a finding card opens the file at the reported line.
+
 ## [1.1.1] — 2026-11-13
 ### Fixed
 - Extension Account tab and setting description still described the account as optional.

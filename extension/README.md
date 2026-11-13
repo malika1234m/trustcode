@@ -13,7 +13,9 @@ There is deliberately **no overall "safe" score**. You decide: accept, modify or
 TrustCode never edits your files.
 
 ## Everything runs on your computer
-TrustCode analyses code locally. Your code is not uploaded and **no account is needed**. The first time you use
+TrustCode analyses code locally, and your code is not uploaded. TrustCode is free; **you sign in with a free
+TrustCode account** to use it (sign-in happens in your browser). After sign-in it keeps working offline for up to
+30 days and confirms your account when you are online. The first time you use
 it, TrustCode asks to set up its local engine: a private Python environment in VS Code's storage with the
 analysis tools (Ruff, Pyflakes, mypy, Bandit, Semgrep) downloaded from PyPI, about 300 MB. You need Python 3.11
 or newer. Nothing is installed into your project or your system Python. Until the engine is set up, nothing is

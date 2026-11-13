@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.1.0] — 2026-11-13
+### Changed
+- A TrustCode account is required to use the extension (still free). Nothing runs without a valid licence.
+### Added
+- Offline licences: Ed25519-signed by the API, verified in the extension, refreshed in the background with
+  device-signed requests; device management, admin licence policy and revocation, admin plan changes.
+  Migration 0006. See `docs/LICENSING.md`.
+
 ## [1.0.0] — 2026-11-13
 ### Changed
 - Verify and Session analysis moved from the server to a local engine (`trustcode_worker.local`), installed by the

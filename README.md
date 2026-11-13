@@ -35,7 +35,7 @@ from real analysis tools, says exactly **what each check can and cannot tell you
   user, CPU/memory/process limits, timeouts and authenticated results.
 - **Adaptive explanations** — beginner / intermediate / advanced wording; the underlying evidence is identical at every level (enforced by tests).
 - **Human in control** — accept / modify / reject with a confidence rating. TrustCode never edits your files.
-- **Local by default** — from 1.0.0 all analysis runs on the developer's machine; code is not uploaded and no account is needed. Server analysis is optional and asks for consent first ([design](docs/LOCAL_ENGINE_ARCHITECTURE.md)).
+- **Local by default** — from 1.0.0 all analysis runs on the developer's machine and code is not uploaded. From 1.1.0 a free account is required ([licensing](docs/LICENSING.md)). Server analysis is optional and asks for consent first ([design](docs/LOCAL_ENGINE_ARCHITECTURE.md)).
 - **Research mode** — counterbalanced within-subjects experiment, frozen evidence snapshots, interaction logging and pseudonymous CSV export.
 
 ## Architecture

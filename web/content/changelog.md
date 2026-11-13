@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.0
+- **Free with an account**: create a free account and sign in from VS Code to use TrustCode. Your code is still checked on your computer and is not uploaded.
+- **Works offline**: after sign-in, TrustCode keeps working without an internet connection for up to 30 days and confirms your account when you are back online.
+- **Devices**: see and sign out the devices on your account in the dashboard.
+
 ## 1.0.0
 - **Analysis on your computer**: the Security, Verify and Session tabs run on your machine. Your code is not uploaded and no account is needed.
 - **One-time setup** from inside VS Code: TrustCode asks first, then prepares its local engine.

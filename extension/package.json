@@ -2,7 +2,7 @@
   "name": "trustcode",
   "displayName": "TrustCode — Verify AI-Generated Code",
   "description": "Security gate for your project: scans every file locally for SQL injection, exposed secrets, unsafe configuration and other vulnerabilities, highlights the exact code, and can block commits, pushes and releases. Also tracks what AI coding agents change.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "publisher": "trustcode-research",
   "license": "MIT",
   "private": true,

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0
+
+- **Sign in to use TrustCode.** TrustCode stays free, but it now needs a TrustCode account. Create one on the
+  website or from the TrustCode panel; sign-in happens in your browser. Your code is still checked on your
+  computer and is not uploaded.
+- **Works offline after sign-in.** VS Code keeps a signed licence for your account and checks it on your computer
+  at every start. You can work without an internet connection for up to 30 days; TrustCode confirms your account
+  when you are online (at startup and about once a day) and warns you 5 days before the offline period ends.
+- **Devices**: an account can be signed in on 3 devices. See and sign out devices in the web dashboard
+  (Settings → Devices). Signing out in VS Code frees the device.
+- **Account tab**: a "This computer" card shows the plan in use, when it was last confirmed online and how long it
+  can work offline. New commands: *Account and Plan*, *Check My Plan Now*.
+
 ## 1.0.0
 
 - **Everything runs on your computer.** Verify and Session now use a local engine, like the Security tab. Your

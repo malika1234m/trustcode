@@ -8,7 +8,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { LogoMark } from '@/components/logo';
 import { INSTALL_URL } from '@/lib/config';
 import {
-  AGENT_LOG, CHANGED, COMMIT_LOG, ENGINES, FILES, FINDINGS, NOT_CHECKED, PIPELINE, SCENES, SEVERITY_ORDER, STAGE, TOTAL, TREE,
+  AGENT_LOG, CHANGED, COMMIT_LOG, ENGINES, FILES, FINDINGS, NOT_CHECKED, PIPELINE, SCENES, SETUP_CLICK, SETUP_READY, SETUP_TOOLS, SEVERITY_ORDER, STAGE, TOTAL, TREE,
   sceneAt, type Finding, type Severity,
 } from './script';
 
@@ -126,7 +126,8 @@ export function Walkthrough() {
     const selected = ov.finding !== undefined ? ov.finding : scripted;
     const sf = FINDINGS.find((f) => f.id === selected) ?? null;
     const file = ov.file ?? sf?.path ?? 'backend/users.py';
-    const typed = si === 0 ? clamp((local - 2.6) / 5, 0, 1) : 1;
+    const ed = idx('edits');
+    const typed = si < ed ? 0 : si === ed ? clamp((local - 2.6) / 5, 0, 1) : 1;
     const changes = CHANGED.filter((n) => seen('detected', n.at ?? 0)).length;
     const scanFiles = si < idx('scanned') ? 0 : si > idx('scanned') ? 128 : Math.round(clamp((local - 0.6) / 8.4, 0, 1) * 128);
     return { findings, sf, file, typed, changes, scanFiles };
@@ -198,7 +199,7 @@ export function Walkthrough() {
           <Ctl label={captions ? 'Turn captions off' : 'Turn captions on'} onClick={() => setCaptions((c) => !c)} pressed={captions}><span className="text-[11px] font-bold">CC</span></Ctl>
           {fsOk && <Ctl label={isFs ? 'Exit full screen' : 'Full screen'} onClick={fullscreen} className="max-sm:hidden"><FsGlyph /></Ctl>}
         </div>
-        <ol className="mt-2 grid grid-cols-7 gap-1.5" aria-label="Scenes">
+        <ol className="mt-2 grid grid-cols-8 gap-1.5" aria-label="Scenes">
           {SCENES.map((s, i) => {
             const active = i === si && started;
             const done = started && (i < si || (explore && i === si));
@@ -251,7 +252,8 @@ function Workspace(p: StageProps) {
       <Terminal {...p} />
       <Panel {...p} visible={showPanel} />
       <StatusBar {...p} />
-      {(release || finish) && <div className={`absolute inset-0 bg-[#060A14]/75 ${p.reduce ? '' : 'backdrop-blur-[2px]'}`} />}
+      {(release || finish || si === idx('setup')) && <div className={`absolute inset-0 bg-[#060A14]/75 ${p.reduce ? '' : 'backdrop-blur-[2px]'}`} />}
+      {si === idx('setup') && <SetupDialog local={local} explore={p.explore} />}
       {release && <PipelineOverlay {...p} />}
       {finish && <Summary {...p} />}
       {!p.explore && p.playing && si === idx('evidence') && <ScriptedCursor local={local} />}
@@ -299,7 +301,7 @@ function Editor({ view, si, local, touch }: StageProps) {
           const n = file.start + i;
           const f = lineFindings.find((x) => x.line === n);
           const sel = f && view.sf?.id === f.id;
-          const isTyping = si === 0 && view.file === 'backend/users.py' && n === typingLine;
+          const isTyping = si <= idx('edits') && view.file === 'backend/users.py' && n === typingLine;
           const text = isTyping ? l.slice(0, Math.round(l.length * view.typed)) : l;
           return (
             <div key={`${view.file}-${n}`}>
@@ -339,7 +341,7 @@ function FindingCard({ f }: { f: Finding; local: number }) {
 
 function Terminal({ si, local, seen }: StageProps) {
   const lines = AGENT_LOG.filter((l) => seen('edits', l.at));
-  const working = si === 0 && local < 8.5;
+  const working = si === idx('edits') && local < 8.5;
   return (
     <div className="absolute bottom-[26px] left-[254px] right-[330px] h-[174px] border-t border-white/[.06] bg-[#090E1A]">
       <div className="flex h-[30px] items-center gap-4 border-b border-white/[.05] px-4 text-[11px] text-dim">
@@ -356,6 +358,7 @@ function Terminal({ si, local, seen }: StageProps) {
 
 function StatusBar({ si, local, view, touch }: StageProps) {
   let text = 'TrustCode · watching for changes';
+  if (si === idx('setup')) text = local < SETUP_CLICK ? 'TrustCode · local engine not set up' : local < SETUP_READY ? 'TrustCode · setting up the local engine' : 'TrustCode · local engine ready';
   if (si === idx('detected')) text = local < 7.6 ? `TrustCode · ${view.changes} change${view.changes === 1 ? '' : 's'} · waiting for edits to settle` : 'TrustCode · edits settled · scanning';
   else if (si === idx('scanned')) text = `TrustCode · scanning ${view.scanFiles}/128 files`;
   else if (si > idx('scanned')) text = `TrustCode · ${view.findings.length} findings`;
@@ -532,6 +535,39 @@ function Summary({ local, explore }: StageProps) {
   );
 }
 
+/** Scene 1: the one-time engine setup. TrustCode asks first; nothing is installed without consent. */
+function SetupDialog({ local, explore, inline = false }: { local: number; explore: boolean; inline?: boolean }) {
+  const t = explore ? 99 : local;
+  const accepted = t >= SETUP_CLICK, ready = t >= SETUP_READY;
+  return (
+    <div className={inline ? '' : 'absolute inset-0 z-10 flex items-center justify-center'}>
+      <div className={`enter w-full rounded-2xl border border-white/10 bg-[#0F1830] p-6 text-left shadow-[0_40px_120px_-40px_rgba(91,140,255,.6)] ${inline ? '' : 'max-w-[520px]'}`}>
+        <p className="flex items-center gap-2 font-semibold text-fg"><LogoMark className="h-5 w-5" />Set up TrustCode’s local engine?</p>
+        <p className="mt-2 text-[13px] leading-relaxed text-muted">Analysis runs on this computer. TrustCode creates a private Python environment in VS Code’s storage and downloads the analysis tools from PyPI (about 300 MB). Needs Python 3.11 or newer. You only do this once.</p>
+        {!accepted ? (
+          <div className="mt-4 flex gap-2">
+            <span className="rounded-lg bg-[linear-gradient(135deg,#4F7BFF,#A97CFF)] px-4 py-2 text-sm font-semibold text-white">Set up</span>
+            <span className="rounded-lg border border-white/10 px-4 py-2 text-sm text-muted">Not now</span>
+          </div>
+        ) : (
+          <ul className="mono mt-4 space-y-1 text-[12.5px]">
+            {SETUP_TOOLS.map((tool) => {
+              const done = t >= tool.at, running = !done && t >= tool.at - 0.6;
+              return (
+                <li key={tool.name} className={`flex items-center gap-2 ${done ? 'text-fg' : 'text-dim'}`}>
+                  <span className="w-4 text-center">{done ? <span className="text-ok">✓</span> : running ? <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-[var(--neon-cyan)] border-t-transparent" /> : '·'}</span>
+                  {tool.name}
+                </li>
+              );
+            })}
+            <li className={`pt-2 font-sans text-sm font-semibold ${ready ? 'text-ok' : 'text-dim'}`}>{ready ? 'Local engine ready · self-check passed' : 'Installing from PyPI…'}</li>
+          </ul>
+        )}
+      </div>
+    </div>
+  );
+}
+
 /** The scripted mouse pointer in the "evidence" scene: click a finding, then "Next finding". */
 function ScriptedCursor({ local }: { local: number }) {
   const pts: [number, number, number][] = [[0, 640, 360], [0.9, PANEL_X + 120, ROW_TOP + ROW_H * 1.5], [5.2, PANEL_X + 120, ROW_TOP + ROW_H * 1.5], [5.9, 1098, 57], [12, 1098, 57]];
@@ -557,6 +593,7 @@ function MobileStage(p: StageProps) {
   return (
     <div className="min-h-[26rem] bg-[#0B1120] p-4 text-[13px] text-[#C9D3F5]">
       <p className="mb-3 text-xs text-dim"><span className="mono text-brand">{si + 1}</span> · {SCENES[si].chapter}</p>
+      {id === 'setup' && <SetupDialog local={p.local} explore={p.explore} inline />}
       {id === 'edits' && (
         <div className="space-y-3">
           <div className="mono rounded-lg border border-white/[.07] bg-[#090E1A] p-3 text-[12px]">
@@ -635,7 +672,7 @@ function MobileCode({ file, p }: { file: string; p: StageProps }) {
     <pre className="mono overflow-x-auto rounded-lg border border-white/[.07] bg-[#090E1A] py-2 text-[12px] leading-6">
       {src.lines.map((l, i) => {
         const n = src.start + i, hit = f && f.line === n;
-        const text = p.si === 0 && n === 42 ? l.slice(0, Math.round(l.length * p.view.typed)) : l;
+        const text = p.si <= idx('edits') && n === 42 ? l.slice(0, Math.round(l.length * p.view.typed)) : l;
         return <div key={n} className="flex pr-3" style={hit ? { background: `color-mix(in srgb, ${SEV[f.severity].color} 16%, transparent)` } : undefined}><span className="w-9 shrink-0 pr-2 text-right text-dim">{n}</span><code className="whitespace-pre">{text}</code></div>;
       })}
     </pre>
@@ -676,7 +713,7 @@ function Poster({ onPlay, onExplore }: { onPlay: () => void; onExplore: () => vo
       </button>
       <div>
         <p className="text-lg font-semibold text-fg sm:text-xl">Watch the walkthrough · {fmt(TOTAL)}</p>
-        <p className="mt-1 text-sm text-muted">Seven scenes. Click anything to explore.</p>
+        <p className="mt-1 text-sm text-muted">{SCENES.length} scenes. Click anything to explore.</p>
       </div>
       <button type="button" onClick={onExplore} className="btn btn-ghost !min-h-10 text-sm">Or explore it yourself</button>
     </div>

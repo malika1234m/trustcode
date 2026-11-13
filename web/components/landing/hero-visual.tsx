@@ -86,6 +86,9 @@ function ScanDashboard() {
           </div>
         </div>
       </div>
+      <div className="flex items-center gap-2 border-t border-white/[.06] px-4 py-2 text-[11px] text-dim">
+        <span className="h-1.5 w-1.5 rounded-full bg-ok" />Local engine · Ruff · Pyflakes · mypy · Semgrep · tree-sitter
+      </div>
     </div>
   );
 }
@@ -110,7 +113,7 @@ export function HeroVisual() {
 
   return (
     <figure className="relative mx-auto w-full max-w-[640px] max-sm:mt-2 max-sm:py-6 sm:aspect-[6/5] 2xl:max-w-[780px]" onPointerMove={onMove} onPointerLeave={onLeave}>
-      <figcaption className="sr-only">Illustration of a TrustCode project scan using demonstration data: 128 files, 12 changed, findings for an exposed credential and a SQL injection.</figcaption>
+      <figcaption className="sr-only">Illustration of a TrustCode project scan on the local engine, using demonstration data: 128 files, 12 changed, findings for an exposed credential and a SQL injection.</figcaption>
       {webgl ? <HeroScene /> : <StaticRings />}
       <div aria-hidden="true" className="relative flex items-center justify-end [perspective:1400px] sm:absolute sm:inset-0 sm:pl-[4%] lg:pl-[14%]">
         <div ref={card} className="relative w-full transition-transform duration-300 ease-out [transform:rotateY(-14deg)_rotateX(7deg)] [transform-style:preserve-3d] max-sm:[transform:rotateY(-6deg)_rotateX(3deg)]">
@@ -118,10 +121,10 @@ export function HeroVisual() {
           <ScanDashboard />
           {/* Floating chips */}
           <div className="drift absolute -left-6 -top-5 hidden rounded-xl border border-[var(--neon-cyan)]/40 bg-[#0C1424]/90 px-3 py-2 text-[11px] shadow-[0_0_30px_-6px_rgba(56,225,255,.6)] backdrop-blur sm:block [transform:translateZ(40px)]">
-            <span className="flex items-center gap-2 text-fg"><span className="pulse-soft inline-block h-2 w-2 rounded-full bg-[var(--neon-cyan)]" />12 files changed by an agent</span>
+            <span className="flex items-center gap-2 text-fg"><span className="pulse-soft inline-block h-2 w-2 rounded-full bg-[var(--neon-cyan)]" />Runs on this computer</span>
           </div>
           <div className="drift absolute -bottom-5 -left-8 hidden rounded-xl border border-ok/40 bg-[#0C1424]/90 px-3 py-2 text-[11px] shadow-[0_0_30px_-8px_rgba(79,209,181,.6)] backdrop-blur sm:block [animation-delay:-3s]">
-            <span className="flex items-center gap-2 text-fg"><LogoMark className="h-3.5 w-3.5" />Evidence for every finding</span>
+            <span className="flex items-center gap-2 text-fg"><LogoMark className="h-3.5 w-3.5" />Code never uploaded</span>
           </div>
         </div>
       </div>

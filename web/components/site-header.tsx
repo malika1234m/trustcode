@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Logo } from './logo';
+import { INSTALL_URL } from '@/lib/config';
 
 export const NAV = [
   { label: 'Features', href: '/#features', section: 'features' },
@@ -98,8 +99,8 @@ export function SiteHeaderClient() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Link href="/login" className="btn btn-ghost !min-h-10 !px-4 !py-2 text-sm max-sm:!hidden">Sign in</Link>
-          <Link href="/register" className="btn btn-neon !min-h-10 !px-4 !py-2 text-sm">Get started</Link>
+          <Link href="/login" className="inline-flex min-h-10 items-center px-3 text-sm text-muted hover:text-fg max-sm:!hidden">Sign in</Link>
+          <a href={INSTALL_URL} className="btn btn-neon !min-h-10 !px-4 !py-2 text-sm">Download</a>
           <button ref={menuBtn} type="button" onClick={() => setOpen((v) => !v)} aria-expanded={open} aria-controls="mobile-nav" aria-label={open ? 'Close menu' : 'Open menu'}
                   className="flex h-11 w-11 items-center justify-center rounded-lg text-fg hover:bg-card lg:hidden">
             <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
@@ -116,8 +117,8 @@ export function SiteHeaderClient() {
             <Link key={n.href} href={n.href} onClick={() => setOpen(false)} className="flex min-h-14 items-center border-b border-line text-lg text-fg">{n.label}</Link>
           ))}
           <div className="mt-6 grid gap-3">
-            <Link href="/register" onClick={() => setOpen(false)} className="btn btn-primary w-full">Get started</Link>
-            <Link href="/login" onClick={() => setOpen(false)} className="btn btn-ghost w-full">Sign in</Link>
+            <a href={INSTALL_URL} className="btn btn-primary w-full">Download for VS Code</a>
+            <Link href="/login" onClick={() => setOpen(false)} className="btn btn-ghost w-full">Sign in (optional)</Link>
           </div>
         </nav>
       </div>

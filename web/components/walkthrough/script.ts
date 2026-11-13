@@ -1,6 +1,6 @@
-// Storyboard for the homepage walkthrough: a 78-second, seven-scene product film rendered as live UI.
-// Everything here is demonstration data. The behaviour it depicts follows the real product (extension 0.9.0 and the
-// local scanner, see docs/security_scanner.md): the rule IDs, severities, confidence levels, scanners, policy
+// Storyboard for the homepage walkthrough: an eight-scene product film rendered as live UI.
+// Everything here is demonstration data. The behaviour it depicts follows the real product (extension 1.0.0, the local
+// engine and the local scanner, see docs/LOCAL_ENGINE_ARCHITECTURE.md and docs/security_scanner.md): the rule IDs, severities, confidence levels, scanners, policy
 // defaults and the "not checked" list are taken from the code. The files, findings and numbers are invented.
 
 export type Severity = 'critical' | 'high' | 'medium' | 'low';
@@ -15,6 +15,8 @@ export const STAGE = { w: 1120, h: 630 } as const;
 
 const WIDE: Camera = { s: 1, x: 560, y: 315 };
 const raw: Omit<Scene, 'start'>[] = [
+  { id: 'setup', chapter: 'One-time setup', title: 'Set up the local engine once', duration: 7.5,
+    caption: 'The first time, TrustCode asks, then sets up its local engine on your computer. No account needed.', camera: { s: 1.18, x: 560, y: 330 } },
   { id: 'edits', chapter: 'AI edits', title: 'The agent starts working', duration: 10,
     caption: 'Your AI coding agent starts modifying your project.', camera: { s: 1.22, x: 470, y: 400 } },
   { id: 'detected', chapter: 'Changes detected', title: 'Every change is noticed', duration: 10,
@@ -152,3 +154,12 @@ export const COMMIT_LOG: { at: number; text: string; tone?: 'err' | 'ok' | 'dim'
   { at: 5.2, text: '✖ Blocked by policy: 1 critical finding', tone: 'err' },
   { at: 5.6, text: '  TC-SEC-001  config/.env.production:3', tone: 'err' },
 ];
+
+// ---- One-time engine setup (scene 1) ------------------------------------------------------------------------
+/** Tools installed into the private environment, with the second (into the scene) each one finishes. */
+export const SETUP_TOOLS: { name: string; at: number }[] = [
+  { name: 'TrustCode engine', at: 2.9 }, { name: 'Ruff', at: 3.5 }, { name: 'Pyflakes', at: 4.0 }, { name: 'mypy', at: 4.6 },
+  { name: 'Bandit', at: 5.1 }, { name: 'Semgrep', at: 5.8 },
+];
+export const SETUP_CLICK = 2.0;     // the visitor-facing "Set up" button is pressed here
+export const SETUP_READY = 6.4;     // self-check passed

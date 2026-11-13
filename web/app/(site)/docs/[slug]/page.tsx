@@ -33,7 +33,7 @@ export default async function DocPage({ params }: { params: Promise<{ slug: stri
             className={`block rounded-md px-3 py-1.5 ${d.slug === doc.slug ? 'bg-card2 text-fg' : 'text-muted hover:text-fg'}`}>{d.title}</Link></li>))}
         </ul>
       </nav>
-      <article className="prose-tc max-w-3xl">
+      <article className="prose-tc min-w-0 max-w-3xl">
         <p className="text-sm text-dim">{doc.section}</p>
         <h1 className="mt-1 text-3xl font-semibold tracking-tight">{doc.title}</h1>
         <p className="mt-2 text-lg">{doc.summary}</p>

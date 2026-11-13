@@ -1,6 +1,6 @@
 // Single source of truth for what the website says TrustCode can do.
-// Checked against extension 0.9.0 and the local scanner (docs/security_scanner.md, docs/TRUSTCODE_TRUST_AND_PRIVACY.md,
-// verification-worker/trustcode_worker/scan/) on 2026-11-12. Change a status only when the capability ships and
+// Checked against extension 1.0.0, the local engine and the local scanner (docs/LOCAL_ENGINE_ARCHITECTURE.md,
+// docs/security_scanner.md, docs/TRUSTCODE_TRUST_AND_PRIVACY.md) on 2026-11-13. Change a status only when the capability ships and
 // has been tested — never because the marketing copy needs it.
 //   available       implemented in the current extension / scanner
 //   in-development  code exists in the repository but is not released or not finished
@@ -29,7 +29,7 @@ export const ROADMAP: { group: string; items: Capability[] }[] = [
     items: [
       { name: 'Whole-workspace scan', detail: 'The Security tab scans every included file in the project on your machine: source, configuration, environment files, manifests, CI workflows and agent settings.', status: 'available' },
       { name: 'Changed, new, staged and outgoing files', detail: 'Scan only what changed, files Git does not track yet, the staged content of a commit, or the files in outgoing commits.', status: 'available' },
-      { name: 'Selection and file checks', detail: 'Check selected code or the current file from the editor (Verify tab).', status: 'available' },
+      { name: 'Selection and file checks', detail: 'Verify selected code or the current file (Python, JavaScript, TypeScript) with the local engine on your computer.', status: 'available' },
       { name: 'Five languages', detail: 'Language-aware rules for Python, JavaScript, TypeScript, PHP and Java. Other text files get credential and configuration patterns only.', status: 'available' },
     ],
   },
@@ -50,7 +50,7 @@ export const ROADMAP: { group: string; items: Capability[] }[] = [
       { name: 'Auth, JWT, CORS and cookie rules', detail: 'JWT verification disabled, wildcard CORS with credentials, insecure cookies, sensitive routes without a guard.', status: 'available' },
       { name: 'Credential formats in code', detail: 'Provider keys, private keys, credentials in URLs; optional Gitleaks as a second detector. Matches are redacted.', status: 'available' },
       { name: 'Environment and key files', detail: '.env files are checked on your machine, even when Git ignores them, and never sent anywhere.', status: 'available' },
-      { name: 'Package existence check', detail: 'Flags imported packages that cannot be found on PyPI or npm (Verify tab).', status: 'available' },
+      { name: 'Package existence check', detail: 'Optional, off by default: looks up imported package names on PyPI or npm. Without it, third-party imports are marked for review.', status: 'available' },
       { name: 'Known-vulnerable dependencies', detail: 'Dependency versions matched against OSV advisories. Opt-in: sends package names and versions only.', status: 'available' },
       { name: 'Docker, cloud and CI/CD configuration', detail: 'Dockerfiles, privileged Kubernetes workloads, wildcard IAM policies and risky GitHub Actions workflows.', status: 'available' },
       { name: 'Agent configuration files', detail: 'Agents allowed to run tools without approval, MCP server commands, auto-run hooks and hidden Unicode.', status: 'available' },
@@ -74,7 +74,8 @@ export const ROADMAP: { group: string; items: Capability[] }[] = [
       { name: 'Evidence and not-checked list', detail: 'Every finding shows file, exact range, rule and redacted evidence. Every report lists what was skipped and why.', status: 'available' },
       { name: 'Confidence levels', detail: 'Confirmed, strongly suspected or potential, separate from severity.', status: 'available' },
       { name: 'Reviews and baselines', detail: 'Mark a finding as a reviewed false positive (who, when, why) or accept existing findings as a baseline.', status: 'available' },
-      { name: 'Scanning entirely inside the editor', detail: 'The Security tab runs on your machine. Nothing is uploaded and no account is needed.', status: 'available' },
+      { name: 'Analysis on your computer', detail: 'Security, Verify and Session run on your machine. Code is not uploaded and no account is needed.', status: 'available' },
+      { name: 'Optional server analysis', detail: 'Choose trustcode.analysis.location = server to send selected code to the TrustCode server, after a consent dialog. Needs an account.', status: 'available' },
       { name: 'Copy a fix prompt for your agent', detail: 'Hand findings back to your coding agent as a ready-made prompt.', status: 'available' },
     ],
   },

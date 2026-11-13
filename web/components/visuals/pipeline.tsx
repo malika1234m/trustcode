@@ -9,7 +9,7 @@ export function Architecture() {
     <figure className="grid items-center gap-6 lg:grid-cols-[minmax(0,1fr)_5rem_15rem] lg:gap-0">
       <figcaption className="sr-only">
         The TrustCode extension in VS Code sends code to the local engine on the same computer, which runs security rules, secret detection,
-        code, type and dependency checks. Results stay on the computer. A TrustCode server is optional, used only for an account, the research study or server analysis.
+        code, type and dependency checks. Results stay on the computer. A TrustCode server is optional, used only for an account or server analysis.
       </figcaption>
 
       {/* Your computer */}
@@ -38,7 +38,7 @@ export function Architecture() {
       <div className="rounded-[18px] border-2 border-dashed border-line2 p-5 text-center">
         <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-line2 text-dim"><ServerIcon className="h-5 w-5" /></span>
         <p className="mt-3 font-semibold text-muted">TrustCode server</p>
-        <p className="text-sm text-dim">optional: account, study, server analysis</p>
+        <p className="text-sm text-dim">optional: account and server analysis</p>
       </div>
     </figure>
   );

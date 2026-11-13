@@ -146,11 +146,11 @@ export function Walkthrough() {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-white/[.07] px-4 py-3 sm:px-5">
         <span className="flex items-center gap-2 font-semibold"><LogoMark className="h-5 w-5" />See TrustCode in action</span>
         <span className="status status-planned !text-[10px]" title="A simulated interface with sample data. Not a recording of the extension.">Simulated demo · sample data</span>
-        <div role="radiogroup" aria-label="Walkthrough mode" className="ml-auto flex rounded-lg border border-white/10 p-0.5 text-sm">
+        <div role="radiogroup" aria-label="Walkthrough mode" className="ml-auto flex shrink-0 rounded-lg border border-white/10 p-0.5 text-sm">
           {(['watch', 'explore'] as Mode[]).map((m) => (
             <button key={m} type="button" role="radio" aria-checked={mode === m} onClick={() => (m === 'watch' ? play() : toExplore())}
                     className={`min-h-9 rounded-md px-3 transition-colors ${mode === m ? 'bg-brand/20 text-fg' : 'text-muted hover:text-fg'}`}>
-              {m === 'watch' ? 'Watch walkthrough' : 'Explore yourself'}
+              {m === 'watch' ? <>Watch<span className="max-sm:hidden"> walkthrough</span></> : <>Explore<span className="max-sm:hidden"> yourself</span></>}
             </button>
           ))}
         </div>
@@ -179,13 +179,13 @@ export function Walkthrough() {
 
       {/* Controls */}
       <div className="border-t border-white/[.07] px-3 pb-3 pt-2 sm:px-5">
-        <div className="flex items-center gap-1 sm:gap-2">
+        <div className="flex flex-wrap items-center gap-1 sm:flex-nowrap sm:gap-2">
           <Ctl label={playing ? 'Pause' : 'Play'} onClick={playing ? pause : play} primary>{playing ? <PauseGlyph /> : <PlayGlyph />}</Ctl>
           <Ctl label="Replay from the start" onClick={replay}><ReplayGlyph /></Ctl>
           <Ctl label="Previous scene" onClick={() => go(si - 1)} disabled={si === 0}><PrevGlyph /></Ctl>
           <Ctl label="Next scene" onClick={() => go(si + 1)} disabled={si === SCENES.length - 1}><NextGlyph /></Ctl>
-          <span className="mono hidden w-24 shrink-0 text-center text-xs text-muted sm:inline">{fmt(t)} / {fmt(TOTAL)}</span>
-          <div className="relative mx-1 flex-1">
+          <span className="mono w-24 shrink-0 text-center text-xs text-muted max-sm:ml-auto max-sm:order-last max-sm:w-auto">{fmt(t)} / {fmt(TOTAL)}</span>
+          <div className="relative mx-1 flex-1 max-sm:order-first max-sm:mx-0 max-sm:basis-full">
             <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 overflow-hidden rounded-full bg-white/[.08]">
               <div className="h-full bg-[linear-gradient(90deg,var(--neon-blue),var(--neon-cyan))]" style={{ width: `${(t / TOTAL) * 100}%` }} />
               {SCENES.slice(1).map((s) => <span key={s.id} className="absolute top-0 h-full w-0.5 bg-bg" style={{ left: `${(s.start / TOTAL) * 100}%` }} />)}

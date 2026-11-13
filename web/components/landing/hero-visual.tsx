@@ -109,10 +109,10 @@ export function HeroVisual() {
   const onLeave = () => { if (card.current) card.current.style.transform = ''; };
 
   return (
-    <figure className="relative mx-auto aspect-[6/5] w-full max-w-[640px] 2xl:max-w-[780px]" onPointerMove={onMove} onPointerLeave={onLeave}>
+    <figure className="relative mx-auto w-full max-w-[640px] max-sm:mt-2 max-sm:py-6 sm:aspect-[6/5] 2xl:max-w-[780px]" onPointerMove={onMove} onPointerLeave={onLeave}>
       <figcaption className="sr-only">Illustration of a TrustCode project scan using demonstration data: 128 files, 12 changed, findings for an exposed credential and a SQL injection.</figcaption>
       {webgl ? <HeroScene /> : <StaticRings />}
-      <div aria-hidden="true" className="absolute inset-0 flex items-center justify-end pl-[4%] lg:pl-[14%] [perspective:1400px]">
+      <div aria-hidden="true" className="relative flex items-center justify-end [perspective:1400px] sm:absolute sm:inset-0 sm:pl-[4%] lg:pl-[14%]">
         <div ref={card} className="relative w-full transition-transform duration-300 ease-out [transform:rotateY(-14deg)_rotateX(7deg)] [transform-style:preserve-3d] max-sm:[transform:rotateY(-6deg)_rotateX(3deg)]">
           <div className="absolute -inset-6 -z-10 rounded-3xl bg-[radial-gradient(closest-side,rgba(91,140,255,.35),transparent)] blur-2xl" />
           <ScanDashboard />

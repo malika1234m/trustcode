@@ -13,7 +13,7 @@ const STEPS: { label: string; note: string; icon: (p: { className?: string }) =>
 
 export function Pipeline() {
   return (
-    <ol className="relative grid gap-10 sm:grid-cols-4 sm:gap-4">
+    <ol className="relative grid grid-cols-2 gap-x-4 gap-y-10 sm:grid-cols-4 sm:gap-4">
       {STEPS.map((s, i) => {
         const Icon = s.icon;
         const live = s.status === 'available';

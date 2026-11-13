@@ -97,6 +97,9 @@ def issue(db: Session, user: User, device: LicenceDevice) -> tuple[str, dict]:
 def activate(db: Session, user: User, device_id: str, public_key: str, name: str, platform: str | None) -> tuple[str, dict]:
     if not signing.configured():
         raise Refused(503, "licensing_not_configured", "Licensing is not set up on this server. The Free plan needs no licence.")
+    # Serialise activations per account so two simultaneous requests cannot both pass the device-limit check.
+    # Postgres: row lock until commit. SQLite ignores FOR UPDATE but allows only one writer at a time.
+    db.execute(select(User.id).where(User.id == user.id).with_for_update())
     dev = db.scalar(select(LicenceDevice).where(LicenceDevice.user_id == user.id, LicenceDevice.device_id == device_id))
     if dev is not None and dev.status == "revoked":
         record(db, "activation_refused", user.id, dev, detail="device revoked by an administrator")

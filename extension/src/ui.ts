@@ -160,14 +160,14 @@ export function account(p: { backend: string; mode: string; signedIn: boolean; p
       <span><strong>${esc(label)}</strong><br><span class="muted small">${esc(help)}</span></span></label>`;
   const where = p.local
     ? `<section class="card"><div class="card-title">Where checks run</div>
-      <p><span class="chip st-passed">On this computer</span> Verify, Session and Security run locally. No account is needed and your code is not uploaded.</p>
+      <p><span class="chip st-passed">On this computer</span> Verify, Session and Security run locally. Your code is not uploaded.</p>
       <div class="row"><button data-action="engineUseServer">Use the TrustCode server instead…</button></div></section>`
     : `<section class="card"><div class="card-title">Where checks run</div>
       <p><span class="chip st-review">TrustCode server</span> Verify and Session send the code you choose to ${esc(p.backend)} after you confirm. Security runs locally.</p>
       <div class="row"><button class="primary" data-action="engineUseLocal">Run checks on this computer</button></div></section>`;
   return `${where}<section class="card">
-    <div class="card-title">${p.local ? 'TrustCode account (optional)' : 'Connection'}</div>
-    ${p.local ? '<p class="muted small">Only needed for server analysis, a paid plan or the research study.</p>' : ''}
+    <div class="card-title">${p.local ? 'TrustCode account' : 'Connection'}</div>
+    ${p.local ? '<p class="muted small">TrustCode is free. Your account confirms who is using it on this computer.</p>' : ''}
     <dl class="kv"><dt>Server</dt><dd>${esc(p.backend)}</dd><dt>Mode</dt><dd>${esc(p.mode)}</dd>
     <dt>Status</dt><dd>${p.signedIn ? '<span class="chip st-passed">✓ Signed in</span>' : '<span class="chip st-notrun">– Signed out</span>'}</dd></dl>
     <div class="row">${p.signedIn ? '<button data-action="signOut">Sign out</button>' : '<button class="primary" data-action="signIn">Sign in</button>'}
@@ -263,7 +263,7 @@ export function accountDashboard(d: DashboardData, now = Date.now()): string {
   const e = d.entitlements;
   const sub = e?.subscription ?? {};
   const ago = d.verifiedAt ? (now - d.verifiedAt < 90_000 ? 'just now' : `${Math.round((now - d.verifiedAt) / 60000)} min ago`) : 'never';
-  const plan = !e ? `<section class="card"><div class="card-title">Plan</div><p class="muted">${d.privacy.signedIn ? 'The plan could not be verified with the server, and no recent verification is stored. Server-side limits still apply.' : d.privacy.engine ? 'No account is connected. Checks run on this computer and need none; sign in only for server analysis, a paid plan or the research study.' : 'Sign in to see your plan. The Security tab works without an account.'}</p></section>`
+  const plan = !e ? `<section class="card"><div class="card-title">Plan</div><p class="muted">${d.privacy.signedIn ? 'The plan could not be verified with the server, and no recent verification is stored. Server-side limits still apply.' : d.privacy.engine ? 'Sign in to use TrustCode. It is free; checks run on this computer.' : 'Sign in to use TrustCode. It is free.'}</p></section>`
     : `<section class="card" aria-labelledby="h-plan"><h3 id="h-plan" class="section-label">Account</h3>
     <dl class="kv">${d.email ? `<dt>Account</dt><dd>${esc(d.email)}</dd>` : ''}<dt>Plan</dt><dd>${esc(e.plan?.name ?? 'Free')}</dd>
       <dt>Status</dt><dd>${esc(STATE_LABEL[sub.state] ?? sub.state ?? 'unknown')}</dd>

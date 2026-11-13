@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.1.1] — 2026-11-13
+### Fixed
+- Extension Account tab and setting description still described the account as optional.
+
 ## [1.1.0] — 2026-11-13
 ### Changed
 - A TrustCode account is required to use the extension (still free). Nothing runs without a valid licence.

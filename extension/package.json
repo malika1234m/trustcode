@@ -2,7 +2,7 @@
   "name": "trustcode",
   "displayName": "TrustCode — Verify AI-Generated Code",
   "description": "Security gate for your project: scans every file locally for SQL injection, exposed secrets, unsafe configuration and other vulnerabilities, highlights the exact code, and can block commits, pushes and releases. Also tracks what AI coding agents change.",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "publisher": "trustcode-research",
   "license": "MIT",
   "private": true,
@@ -305,7 +305,7 @@
           "default": "local",
           "scope": "application",
           "enumDescriptions": [
-            "Verify and Session run on this computer with TrustCode's local engine. The code is not uploaded and no account is needed.",
+            "Verify and Session run on this computer with TrustCode's local engine. The code is not uploaded. A free TrustCode account is required to use TrustCode.",
             "Verify and Session send the code you choose to the TrustCode server (trustcode.backendUrl) after you confirm. Needs an account."
           ],
           "markdownDescription": "Where the **Verify** and **Session** checks run. The Security tab always runs on this computer."

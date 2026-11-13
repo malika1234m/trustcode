@@ -249,7 +249,7 @@ export async function runE2E(hook: any, backend: string): Promise<R[]> {
   });
   await t('ui: account tab shows connection, level and privacy controls; toggles persist', async () => {
     await view.onMessage({ action: 'tab', tab: 'account' }).catch((e: unknown) => view.error(e));
-    assert.match(last(), enginePy ? /On this computer[\s\S]*TrustCode account \(optional\)/ : /Connection/);
+    assert.match(last(), enginePy ? /On this computer[\s\S]*TrustCode is free/ : /Connection/);
     assert.match(last(), /data-key="store_history"/);
     await view.onMessage({ action: 'privacy', key: 'store_history', value: true }).catch((e: unknown) => view.error(e));
     await view.onMessage({ action: 'setLevel', level: 'beginner' }).catch((e: unknown) => view.error(e));

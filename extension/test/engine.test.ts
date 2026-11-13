@@ -212,6 +212,6 @@ test('ui: the engine notice states that nothing is checked until setup, and priv
   assert.equal(row(serverRows, 'Verify and Session analysis'), undefined);
   assert.match(verifyForm(undefined, '', true), /not uploaded/);
   assert.match(verifyForm(undefined, '', false), /Nothing is sent until you confirm/);
-  assert.match(account({ backend: 'https://s.example', mode: 'account', signedIn: false, profile: { experience_level: 'beginner' }, local: true }), /On this computer[\s\S]*optional/);
+  assert.match(account({ backend: 'https://s.example', mode: 'account', signedIn: false, profile: { experience_level: 'beginner' }, local: true }), /On this computer[\s\S]*TrustCode is free/);
   assert.doesNotMatch(account({ backend: 'b', mode: 'account', signedIn: false, profile: {}, local: true }), /allow_llm/);
 });

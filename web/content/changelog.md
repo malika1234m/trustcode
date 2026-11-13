@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1
+- The extension’s Account tab now correctly says that TrustCode needs a free account.
+
 ## 1.1.0
 - **Free with an account**: create a free account and sign in from VS Code to use TrustCode. Your code is still checked on your computer and is not uploaded.
 - **Works offline**: after sign-in, TrustCode keeps working without an internet connection for up to 30 days and confirms your account when you are back online.

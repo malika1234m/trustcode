@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+- The Account tab no longer says an account is optional. TrustCode is free and needs a TrustCode account (see 1.1.0).
+
 ## 1.1.0
 
 - **Sign in to use TrustCode.** TrustCode stays free, but it now needs a TrustCode account. Create one on the

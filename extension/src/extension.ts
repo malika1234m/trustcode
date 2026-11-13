@@ -254,7 +254,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     }
   }
 
-  /** The Security tab works without an account: scanning is local. */
+  /** Scanning is local; like every feature it needs a confirmed account (see the licence gate). */
   refreshSecurity() {
     if (this.activeTab === 'security') this.view?.webview.postMessage({ type: 'render', keepScroll: true, html: page('security', this.signedIn, this.who(), securityPage(this.security.model())) });
   }
@@ -532,7 +532,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     }
   }
 
-  /** True when the selected analysis can be used: local analysis needs no account. */
+  /** True when the selected analysis can be used (the licence gate applies before this). */
   async ensureSignedIn(): Promise<boolean> {
     if (localEngine()) return true;
     return this.ensureAccount();

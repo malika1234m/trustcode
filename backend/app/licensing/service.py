@@ -131,7 +131,8 @@ def authenticate_device(db: Session, body: bytes, signature: str, data: dict) ->
     if not signing.configured():
         raise Refused(503, "licensing_not_configured", "Licensing is not set up on this server.")
     user_id, device_id, counter = data.get("user_id"), data.get("device_id"), data.get("counter")
-    dev = db.scalar(select(LicenceDevice).where(LicenceDevice.user_id == user_id, LicenceDevice.device_id == device_id))
+    # locked until commit, so two copies of one request cannot both pass the counter check
+    dev = db.scalar(select(LicenceDevice).where(LicenceDevice.user_id == user_id, LicenceDevice.device_id == device_id).with_for_update())
     if dev is None or not signing.verify_device_signature(dev.public_key, signature, body):
         record(db, "signature_rejected", user_id if dev else None, dev)
         db.commit()

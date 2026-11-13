@@ -11,6 +11,7 @@ import { Reveal } from '@/components/landing/reveal-motion';
 import { WorkspaceScan } from '@/components/visuals/workspace-scan';
 import { AgentHub } from '@/components/visuals/agent-hub';
 import { Architecture } from '@/components/visuals/pipeline';
+import { LocalProof } from '@/components/landing/local-proof';
 import { INSTALL_URL, RELEASE_VERSION, TRUST_CENTER_URL } from '@/lib/config';
 import { getPlans } from '@/lib/plans';
 import type { Status } from '@/lib/capabilities';
@@ -46,16 +47,6 @@ const PRIVACY: [string, string][] = [
   ['History kept locally', 'Results, decisions and feedback are stored in VS Code’s storage on your computer.'],
   ['Two downloads only', 'The one-time engine setup from PyPI, and a daily update check against GitHub releases.'],
 ];
-
-/** What you need, next to the download button. Keep in step with docs/LOCAL_ENGINE_ARCHITECTURE.md. */
-function Requirements() {
-  return (
-    <div className="mt-6 max-w-xl text-sm text-muted">
-      <p>Free · v{RELEASE_VERSION} for VS Code · Python 3.11 or newer · about 300 MB for the engine · Docker only if you want supplied unit tests to run</p>
-      <p className="mt-1 text-dim">Installed from a .vsix file, not the VS Code Marketplace. Tested on macOS (Apple silicon).</p>
-    </div>
-  );
-}
 
 function Title({ id, children, center = false }: { id: string; children: React.ReactNode; center?: boolean }) {
   return <h2 id={id} className={`text-[2.1rem] font-bold leading-[1.08] tracking-[-0.025em] sm:text-5xl ${center ? 'text-center' : ''}`}>{children}</h2>;
@@ -106,7 +97,7 @@ export default function Home() {
               <a href={INSTALL_URL} className="btn btn-neon !min-h-14 !px-6"><CodeIcon className="h-5 w-5" />Download for VS Code</a>
               <Link href="#demo" className="btn btn-ghost !min-h-14 !px-6"><PlayIcon className="h-5 w-5" />Explore the demo</Link>
             </div>
-            <Requirements />
+            <LocalProof />
           </div>
           <HeroVisual />
         </Container>

@@ -19,7 +19,8 @@ import { EngineManager } from './engine/manager';
 import { LocalAnalysis, LocalState, RoutedApi } from './engine/local';
 import { LicenceManager } from './licence/manager';
 import { LICENCE_KEYS } from './licence/keys';
-import type { LicenceView } from './licence/state';
+import { buildHash } from './licence/build';
+import { noticeDue, type LicenceView } from './licence/state';
 import { account, accountDashboard, engineNotice, errorCard, history, page, progress as progressCard, summaryTiles, Tab, TABS, verifyForm, waitingForBrowser, welcome } from './ui';
 
 // Secrets are bound to the backend origin, so tokens are never sent to a different server.
@@ -865,7 +866,12 @@ export function activate(ctx: vscode.ExtensionContext) {
   const licenceLog = vscode.window.createOutputChannel('TrustCode Licence');
   const licenceItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
   licenceItem.command = { title: 'Account', command: 'trustcode.showAccount' };
+  // Integrity signal: this build's version and a hash of its compiled code, sent with licence requests. Computed in
+  // the background; until it is ready the version alone is sent.
+  const client: { v?: string; build?: string } = { v: String(ctx.extension.packageJSON?.version ?? '') || undefined };
+  void buildHash(path.join(ctx.extensionPath, 'out', 'src')).then((h) => { client.build = h; });
   const licence = new LicenceManager({
+    client: () => client,
     secrets: ctx.secrets, fetch: (globalThis as any).fetch, backend: backendUrl, keys: LICENCE_KEYS,
     authed: (method, p, body) => api.request(method, p, body),
     log: (msg) => licenceLog.appendLine(`[${new Date().toISOString()}] ${msg}`),
@@ -873,6 +879,17 @@ export function activate(ctx: vscode.ExtensionContext) {
     onChange: (v) => licenceChanged(v),
   });
   view.licence = licence;
+  // The licence follows traffic the extension already makes: the server returns the account's revocation version
+  // with every signed-in response, and server analysis carries a proof that it comes from this activated device.
+  api.hooks = {
+    onLicenceRev: (rev) => licence.noteRev(rev),
+    onUnauthorized: () => licence.noteUnauthorized(),
+    headers: async (method, p): Promise<Record<string, string>> => {
+      if (method !== 'POST' || (p !== '/verifications' && p !== '/session-verifications')) return {};
+      const proof = await licence.proof();
+      return proof ? { 'X-TrustCode-Device': proof } : {};
+    },
+  };
   // Only states that need the user's attention show anything, and each one is announced at most once a day.
   let wasUsable = false;
   function licenceChanged(v: LicenceView) {
@@ -880,6 +897,7 @@ export function activate(ctx: vscode.ExtensionContext) {
       wasUsable = v.usable;
       // account confirmed: start the usual startup scan; account lost: the panel switches to the sign-in screen
       if (v.usable && process.env.TRUSTCODE_TEST !== '1') setTimeout(() => { try { view.security.startup(); } catch { /* not ready */ } }, 0);
+      try { view.session?.setLicensed(v.usable); } catch { /* not ready */ }   // a restored session is watched only with an account
       void view.showTab(view.activeTab).catch(() => undefined);
     }
     const attention = v.status === 'expiring_soon' || v.status === 'connection_required' || v.status === 'subscription_expired' || v.status === 'revoked';
@@ -895,9 +913,9 @@ export function activate(ctx: vscode.ExtensionContext) {
     licenceItem.text = v.status === 'expiring_soon' ? '$(clock) TrustCode' : v.usable ? '$(info) TrustCode plan' : '$(warning) TrustCode paused';
     licenceItem.tooltip = v.message;
     licenceItem.show();
-    const seen = ctx.globalState.get<{ status: string; at: number }>(LICENCE_NOTICE_KEY);
-    if (seen?.status === v.status && Date.now() - seen.at < 24 * 3600 * 1000) return;
-    void ctx.globalState.update(LICENCE_NOTICE_KEY, { status: v.status, at: Date.now() });
+    const notice = noticeDue(ctx.globalState.get(LICENCE_NOTICE_KEY), v.status, Date.now());   // one per state per day
+    if (!notice.notify) return;
+    void ctx.globalState.update(LICENCE_NOTICE_KEY, notice.seen);
     if (process.env.TRUSTCODE_TEST !== '1') void vscode.window.showWarningMessage(`TrustCode: ${v.message}`);
   }
   ctx.subscriptions.push(licenceLog, licenceItem, { dispose: () => licence.dispose() },
@@ -1308,7 +1326,8 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
   if (process.env.TRUSTCODE_TEST === '1') {
     return { __test: { view, ctx, browserAuth, session, security, activationMs: Date.now() - started,
       // simulates a restart: a fresh controller that must restore everything from storage
-      restartSession: async () => { await view.session.persistNow(); view.session.dispose(); const next = new SessionController(ctx, sessionHost); view.session = next; await next.activate(); return next; } } };
+      restartSession: async () => { await view.session.persistNow(); view.session.dispose(); const next = new SessionController(ctx, sessionHost); view.session = next;
+        next.gate = () => licence.usable(); await next.activate(); return next; } } };
   }
   return undefined;
 }

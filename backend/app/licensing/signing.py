@@ -78,11 +78,57 @@ def verify(token: str, public_b64u: str) -> dict:
         raise ValueError("licence signature is not valid")
 
 
+def verify_with_keys(token: str, keys: dict[str, str]) -> dict:
+    """Verifies a licence the way the extension does: the key is chosen by the `kid` the token claims, from a pinned
+    set. An unknown key id is rejected before any signature is checked. Used by tests and by key rotation checks."""
+    parts = token.split(".") if isinstance(token, str) else []
+    if len(parts) != 3 or parts[0] != PREFIX:
+        raise ValueError("malformed licence")
+    try:
+        kid = json.loads(unb64u(parts[1])).get("kid")
+    except (ValueError, AttributeError):
+        raise ValueError("malformed licence")
+    if not isinstance(kid, str) or kid not in keys:
+        raise ValueError("unknown signing key")
+    return verify(token, keys[kid])
+
+
+_P = 2 ** 255 - 19
+_D = -121665 * pow(121666, _P - 2, _P) % _P
+_SQRT_M1 = pow(2, (_P - 1) // 4, _P)
+
+
+def usable_device_key(public_b64u: str) -> bool:
+    """False for a device key that proves nothing: not 32 bytes, not a canonical point of the curve, or one of the
+    eight small-order points. For a small-order key, signatures that verify can be produced without any private key
+    (for the all-zero key, a signature of all zeros verifies for about one message in four), so it must never be
+    registered as a device or accepted in a device-signed request."""
+    try:
+        raw = unb64u(public_b64u)
+    except (ValueError, TypeError):
+        return False
+    if len(raw) != 32:
+        return False
+    y = int.from_bytes(raw, "little") & (2 ** 255 - 1)
+    if y >= _P:
+        return False
+    u, v = (y * y - 1) % _P, (_D * y * y + 1) % _P            # x^2 = u / v
+    x = u * pow(v, 3, _P) * pow(u * pow(v, 7, _P), (_P - 5) // 8, _P) % _P
+    if v * x * x % _P == (-u) % _P:
+        x = x * _SQRT_M1 % _P
+    elif v * x * x % _P != u:
+        return False                                           # not on the curve
+    for _ in range(3):                                         # 8P is the neutral point (0, 1) exactly for small-order P
+        t = _D * x * x * y * y % _P
+        x, y = 2 * x * y * pow(1 + t, _P - 2, _P) % _P, (y * y + x * x) * pow(1 - t, _P - 2, _P) % _P
+    return not (x == 0 and y == 1)
+
+
 def verify_device_signature(public_b64u: str, signature_b64u: str, body: bytes) -> bool:
     """A refresh request must be signed by the device key registered at activation."""
     try:
         raw = unb64u(public_b64u)
-        if len(raw) != 32:
+        if len(raw) != 32 or not usable_device_key(public_b64u):
             return False
         Ed25519PublicKey.from_public_bytes(raw).verify(unb64u(signature_b64u), body)
         return True

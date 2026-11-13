@@ -38,6 +38,16 @@ class Settings(BaseSettings):
     licence_signing_key: str = ""                  # base64url Ed25519 private seed (32 bytes); never leaves the server
     licence_key_id: str = "k1"                     # must match a public key embedded in the extension
     licence_refresh_hours: int = 24                # the extension refreshes its licence after this long when online
+    licence_status_minutes: int = 60               # device-signed status check interval while online (kept within 60-240)
+    # Server analysis must come from an active device of the account ("require"), is only logged when it does not
+    # ("log", for the period while older extensions are still in use), or is not checked ("off").
+    licence_device_enforcement: str = "require"
+    # Released builds: "1.2.0=<sha256>,1.2.1=<sha256>" (printed by `npm run build-hash`). A device reporting another
+    # hash for a listed version, or an unlisted version, is logged as suspicious. It is never blocked. Empty = not checked.
+    licence_known_builds: str = ""
+    licence_device_rate_per_minute: int = 6        # per device and operation (refresh, status, release)
+    licence_ip_rate_per_minute: int = 60           # all device-signed requests from one address
+    licence_activate_rate_per_minute: int = 10     # per account
 
 
 PLACEHOLDER_MARKERS = ("change-me", "change_me", "generate-with", "dev-only", "example", "secret", "password")
@@ -88,6 +98,8 @@ def get_settings() -> Settings:
                                "(untrusted code is never executed in the API)")
         if s.local_mode:
             raise RuntimeError("local_mode is not allowed in production")
+        if s.licence_device_enforcement not in ("require", "log", "off"):
+            raise RuntimeError("TRUSTCODE_LICENCE_DEVICE_ENFORCEMENT must be require, log or off")
         if s.licence_signing_key and not _valid_seed(s.licence_signing_key):
             raise RuntimeError("TRUSTCODE_LICENCE_SIGNING_KEY must be a base64url Ed25519 seed (32 bytes); "
                                "generate one with: python -m app.admin licence-keygen")

@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from ..adaptation.engine import decide, rule_history
 from ..config import get_settings
 from ..db import get_db
-from ..deps import (current_researcher, current_user, limiter, participant_session, profile_of, rate_limit)
+from ..deps import (current_researcher, current_user, licensed_user, limiter, participant_session, profile_of, rate_limit)
 from ..experiments import service as exp
 from ..explanations.engine import build_explanation
 from ..models import (AuditLog, Decision, ExperimentEvent, ExperimentSession, ExperimentTrial, Feedback, Profile,
@@ -164,7 +164,7 @@ def _own_job(db: Session, user: User, job_id: str) -> VerificationJob:
 
 
 @router.post("/verifications", response_model=JobOut, status_code=202, tags=["verification"])
-def create_verification(body: VerifyIn, request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
+def create_verification(body: VerifyIn, request: Request, user: User = Depends(licensed_user), db: Session = Depends(get_db)):
     limiter.check(f"verify:{user.id}", get_settings().verify_rate_limit_per_minute)
     from .saas import enforce_quota
     enforce_quota(db, user)
@@ -186,7 +186,7 @@ def session_limits() -> dict:
 
 
 @router.post("/session-verifications", response_model=JobOut, status_code=202, tags=["verification"])
-def create_session_verification(body: SessionVerifyIn, request: Request, user: User = Depends(current_user),
+def create_session_verification(body: SessionVerifyIn, request: Request, user: User = Depends(licensed_user),
                                 db: Session = Depends(get_db)):
     """Verify a set of changed files together (per-file checks plus cross-file checks). Counts as one verification."""
     limiter.check(f"verify:{user.id}", get_settings().verify_rate_limit_per_minute)
@@ -308,9 +308,13 @@ def feedback(body: FeedbackIn, user: User = Depends(current_user), db: Session =
 @router.delete("/me/data", status_code=204, tags=["profile"])
 def delete_my_data(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
     """Right to erasure: removes the account and all product data (cascade)."""
-    audit(db, request, "account_deleted", None)
     from sqlalchemy import delete as sql_delete
+    from ..licensing.service import account_deletion_stops
     from ..models import LicenceEvent
+    # The devices and their history are erased with the account. Online they stop at their next status check; a
+    # device that stays offline can run until the time kept here (times only: no account or device identifier).
+    stops = account_deletion_stops(db, user)
+    audit(db, request, "account_deleted", None, devices=len(stops), device_stops=stops or None)
     db.execute(sql_delete(LicenceEvent).where(LicenceEvent.user_id == user.id))   # not linked by a foreign key
     db.delete(user)
     db.commit()

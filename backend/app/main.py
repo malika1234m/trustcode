@@ -46,6 +46,9 @@ def create_app() -> FastAPI:
         response.headers["X-Request-ID"] = rid
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["Cache-Control"] = "no-store"
+        rev = getattr(request.state, "licence_rev", None)
+        if rev is not None:   # the account's revocation version, on responses the client already asked for
+            response.headers["X-TrustCode-Licence-Rev"] = str(rev)
         # Never log request/response bodies: they may contain source code (NFR-P3).
         log.info(json.dumps({"rid": rid, "method": request.method, "path": request.url.path, "status": response.status_code,
                              "ms": int((time.monotonic() - t0) * 1000)}))
@@ -59,6 +62,7 @@ def create_app() -> FastAPI:
     async def http_exc(request: Request, exc: HTTPException):
         code = {400: "bad_request", 401: "unauthorized", 403: "forbidden", 404: "not_found", 405: "method_not_allowed",
                 409: "conflict", 429: "rate_limited"}.get(exc.status_code, "error")
+        code = getattr(exc, "code", None) or code
         return _err(request, exc.status_code, code, exc.detail, getattr(exc, "headers", None))
 
     @app.exception_handler(RequestValidationError)

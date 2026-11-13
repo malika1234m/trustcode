@@ -69,13 +69,51 @@ def get_token_payload(creds: HTTPAuthorizationCredentials | None = Depends(beare
         raise _credentials_error()
 
 
-def current_user(payload: dict = Depends(get_token_payload), db: Session = Depends(get_db)) -> User:
+def current_user(request: Request, payload: dict = Depends(get_token_payload), db: Session = Depends(get_db)) -> User:
     if payload.get("scope") != "user":
         raise HTTPException(403, detail="token not valid for this endpoint")
     user = db.get(User, payload["sub"])
     if not user or user.suspended:
         raise _credentials_error()
     limiter.check(f"user:{user.id}", get_settings().rate_limit_per_minute)
+    # returned as X-TrustCode-Licence-Rev (app.main): the extension compares it with its licence and refreshes at once
+    # when they differ, so a plan or device change is noticed on traffic it already makes
+    request.state.licence_rev = user.licence_rev or 0
+    return user
+
+
+class CodedHTTPException(HTTPException):
+    """An HTTP error with a stable machine-readable code (the default handler derives the code from the status)."""
+
+    def __init__(self, status_code: int, code: str, detail: str):
+        super().__init__(status_code, detail=detail)
+        self.code = code
+
+
+def licensed_user(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)) -> User:
+    """Server analysis: the account token is not enough. The caller must also prove it holds the key of a device
+    that is active for this account, so a removed or blocked device - or a copied account token - gets nothing.
+    Self-hosted local mode and servers without licensing have no devices and are not checked."""
+    from .licensing import service, signing
+    mode = get_settings().licence_device_enforcement
+    if mode == "off" or user.is_local or not signing.configured():
+        return user
+    try:
+        service.device_proof(db, user, request.headers.get("x-trustcode-device"))
+    except service.Refused as e:
+        if mode == "log":
+            from datetime import timedelta
+            from sqlalchemy import select
+            from .models import LicenceEvent, now
+            recent = db.scalar(select(LicenceEvent.id).where(LicenceEvent.user_id == user.id, LicenceEvent.event == "server_call_without_device",
+                                                              LicenceEvent.created_at >= now() - timedelta(hours=1)).limit(1))
+            if not recent:
+                service.record(db, "server_call_without_device", user.id, detail=e.code)
+                db.commit()
+            return user
+        service.record(db, "server_call_refused", user.id, detail=e.code)
+        db.commit()
+        raise CodedHTTPException(e.status, e.code, e.message)
     return user
 
 

@@ -26,6 +26,11 @@ class User(Base):
     suspended: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
     is_local: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    # Revocation version: grows whenever something changes what this account's devices may do (device removed or
+    # blocked, account suspended or restored, plan or licence policy changed). Each licence records the value it was
+    # issued at; the API returns the current value with every signed-in response, so a device notices a change on
+    # traffic it already makes.
+    licence_rev: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
 
 
 class Profile(Base):
@@ -146,6 +151,14 @@ class LicenceDevice(Base):
     last_validated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_request_counter: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")  # replay protection
     deactivated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # When this device will at the latest stop working after it was removed, blocked or its account suspended:
+    # the end of the longest offline period ever signed for it. Online, it stops at its next status check.
+    stops_by: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    stop_reason: Mapped[str | None] = mapped_column(String(30))
+    # Integrity signals reported by the extension (signed by the device key; a modified client can lie about them).
+    ext_version: Mapped[str | None] = mapped_column(String(20))
+    build_hash: Mapped[str | None] = mapped_column(String(64))
+    last_seen_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class Licence(Base):

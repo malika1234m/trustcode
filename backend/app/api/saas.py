@@ -82,8 +82,9 @@ async def billing_webhook(request: Request, db: Session = Depends(get_db)):
     try:
         import json
         event = json.loads(body)
-        assert isinstance(event, dict)
-    except Exception:
+    except ValueError:
+        raise HTTPException(400, "invalid event")
+    if not isinstance(event, dict):
         raise HTTPException(400, "invalid event")
     outcome = apply_event(db, event)
     audit(db, request, "billing_event", None, event_type=str(event.get("type"))[:40], outcome=outcome)
@@ -276,7 +277,7 @@ class PlanIn(BaseModel):
 
 @router.post("/admin/users/{user_id}/plan", tags=["admin"])
 def admin_set_plan(user_id: str, body: PlanIn, request: Request, admin: User = Depends(current_admin), db: Session = Depends(get_db)):
-    """Set an account's plan. Devices pick it up at their next licence refresh (within about a day while online)."""
+    """Set an account's plan. Devices pick it up at their next contact with the server (status check or any signed-in request)."""
     from datetime import datetime, timezone
     from ..billing.subscriptions import admin_set_plan as set_plan
     from ..licensing.service import record
@@ -293,6 +294,8 @@ def admin_set_plan(user_id: str, body: PlanIn, request: Request, admin: User = D
         set_plan(db, u, body.plan, until)
     except ValueError as e:
         raise HTTPException(422, str(e))
+    from ..licensing.service import bump_rev
+    bump_rev(db, u)   # devices refresh at their next contact instead of waiting for the daily refresh
     record(db, "plan_changed", u.id, detail=f"{body.plan} until {body.until or 'no end date'} (administrator)")
     audit(db, request, "admin_set_plan", admin.id, target=u.id, plan=body.plan, until=body.until)
     db.commit()
@@ -313,10 +316,16 @@ def admin_user_action(user_id: str, action: Literal["suspend", "restore"], reque
         raise HTTPException(404, "user not found")
     if u.id == admin.id:
         raise HTTPException(409, "administrators cannot suspend themselves")
+    from ..licensing import service as licences
+    changed = u.suspended != (action == "suspend")
     u.suspended = action == "suspend"
-    audit(db, request, f"admin_{action}", admin.id, target=u.id)
+    devices = licences.account_suspension(db, u, u.suspended) if changed else []
+    stops = sorted(d.stops_by.replace(microsecond=0).isoformat() for d in devices if d.stops_by and d.stop_reason == "account_suspended")
+    audit(db, request, f"admin_{action}", admin.id, target=u.id, device_stops=stops or None)
     db.commit()
-    return {"id": u.id, "suspended": u.suspended}
+    # online, each device stops at its next status check; offline, at the time recorded for it
+    return {"id": u.id, "suspended": u.suspended, "online_stop_within_seconds": licences.status_seconds() if u.suspended else None,
+            "devices": [{"id": d.id, "name": d.name, "stops_by": d.stops_by} for d in devices if d.stop_reason == "account_suspended"]}
 
 
 @router.get("/admin/tickets", tags=["admin"])

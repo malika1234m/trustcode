@@ -223,11 +223,26 @@ export class SessionController implements vscode.Disposable {
     this.session = s;
     if (s.status !== 'ended') {
       s.recoveredAt = Date.now();
-      this.attach();
-      if (s.status !== 'paused') await this.rescan(false);
+      // without a confirmed account nothing is watched or read; setLicensed(true) resumes when it is confirmed
+      if (this.gate()) {
+        this.attach();
+        if (s.status !== 'paused') await this.rescan(false);
+      }
     }
     this.host.refresh();
   }
+
+  /** The account was confirmed on this device, or stopped being confirmed: a session is tracked only while it is. */
+  setLicensed(ok: boolean) {
+    const s = this.session;
+    if (!s || s.status === 'ended') return;
+    if (!ok) { this.detach(); return; }
+    if (this.sessionDisposables.length) return;
+    this.attach();
+    if (s.status !== 'paused') void this.rescan(false).catch(() => undefined);
+  }
+  /** Test hook: whether the file watcher of the current session is attached. */
+  watching(): boolean { return this.sessionDisposables.length > 0; }
 
   // ------------------------------------------------------------------ session lifecycle
   /** Set by the extension: false until a registered account is confirmed on this device. */

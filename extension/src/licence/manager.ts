@@ -1,11 +1,15 @@
 // Licence lifecycle (no vscode import -> unit-testable with injected storage, network and clock).
 //
 // Startup never waits for the network: the stored licence is verified on this device and the plan decided at once.
-// The server is contacted only when the licence is due for a refresh (refresh_after, normally once a day), after a
-// failed attempt (exponential back-off from 1 minute up to 6 hours), or when the user asks. Storage is the editor's
-// SecretStorage, which VS Code keeps in the operating system's keychain (Keychain on macOS).
+// The server is contacted only:
+//   - for a status check (small, device-signed, nothing issued) shortly after startup and then every `check_after`
+//     seconds while online (1-4 hours, set by the server), so a removed or blocked device stops within that time;
+//   - for a refresh when the licence is due (refresh_after, normally once a day), when a status check or the
+//     revocation version on another response says the licence is no longer current, or when the user asks;
+//   - after a failed attempt (exponential back-off from 1 minute up to 6 hours).
+// Storage is the editor's SecretStorage, which VS Code keeps in the operating system's keychain (Keychain on macOS).
 import { ApiError, FetchLike } from '../api';
-import { DeviceIdentity, newDevice, signedRequest, validDevice } from './device';
+import { DeviceIdentity, deviceProof, newDevice, signedRequest, validDevice } from './device';
 import { evaluate, LicenceView } from './state';
 import { LicencePayload, verifyLicence } from './token';
 
@@ -26,16 +30,29 @@ export interface LicenceDeps {
   schedule?: (fn: () => void, ms: number) => Timer;
   timeoutMs?: number;
   freeFeatures?: Record<string, unknown>;
+  /** Integrity signals sent with licence requests: this extension's version and a hash of its compiled code. */
+  client?: () => { v?: string; build?: string };
 }
 
-interface Stored { token?: string; revoked?: { code: string; message: string }; clockFloor?: number; offline?: boolean; lastAttempt?: number }
+interface Stored {
+  token?: string; revoked?: { code: string; message: string }; clockFloor?: number; offline?: boolean; lastAttempt?: number;
+  /** Last time the server answered a status check or a refresh (this computer's clock, ms). */
+  lastContact?: number;
+  /** Server time minus this computer's time at the last contact (ms): lets a device proof carry the server's time. */
+  skew?: number;
+}
 
 const DEVICE_KEY = 'trustcode.licence.device';
 const MIN = 60_000;
 export const BACKOFF_MS = [1, 2, 4, 8, 16, 32, 60, 120, 240, 360].map((m) => m * MIN);
-const TICK_MS = 60 * MIN;
-export const STARTUP_MAX_AGE_MS = 60 * MIN;
+export const TICK_MS = 15 * MIN;
+/** Shortly after startup the status is confirmed online, unless the server answered within this time (window reloads). */
+export const STARTUP_MAX_AGE_MS = 5 * MIN;
+export const STARTUP_DELAY_MS = 15_000;
+export const DEFAULT_CHECK_MS = 60 * MIN;
+const CLOCK_WRITE_MS = 30 * MIN;
 const REFUSALS = new Set(['device_not_recognised', 'device_deactivated', 'device_revoked', 'account_suspended']);
+const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 
 export const normaliseBackend = (u: string) => u.trim().replace(/\/+$/, '').toLowerCase();
 
@@ -49,6 +66,10 @@ export class LicenceManager {
   private tickTimer?: Timer;
   private syncing?: Promise<void>;
   private disposed = false;
+  /** The server has no status endpoint (older than 1.2.0): fall back to the daily refresh only. */
+  private statusUnsupported = false;
+  private seenRev?: number;
+  private lastUnauthorizedCheck = 0;
 
   constructor(private d: LicenceDeps) {
     this.view = evaluate({ nowMs: this.now(), clockFloorMs: 0, offline: false, freeFeatures: d.freeFeatures });   // until load(): not usable
@@ -63,16 +84,28 @@ export class LicenceManager {
     return { cancel: () => clearTimeout(t) };
   }
 
+  private storageWarned = false;
+  private storageFailed(e: unknown) {
+    if (!this.storageWarned) this.d.log(`The editor's secret storage is not available (${e instanceof Error ? e.message : String(e)}). The licence cannot be kept between sessions.`);
+    this.storageWarned = true;
+  }
+  /** Storage problems never throw: the licence then lives in memory for this session and the user signs in again later. */
+  private async put(k: string, v: string) { try { await this.d.secrets.store(k, v); } catch (e) { this.storageFailed(e); } }
   private async readJson<T>(k: string): Promise<T | undefined> {
-    const raw = await this.d.secrets.get(k);
+    let raw: string | undefined;
+    try { raw = await this.d.secrets.get(k); } catch (e) { this.storageFailed(e); return undefined; }
     if (raw === undefined) return undefined;
-    try { return JSON.parse(raw) as T; } catch {
+    try {
+      const v = JSON.parse(raw);
+      if (v === null || typeof v !== 'object' || Array.isArray(v)) throw new Error('not an object');
+      return v as T;
+    } catch {
       this.d.log('Stored licence data was unreadable and has been reset.');
-      await this.d.secrets.delete(k);
+      try { await this.d.secrets.delete(k); } catch (e) { this.storageFailed(e); }
       return undefined;
     }
   }
-  private async save() { await this.d.secrets.store(this.key(), JSON.stringify(this.rec)); }
+  private async save() { await this.put(this.key(), JSON.stringify(this.rec)); }
 
   private async loadDevice(create: boolean): Promise<DeviceIdentity | undefined> {
     if (this.device) return this.device;
@@ -80,14 +113,22 @@ export class LicenceManager {
     if (validDevice(d)) return (this.device = d);
     if (!create) return undefined;
     this.device = newDevice();
-    await this.d.secrets.store(DEVICE_KEY, JSON.stringify(this.device));
+    await this.put(DEVICE_KEY, JSON.stringify(this.device));
     return this.device;
   }
 
   /** Verifies the stored licence and decides the plan. No network. */
   async load(): Promise<LicenceView> {
-    this.rec = (await this.readJson<Stored>(this.key())) ?? {};
+    const raw: any = (await this.readJson<Stored>(this.key())) ?? {};
+    // stored values are untrusted input: keep only fields of the expected type
+    const num = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? v : undefined);
+    this.rec = { token: typeof raw.token === 'string' ? raw.token : undefined, clockFloor: num(raw.clockFloor), offline: raw.offline === true,
+      lastAttempt: num(raw.lastAttempt), lastContact: num(raw.lastContact), skew: num(raw.skew),
+      revoked: raw.revoked && typeof raw.revoked.code === 'string' && typeof raw.revoked.message === 'string' ? { code: raw.revoked.code, message: raw.revoked.message.slice(0, 300) } : undefined };
     this.payload = undefined;
+    this.device = undefined;       // re-read: the stored key may have been removed or replaced
+    this.seenRev = undefined;
+    this.statusUnsupported = false;
     if (this.rec.token) {
       const v = verifyLicence(this.rec.token, this.d.keys);
       const device = await this.loadDevice(false);
@@ -100,11 +141,21 @@ export class LicenceManager {
     return this.publish();
   }
 
-  /** Remembers the latest plausible time, so a clock turned back later is noticed. Written at most every 10 minutes. */
+  /** Remembers the latest plausible time, so a clock turned back later is noticed. Written at most every 30 minutes. */
   private async touchClock() {
     const t = this.now(), floor = this.rec.clockFloor ?? 0;
     const rolledBack = t + 10 * MIN < Math.max(floor, this.payload ? this.payload.iat * 1000 : 0);
-    if (!rolledBack && t > floor + 10 * MIN) { this.rec.clockFloor = t; await this.save(); }
+    if (!rolledBack && t > floor + CLOCK_WRITE_MS) { this.rec.clockFloor = t; await this.save(); }
+  }
+
+  /** How often the status is confirmed while online: set by the server in the licence, kept within 1-4 hours. */
+  checkEveryMs(): number {
+    const s = this.payload?.check_after;
+    return typeof s === 'number' && Number.isFinite(s) ? clamp(s * 1000, 60 * MIN, 240 * MIN) : DEFAULT_CHECK_MS;
+  }
+  private extras(): Record<string, unknown> {
+    const c = this.d.client?.() ?? {};
+    return { lid: this.payload?.lid, rev: this.payload?.rev, v: c.v, build: c.build };
   }
 
   private publish(): LicenceView {
@@ -122,8 +173,9 @@ export class LicenceManager {
     this.payload = v.payload;
     // the server's clock is the anchor: it also repairs a floor that a wrong clock had pushed into the future
     const serverMs = Number.isInteger(r.server_time) ? r.server_time * 1000 : v.payload.iat * 1000;
-    this.rec = { token: r.licence, clockFloor: serverMs, offline: false, lastAttempt: this.now() };
+    this.rec = { token: r.licence, clockFloor: serverMs, offline: false, lastAttempt: this.now(), lastContact: this.now(), skew: serverMs - this.now() };
     this.failures = 0;
+    this.retryTimer?.cancel();
     await this.save();
   }
 
@@ -131,7 +183,9 @@ export class LicenceManager {
   async activate(): Promise<LicenceView> {
     const device = await this.loadDevice(true);
     try {
-      const r = await this.d.authed('POST', '/licence/activate', { device_id: device!.id, public_key: device!.publicKey, name: this.d.deviceName, platform: this.d.platform });
+      const c = this.d.client?.() ?? {};
+      const r = await this.d.authed('POST', '/licence/activate', { device_id: device!.id, public_key: device!.publicKey, name: this.d.deviceName,
+        platform: this.d.platform, version: c.v, build: c.build });
       await this.accept(r);
     } catch (e) {
       if (e instanceof ApiError && e.code === 'licensing_not_configured') { this.d.log('The server does not issue licences; the Free plan needs none.'); return this.publish(); }
@@ -141,36 +195,72 @@ export class LicenceManager {
     return this.view;
   }
 
-  /** Contacts the server only when due (or forced). Never throws: failures become the offline state. */
+  /**
+   * Contacts the server only when due (or forced). Never throws: failures become the offline state.
+   * `force` always refreshes the licence; `maxAgeMs` asks for a status check when the server last answered longer ago.
+   */
   sync(force = false, maxAgeMs?: number): Promise<void> {
     if (this.syncing) return this.syncing;
     this.syncing = this.doSync(force, maxAgeMs).finally(() => { this.syncing = undefined; });
     return this.syncing;
   }
 
+  private async signed(path: string): Promise<any> {
+    const device = await this.loadDevice(false);
+    if (!device || !this.payload) throw new ApiError(0, 'no_device', 'this device has no key');
+    const req = signedRequest(device, this.payload.sub, this.now(), this.extras());
+    this.device = req.device;
+    await this.put(DEVICE_KEY, JSON.stringify(req.device));
+    try { return await this.post(path, req.body, req.signature); } catch (e) {
+      if (e instanceof ApiError && e.code === 'replayed_request') {   // the server has seen a higher counter: jump past it
+        this.device = { ...req.device, counter: req.device.counter + 1000 };
+        await this.put(DEVICE_KEY, JSON.stringify(this.device));
+      }
+      throw e;
+    }
+  }
+
   private async doSync(force: boolean, maxAgeMs?: number) {
     if (!this.payload || this.disposed) return;
-    const due = this.now() >= this.payload.refresh_after * 1000 || !!this.rec.offline || this.view.status === 'connection_required'
-      || (maxAgeMs !== undefined && this.now() - this.payload.validated_at * 1000 > maxAgeMs);
-    if (!force && !due) return;
-    const device = await this.loadDevice(false);
-    if (!device) return;
-    const req = signedRequest(device, this.payload.sub, this.now());
-    this.device = req.device;
-    await this.d.secrets.store(DEVICE_KEY, JSON.stringify(req.device));
+    const now = this.now();
+    const sinceContact = now - (this.rec.lastContact ?? this.payload.validated_at * 1000);
+    const refreshDue = force || now >= this.payload.refresh_after * 1000 || this.view.status === 'connection_required';
+    // against a server without the status call, only startup and a failed attempt ask early (as before 1.2.0)
+    const periodic = !this.statusUnsupported && (sinceContact >= this.checkEveryMs() || sinceContact < 0);
+    const statusDue = !!this.rec.offline || periodic || (maxAgeMs !== undefined && sinceContact > maxAgeMs);
+    if (!refreshDue && !statusDue) return;
+    if (!(await this.loadDevice(false))) return;
     try {
-      const res = await this.post('/licence/refresh', req.body, req.signature);
-      await this.accept(res);
-      this.d.log('Licence refreshed.');
+      let refresh = refreshDue || this.statusUnsupported;
+      if (!refresh) {
+        try {
+          const r = await this.signed('/licence/status');
+          if (!r || r.status !== 'ok') throw new ApiError(502, 'invalid_answer', 'the answer did not come from the TrustCode server');
+          refresh = r.refresh === true || (Number.isInteger(r.rev) && this.payload.rev !== undefined && r.rev !== this.payload.rev);
+          this.seenRev = Number.isInteger(r.rev) ? r.rev : this.seenRev;
+          this.rec.offline = false; this.rec.lastAttempt = this.now(); this.rec.lastContact = this.now();
+          if (Number.isInteger(r.server_time)) { this.rec.skew = r.server_time * 1000 - this.now(); this.rec.clockFloor = r.server_time * 1000; }
+          this.failures = 0;
+          this.retryTimer?.cancel();
+          await this.save();
+        } catch (e) {
+          // a server from before the status call: keep to the daily refresh (and confirm now, as startup always did)
+          if (e instanceof ApiError && (e.status === 404 || e.status === 405)) { this.statusUnsupported = true; refresh = true; } else throw e;
+        }
+      }
+      if (refresh) {
+        await this.accept(await this.signed('/licence/refresh'));
+        this.d.log('Licence refreshed.');
+      }
     } catch (e) {
       const code = e instanceof ApiError ? e.code : 'network';
       if (e instanceof ApiError && REFUSALS.has(code)) {
         this.d.log(`The server no longer accepts this device (${code}).`);
         this.payload = undefined;
         this.rec = { revoked: { code, message: e.message }, clockFloor: this.rec.clockFloor };
+        this.retryTimer?.cancel();
         await this.save();
       } else {
-        if (e instanceof ApiError && code === 'replayed_request') { this.device = { ...req.device, counter: req.device.counter + 1000 }; await this.d.secrets.store(DEVICE_KEY, JSON.stringify(this.device)); }
         this.rec.offline = true;
         this.rec.lastAttempt = this.now();
         await this.save();
@@ -183,6 +273,31 @@ export class LicenceManager {
     } finally {
       this.publish();
     }
+  }
+
+  /**
+   * The server returns the account's revocation version with every signed-in response. When it differs from the
+   * version this licence was issued at, something changed (plan, policy, a device, the account): refresh now.
+   * Costs no request when nothing changed.
+   */
+  noteRev(rev: number) {
+    if (!this.payload || this.payload.rev === undefined || rev === this.payload.rev || rev === this.seenRev) return;
+    this.seenRev = rev;
+    void this.sync(true);
+  }
+
+  /** A signed-in request was refused as unauthorised: confirm this device's status now (at most once a minute). */
+  noteUnauthorized() {
+    if (!this.payload || this.now() - this.lastUnauthorizedCheck < MIN) return;
+    this.lastUnauthorizedCheck = this.now();
+    void this.sync(false, 0);
+  }
+
+  /** Header value proving to the server that a server feature is requested from this activated device. */
+  async proof(): Promise<string | undefined> {
+    const device = await this.loadDevice(false);
+    if (!device || !this.payload || !this.view.usable) return undefined;
+    try { return deviceProof(device, this.payload.sub, this.now() + (this.rec.skew ?? 0)); } catch { return undefined; }
   }
 
   private async post(path: string, body: string, signature: string): Promise<any> {
@@ -205,10 +320,7 @@ export class LicenceManager {
   async release(): Promise<void> {
     const device = await this.loadDevice(false);
     if (this.payload && device) {
-      const req = signedRequest(device, this.payload.sub, this.now());
-      this.device = req.device;
-      await this.d.secrets.store(DEVICE_KEY, JSON.stringify(req.device));
-      await this.post('/licence/release', req.body, req.signature).catch((e) => this.d.log(`The server was not told about the sign-out (${e?.message ?? e}).`));
+      await this.signed('/licence/release').catch((e) => this.d.log(`The server was not told about the sign-out (${e?.message ?? e}).`));
     }
     this.payload = undefined;
     this.rec = { clockFloor: this.rec.clockFloor };
@@ -219,16 +331,16 @@ export class LicenceManager {
 
   /** The editor regained focus: a good moment to retry if the last attempt failed a while ago. */
   nudge() {
-    if (this.rec.offline && this.now() - (this.rec.lastAttempt ?? 0) > 2 * MIN) void this.sync();
+    if (this.rec.offline ? this.now() - (this.rec.lastAttempt ?? 0) > 2 * MIN : this.now() - (this.rec.lastContact ?? 0) >= this.checkEveryMs()) void this.sync();
   }
 
   startTimers() {
     if (this.tickTimer || this.disposed) return;
-    const tick = () => { void this.touchClock().then(() => this.sync()).then(() => this.publish()); this.tickTimer = this.schedule(tick, TICK_MS); };
-    // Shortly after startup (never during it), confirm the account online if it was last confirmed over an hour ago:
-    // a deleted, suspended or signed-out account is noticed at the next start while online.
-    this.tickTimer = this.schedule(() => { void this.touchClock().then(() => this.sync(false, STARTUP_MAX_AGE_MS)).then(() => this.publish());
-      this.tickTimer = this.schedule(tick, TICK_MS); }, 15_000);
+    const tick = () => { void this.touchClock().then(() => this.sync()).then(() => this.publish()).catch(() => undefined); this.tickTimer = this.schedule(tick, TICK_MS); };
+    // Shortly after startup (never during it), confirm the status online unless the server answered in the last few
+    // minutes: a deleted, suspended, removed or blocked account is noticed at the next start while online.
+    this.tickTimer = this.schedule(() => { void this.touchClock().then(() => this.sync(false, STARTUP_MAX_AGE_MS)).then(() => this.publish()).catch(() => undefined);
+      this.tickTimer = this.schedule(tick, TICK_MS); }, STARTUP_DELAY_MS);
   }
 
   /** A registered account is confirmed on this device (TrustCode may run). */

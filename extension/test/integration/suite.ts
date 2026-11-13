@@ -45,7 +45,10 @@ export async function run(): Promise<void> {
   // local-engine modes need no server at all: they run against an address nothing listens on
   const backend = process.env.TRUSTCODE_TEST_ENGINE ? 'http://127.0.0.1:9' : process.env.TRUSTCODE_TEST_BACKEND;
   const mode = process.env.TRUSTCODE_TEST_MODE ?? '';
-  if (mode === 'security') {
+  if (mode === 'licence') {
+    const { runLicenceScenarios } = await import('./licence');
+    for (const r of await runLicenceScenarios((ext as any)?.exports?.__test)) if (!r.ok) failures.push(r.name);
+  } else if (mode === 'security') {
     const hook = (ext as any)?.exports?.__test;
     const { runSecurityScenarios } = await import('./security');
     for (const r of await runSecurityScenarios(hook, process.env.TRUSTCODE_TEST_SCANNER ?? 'trustcode-scan')) if (!r.ok) failures.push(r.name);

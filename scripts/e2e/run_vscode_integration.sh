@@ -6,6 +6,7 @@
 #   4. the local project security scanner (mode: security)
 #   5. the same journeys on the local engine with no server (modes: engine, e-session-git, e-session-nogit)
 #   6. a real engine installation from PyPI into a private environment (mode: engine-install; downloads ~300 MB)
+#   7. the account gate while signed out: nothing runs in the background (mode: licence)
 # Needs: VSCODE_EXECUTABLE (path to the VS Code binary), the Python venv, and ~/.trustcode/local-secret
 # (created by starting the backend once in local mode). Usage: scripts/e2e/run_vscode_integration.sh [default|session-git|session-nogit ...]
 set -uo pipefail
@@ -55,6 +56,7 @@ for MODE in "${@:-default session-git session-nogit security}"; do for M in $MOD
   echo "=== $M"
   unset TRUSTCODE_TEST_WORKSPACE
   if [ "$M" = security ]; then make_workspace "$TMP/ws-sec" git; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-sec" TRUSTCODE_TEST_SCANNER="$ROOT/.venv/bin/trustcode-scan"; fi
+  if [ "$M" = licence ]; then make_workspace "$TMP/ws-lic" git; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-lic"; fi   # signed out: the account gate
   if [ "$M" = session-git ]; then make_workspace "$TMP/ws-git" git; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-git"; fi
   if [ "$M" = session-nogit ]; then make_workspace "$TMP/ws-plain" nogit; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-plain"; fi
   unset TRUSTCODE_TEST_ENGINE

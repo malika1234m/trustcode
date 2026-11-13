@@ -108,7 +108,10 @@ def apply_event(db: Session, event: dict) -> str:
     if sub is None:
         sub = Subscription(user_id=user.id, plan_id=plan, status="expired")
         db.add(sub)
-    sub.last_event_at, sub.provider = created, str(data.get("provider", sub.provider or "manual"))[:40]
+    # A billing event replaces a plan that an administrator set: from here on the subscription follows the billing
+    # rules (period end and renewal grace), so it must not stay marked as an administrator's grant.
+    provider = str(data.get("provider") or sub.provider or "manual")[:40]
+    sub.last_event_at, sub.provider = created, "manual" if provider == "admin" else provider
     sub.provider_ref = str(data.get("subscription_ref", sub.provider_ref or ""))[:120] or None
     if etype in ("subscription.activated", "subscription.renewed"):
         end = _ts(data.get("period_end"))
@@ -127,6 +130,8 @@ def apply_event(db: Session, event: dict) -> str:
         sub.status = "refunded"
     elif etype == "payment.disputed":
         sub.status = "disputed"
+    from ..licensing.service import bump_rev   # imported here: the licensing service imports this module
+    bump_rev(db, user)    # devices pick the new entitlement up at their next contact
     db.commit()
     return "applied"
 

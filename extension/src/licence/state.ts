@@ -50,12 +50,15 @@ export function evaluate(i: EvaluateInput): LicenceView {
   if (i.nowMs + CLOCK_TOLERANCE_MS < Math.max(i.clockFloorMs, p.iat * 1000)) {
     return blocked('connection_required', 'Your computer’s date and time look incorrect. Correct them, or connect to the internet so TrustCode can confirm your account.', { ...base, clockProblem: true });
   }
+  // The offline period is checked before the paid period: once it has ended nothing runs, whatever the plan was.
+  // (Checked the other way round, a device whose paid plan had ended stayed usable on the Free plan for ever
+  // without confirming its account again, also after it was removed or its account suspended.)
+  if (i.nowMs >= p.offline_until * 1000) {
+    return blocked('connection_required', `TrustCode has been offline for ${plural(p.grace_days)}. Connect to the internet so it can confirm your account, then it continues.`, base);
+  }
   if (paidPlan && (p.paid_until === null || i.nowMs >= p.paid_until * 1000)) {
     return { status: 'subscription_expired', usable: true, plan: FREE, features: i.freeFeatures ?? {}, ...base,
       message: `Your ${p.plan.name} plan has ended. You are on the Free plan, and everything on it keeps working.` };
-  }
-  if (i.nowMs >= p.offline_until * 1000) {
-    return blocked('connection_required', `TrustCode has been offline for ${plural(p.grace_days)}. Connect to the internet so it can confirm your account, then it continues.`, base);
   }
   const ok = { ...base, usable: true, plan: p.plan, features: p.features };
   const warn = (i.warnDays ?? 5) * DAY;
@@ -72,4 +75,26 @@ export function evaluate(i: EvaluateInput): LicenceView {
     return { status: 'offline', ...ok, daysLeft: days(offlineLeft), message: 'You’re offline. Your plan was checked on this computer, so you can keep working.' };
   }
   return { status: 'active', ...ok, message: paidPlan ? `${p.plan.name} plan is active.` : 'Free plan. Your account is confirmed.' };
+}
+
+/** States that are announced to the user. Everything else is silent (ordinary use shows no licence prompts). */
+export const ATTENTION: ReadonlySet<LicenceStatus> = new Set<LicenceStatus>(['expiring_soon', 'connection_required', 'subscription_expired', 'revoked']);
+const NOTICE_EVERY_MS = 24 * 3600 * 1000;
+
+/**
+ * Whether to show a notification for `status` now: at most one per state per day, also when the state changes back
+ * and forth (for example a connection that comes and goes near the end of the offline period). `seen` is what was
+ * stored last time; the returned `seen` is what to store.
+ */
+export function noticeDue(seen: unknown, status: LicenceStatus, nowMs: number): { notify: boolean; seen: Record<string, number> } {
+  const map: Record<string, number> = {};
+  if (seen && typeof seen === 'object') {
+    const o = seen as Record<string, unknown>;
+    if (typeof o.status === 'string' && typeof o.at === 'number') map[o.status] = o.at;          // format before 1.2.0
+    else for (const [k, v] of Object.entries(o)) if (typeof v === 'number' && nowMs - v < NOTICE_EVERY_MS && v <= nowMs) map[k] = v;
+  }
+  if (!ATTENTION.has(status)) return { notify: false, seen: map };
+  const last = map[status];
+  if (last !== undefined && nowMs - last < NOTICE_EVERY_MS && last <= nowMs) return { notify: false, seen: map };
+  return { notify: true, seen: { ...map, [status]: nowMs } };
 }

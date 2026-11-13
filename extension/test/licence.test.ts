@@ -1,79 +1,14 @@
 // Offline licence behaviour: signature checks, offline periods, clock checks, sync, revocation and storage faults.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createPublicKey, generateKeyPairSync, sign, verify } from 'crypto';
+import { createPublicKey, generateKeyPairSync } from 'crypto';
 import { ApiError } from '../src/api';
-import { LicenceManager, BACKOFF_MS } from '../src/licence/manager';
+import { BACKOFF_MS } from '../src/licence/manager';
 import { evaluate } from '../src/licence/state';
-import { verifyLicence, fromB64u } from '../src/licence/token';
+import { fromB64u, verifyLicence } from '../src/licence/token';
 import { LICENCE_KEYS } from '../src/licence/keys';
+import { b64u, DAY, FakeServer, KEYS, memorySecrets, setup, signToken } from './licence-fake';
 
-const DAY = 86400_000;
-const b64u = (b: Buffer) => b.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-const server = generateKeyPairSync('ed25519');
-const KEYS = { t1: (server.publicKey.export({ format: 'jwk' }) as any).x as string };
-
-function signToken(p: object, key = server.privateKey) {
-  const body = b64u(Buffer.from(JSON.stringify(p)));
-  return `tcl1.${body}.${b64u(sign(null, Buffer.from(`tcl1.${body}`), key))}`;
-}
-
-/** A fake TrustCode server: account state, device registry, and a switch for being unreachable. */
-class FakeServer {
-  clock = Date.UTC(2026, 10, 13);
-  plan = { id: 'pro', name: 'Pro' };
-  paidUntil: number | null = this.clock + 60 * DAY;
-  grace = 30;
-  reachable = true;
-  failWith?: number;
-  refusal?: string;
-  devices = new Map<string, { publicKey: string; counter: number }>();
-  maxDevices = 3;
-  calls: string[] = [];
-  issue(dev: string) {
-    const iat = Math.floor(this.clock / 1000);
-    return { licence: signToken({ v: 1, kid: 't1', lid: 'l' + this.calls.length, sub: 'a'.repeat(32), dev, plan: this.plan, state: 'active',
-      features: { llm_explanations: this.plan.id !== 'free' }, limits: {}, act: iat, iat, validated_at: iat, grace_days: this.grace,
-      offline_until: iat + this.grace * 86400, paid_until: this.plan.id === 'free' ? null : this.paidUntil && Math.floor(this.paidUntil / 1000), refresh_after: iat + 86400 }),
-      server_time: iat };
-  }
-  authed = async (_m: string, path: string, body: any) => {
-    this.calls.push(path);
-    if (!this.reachable) throw new ApiError(0, 'network', 'offline');
-    if (this.devices.size >= this.maxDevices && !this.devices.has(body.device_id)) throw new ApiError(409, 'device_limit_reached', 'limit');
-    this.devices.set(body.device_id, { publicKey: body.public_key, counter: 0 });
-    return this.issue(body.device_id);
-  };
-  fetch = async (url: string, init: any) => {
-    const path = new URL(url).pathname.replace('/api/v1', '');
-    this.calls.push(path);
-    if (!this.reachable) throw new Error('getaddrinfo ENOTFOUND');
-    const reply = (status: number, data: any) => ({ ok: status < 400, status, headers: { get: () => null }, json: async () => data, text: async () => '' });
-    if (this.failWith) return reply(this.failWith, { error: { code: 'error', message: 'down' } });
-    const data = JSON.parse(init.body);
-    const dev = this.devices.get(data.device_id);
-    const sigOk = dev && verify(null, Buffer.from(init.body), createPublicKey({ key: { kty: 'OKP', crv: 'Ed25519', x: dev.publicKey }, format: 'jwk' }), fromB64u(init.headers['X-TrustCode-Device-Signature']));
-    if (!sigOk) return reply(401, { error: { code: 'device_not_recognised', message: 'This device is not activated.' } });
-    if (data.counter <= dev!.counter) return reply(401, { error: { code: 'replayed_request', message: 'replay' } });
-    dev!.counter = data.counter;
-    if (this.refusal) return reply(403, { error: { code: this.refusal, message: 'This device was blocked by an administrator.' } });
-    if (path === '/licence/release') { this.devices.delete(data.device_id); return reply(200, { status: 'deactivated' }); }
-    return reply(200, this.issue(data.device_id));
-  };
-}
-
-function memorySecrets(init: Record<string, string> = {}) {
-  const m = new Map(Object.entries(init));
-  return { m, get: async (k: string) => m.get(k), store: async (k: string, v: string) => { m.set(k, v); }, delete: async (k: string) => { m.delete(k); } };
-}
-
-function setup(srv = new FakeServer(), secrets = memorySecrets()) {
-  const env = { now: srv.clock, timers: [] as { fn: () => void; ms: number }[], logs: [] as string[] };
-  const mk = () => new LicenceManager({ secrets, fetch: srv.fetch as any, backend: () => 'https://api.example', keys: KEYS, authed: srv.authed,
-    onChange: () => undefined, log: (m) => env.logs.push(m), deviceName: 'Test', platform: 'darwin-arm64', now: () => env.now,
-    schedule: (fn, ms) => { const t = { fn, ms }; env.timers.push(t); return { cancel: () => { env.timers = env.timers.filter((x) => x !== t); } }; } });
-  return { srv, secrets, env, mk, m: mk() };
-}
 
 test('1-2. first online activation stores a licence that verifies on this device', async () => {
   const { m, mk, secrets } = setup();
@@ -264,11 +199,12 @@ test('no network call when the licence is not yet due', async () => {
   const { m, srv, env } = setup();
   await m.activate();
   const n = srv.calls.length;
-  env.now += 3600_000;
+  env.now += 30 * 60_000;                 // the status check is due after an hour, the refresh after a day
   await m.sync();
   assert.equal(srv.calls.length, n);
   await m.sync(true);
   assert.equal(srv.calls.length, n + 1);
+  assert.equal(srv.calls.at(-1), '/licence/refresh');
 });
 
 test('without a licence nothing runs: a registered account is required', () => {
@@ -293,16 +229,17 @@ test('a registered Free account is usable, online and offline within the period'
   assert.equal(m.view.status, 'expiring_soon', 'free accounts are warned before the offline period ends too');
 });
 
-test('at startup the account is confirmed online when last confirmed over an hour ago', async () => {
+test('at startup the status is confirmed online unless the server answered in the last few minutes', async () => {
   const { m, srv, env } = setup();
   await m.activate();
   const n = srv.calls.length;
-  env.now += 30 * 60_000;
-  await m.sync(false, 60 * 60_000);
-  assert.equal(srv.calls.length, n, 'confirmed 30 minutes ago: no call');
-  env.now += 60 * 60_000;
-  await m.sync(false, 60 * 60_000);
-  assert.equal(srv.calls.length, n + 1);
+  env.now += 2 * 60_000;
+  await m.sync(false, 5 * 60_000);
+  assert.equal(srv.calls.length, n, 'the server answered 2 minutes ago: no call');
+  env.now += 10 * 60_000;
+  srv.clock = env.now;
+  await m.sync(false, 5 * 60_000);
+  assert.deepEqual(srv.calls.slice(n), ['/licence/status'], 'one small status call, no new licence');
 });
 
 test('a deleted account is noticed at the next online check and TrustCode stops', async () => {

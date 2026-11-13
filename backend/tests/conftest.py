@@ -17,6 +17,9 @@ os.environ.update({
     "TRUSTCODE_AUTH_RATE_LIMIT_PER_MINUTE": "1000",
     # throw-away licence signing seed for tests only (32 random bytes, base64url)
     "TRUSTCODE_LICENCE_SIGNING_KEY": __import__("base64").urlsafe_b64encode(os.urandom(32)).rstrip(b"=").decode(),
+    # The older API tests submit code without a device. Device proof is tested on its own (test_licensing_hardening.py
+    # switches it to "require"; test_licence_http.py runs a real server with the production default).
+    "TRUSTCODE_LICENCE_DEVICE_ENFORCEMENT": "off",
 })
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 

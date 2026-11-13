@@ -26,7 +26,18 @@ export function describeError(e: unknown): string {
   return e instanceof Error ? e.message : String(e);
 }
 
+/** Set by the extension so that the licence follows the traffic the client already makes. */
+export interface ApiHooks {
+  /** Extra headers for a request (the device proof for server analysis). */
+  headers?: (method: string, path: string) => Promise<Record<string, string>>;
+  /** The account's revocation version, returned by the server with every signed-in response. */
+  onLicenceRev?: (rev: number) => void;
+  /** The server no longer accepts this account's session (sign-in expired, or the account was suspended or deleted). */
+  onUnauthorized?: () => void;
+}
+
 export class TrustCodeApi {
+  hooks: ApiHooks = {};
   constructor(private baseUrl: () => string, private store: TokenStore, private timeoutMs: () => number,
               private fetchImpl: FetchLike = (globalThis as any).fetch) {}
 
@@ -35,6 +46,7 @@ export class TrustCodeApi {
     const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(opts.headers ?? {}) };
     const tokens = auth ? await this.store.get() : undefined;
     if (auth && tokens) headers.Authorization = `Bearer ${tokens.access}`;
+    if (auth && this.hooks.headers) Object.assign(headers, await this.hooks.headers(method, path).catch(() => ({})));
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), Math.max(this.timeoutMs(), opts.timeoutMs ?? 0));
     let res;
@@ -48,6 +60,11 @@ export class TrustCodeApi {
     }
     if (res.status === 401 && auth && tokens?.refresh && opts.retry !== false) {
       if (await this.tryRefresh(tokens.refresh)) return this.request(method, path, body, { ...opts, retry: false });
+    }
+    if (auth) {
+      const rev = res.headers.get('x-trustcode-licence-rev');
+      if (rev !== null && /^\d{1,9}$/.test(rev)) { try { this.hooks.onLicenceRev?.(Number(rev)); } catch { /* never breaks a request */ } }
+      if (res.status === 401 && tokens) { try { this.hooks.onUnauthorized?.(); } catch { /* never breaks a request */ } }
     }
     if (!res.ok) {
       let payload: any = {};

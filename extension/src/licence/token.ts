@@ -9,6 +9,10 @@ export interface LicencePayload {
   features: Record<string, unknown>; limits: Record<string, unknown>;
   act: number; iat: number; validated_at: number; grace_days: number;
   offline_until: number; paid_until: number | null; refresh_after: number;
+  /** The account's revocation version when this licence was issued (servers from 1.2.0). */
+  rev?: number;
+  /** Seconds between status checks while online (servers from 1.2.0). */
+  check_after?: number;
 }
 
 export type VerifyResult = { ok: true; payload: LicencePayload } | { ok: false; reason: 'malformed' | 'unknown_key' | 'bad_signature' | 'unsupported' };

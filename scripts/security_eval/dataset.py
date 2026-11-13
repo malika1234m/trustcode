@@ -855,3 +855,132 @@ class Digest {
   }
 }
 """, at='MessageDigest.getInstance("MD5")')
+
+
+# ---------------------------------------------------------------- ordinary project code (safe)
+# Files that every real project contains and that an earlier version of the scanner reported: test files, build
+# scripts, rule definitions, data files and names that only mention a secret. None of these is a finding.
+case("ordinary-pytest-file", "agent-config", "ordinary/tests/test_orders.py", '''
+import pytest
+
+def test_total():
+    assert sum([1, 2]) == 3
+
+def test_rejects_negative():
+    with pytest.raises(ValueError):
+        raise ValueError("negative")
+''')
+case("ordinary-test-asserts", "api-security", "ordinary/tests/test_api_orders.py", '''
+def test_status(client):
+    r = client.get("/orders")
+    assert r.status_code == 200, r.text
+    assert r.json() == [], "no orders yet"
+''')
+case("ordinary-node-test", "agent-config", "ordinary/test/sum.test.js", '''
+const test = require('node:test');
+const assert = require('node:assert');
+test('adds', () => { assert.strictEqual(1 + 2, 3); });
+''')
+case("ordinary-build-script-exit", "agent-config", "ordinary/scripts/build.js", '''
+const fs = require('fs');
+if (!fs.existsSync('out')) { console.error('run the compiler first'); process.exit(1); }
+console.log('ok');
+''')
+case("ordinary-names-about-secrets", "secrets", "ordinary/app/auth_settings.py", '''
+token_type: str = "bearer"
+local_secret_file: str = "~/.myapp/local-secret"
+TOKEN_FORMAT = "design-tokens-format-v1"
+api_key_header = "X-Custom-Api-Key"
+PASSWORD_FIELD_LABEL = "Choose a password"
+SECRETS = "secrets"
+''')
+case("ordinary-bibliography-keys", "secrets", "ordinary/data/papers.py", '''
+PAPERS = [
+    dict(key="ferdowsi2024live", doi="10.1145/3613904.3642495", theme="T4"),
+    dict(key="vasconcelos2025generation", doi="10.1145/3702320", theme="T4"),
+]
+''')
+case("ordinary-shell-variable", "secrets", "ordinary/scripts/run_local.sh", '''
+#!/usr/bin/env bash
+TMP="$(mktemp -d)"
+APP_LOCAL_SECRET_FILE="$TMP/local-secret" APP_JWT_SECRET="e2e-$(openssl rand -hex 24)" ./start.sh
+''')
+case("ordinary-docs-mention-key", "secrets", "ordinary/docs/rules.md", '''
+| Rule | Detects |
+|---|---|
+| KEY-2 | `-----BEGIN … PRIVATE KEY-----` blocks; JSON with `"type":"service_account"` and `"private_key"` |
+''')
+case("ordinary-private-env", "secrets", "ordinary_env/.env", f'''
+API_SIGNING_KEY={JWTSECRET}
+''')
+case("ordinary-private-env-ignore", "environment", ".gitignore", '''
+ordinary_env/.env
+''')
+case("ordinary-rule-definition-py", "cryptography", "ordinary/linters/checks.py", r'''
+import re
+TLS_OFF = re.compile(r"--trusted-host\b|strict-ssl\s*[=:]?\s*false|InsecureSkipVerify:\s*true")
+''')
+case("ordinary-rule-definition-yaml", "cryptography", "ordinary/linters/rules.yml", '''
+rules:
+  - id: no-unverified-tls
+    languages: [python]
+    severity: ERROR
+    message: TLS verification is off.
+    pattern-either:
+      - pattern: ssl._create_unverified_context(...)
+''')
+case("ordinary-retry-jitter", "cryptography", "ordinary/web/retry.js", '''
+function nextDelay(base) {
+  return base * (0.8 + Math.random() * 0.4);
+}
+module.exports = { nextDelay };
+''')
+case("ordinary-shuffle", "cryptography", "ordinary/quiz/shuffle.py", '''
+import random
+
+def shuffled(questions):
+    copy = list(questions)
+    random.shuffle(copy)
+    return copy
+''')
+case("ordinary-constant-html", "xss", "ordinary/web/clear.js", '''
+function clear(el) {
+  el.innerHTML = '';
+  el.innerHTML = "<span class='dot'></span>";
+}
+module.exports = { clear };
+''')
+case("ordinary-test-double-address", "configuration", "ordinary/test/client.test.ts", '''
+import { Client } from '../src/client';
+const api = new Client('http://h', () => 1000);
+export default api;
+''')
+case("ordinary-links-in-data", "configuration", "ordinary/data/references.json", '''
+{ "items": [ { "title": "A paper", "url": "http://arxiv.org/abs/2606.01969v1" } ] }
+''')
+case("ordinary-prose-about-markers", "suppression", "ordinary/tools/notes.py", '''
+def describe():
+    """Inline `nosemgrep` markers are ignored: only the project's own rule files decide what is reported."""
+    return 1
+''')
+# the same rules must still fire where the value protects something or the content is dynamic
+case("random-reset-token", "cryptography", "ordinary_vuln/reset.js", '''
+function resetToken() {
+  return Math.random().toString(36).slice(2);
+}
+module.exports = { resetToken };
+''', at="Math.random()")
+case("random-session-id-py", "cryptography", "ordinary_vuln/session.py", '''
+import random
+
+def new_session_id():
+    return str(random.randint(0, 10 ** 12))
+''', at="random.randint")
+case("assert-validation-in-handler", "api-security", "ordinary_vuln/handler.py", '''
+def set_age(payload):
+    assert payload["age"] >= 0, "age must not be negative"
+    return payload["age"]
+''', at="assert payload")
+case("secret-in-application-code", "secrets", "ordinary_vuln/billing.py", '''
+WEBHOOK_SECRET = "whsec_9fK2mQ7xT4bN8vR1cZ6yH3dL"
+''', at="WEBHOOK_SECRET")

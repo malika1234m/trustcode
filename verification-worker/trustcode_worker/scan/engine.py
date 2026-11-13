@@ -23,7 +23,7 @@ from ..tools import run, semgrep_cmd, tool_version
 from . import patterns
 from .catalogue import (CONFIDENCES, LEGACY_SEMGREP, REMEDIATION, RULES, SEMGREP_BLOCK, SEMGREP_CONFIDENCE, SEVERITIES)
 
-ENGINE = "trustcode-scan 1.0"
+ENGINE = "trustcode-scan 1.1"
 RULES_DIR = Path(__file__).resolve().parent.parent / "rules"
 STATE_DIR = ".trustcode"
 SEMGREP_LANGS = {".py": "Python", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript",
@@ -222,6 +222,44 @@ def analyse_text(path: str, text: str, git_state: str) -> list[dict]:
     return out
 
 
+# Rules of the shared rule files that are not meaningful for a project scan. They exist for snippet verification, where
+# the code under test runs in the same process as its tests: there, importing the test framework or exiting the process
+# can falsify a test result. In a project, `import pytest` and `process.exit()` are ordinary code.
+NOT_FOR_PROJECTS = {"runtime-or-test-tampering", "js-runtime-or-test-tampering"}
+CONSTANT_HTML = re.compile(r"""\.(?:inner|outer)HTML\s*=\s*(?:'[^'\\]*'|"[^"\\]*"|`[^`$\\]*`)\s*;?\s*(?://.*)?$""")
+TEST_CONTEXT_RULES = {"TC-SEC-004", "TC-SEC-005", "TC-ENV-006", "hardcoded-secret", "js-hardcoded-secret"}
+
+
+def keep_match(sid: str, path: str, src: list[str], line: int) -> bool:
+    """Second look at a Semgrep match with what the rule itself cannot see: the kind of file and the text around the
+    match. Returns False when the match is not what the rule is meant to find (precision, not suppression)."""
+    text_line = src[line - 1] if 0 < line <= len(src) else ""
+    if sid in NOT_FOR_PROJECTS:
+        return False
+    if sid == "assert-for-validation":
+        return not patterns.is_test_file(path)          # assert is how tests state what they expect
+    if sid in ("hardcoded-secret", "js-hardcoded-secret"):
+        # the rule matches on the variable name alone: keep it only when the value could be a secret
+        pairs = [(m.group(1), m.group(3)) for m in patterns.LOOSE_ASSIGN.finditer(text_line)]
+        return any(patterns.secret_like(n, v) for n, v in pairs) if pairs else not patterns.is_test_file(path)
+    if sid in ("insecure-random", "js-insecure-random"):
+        # weak randomness matters where the value protects something; jitter, shuffling and animation do not
+        around = " ".join(src[max(0, line - 3):line + 1])
+        return bool(patterns.SECURITY_USE.search(around))
+    if sid == "js-innerhtml":
+        return not CONSTANT_HTML.search(text_line)       # a fixed string is not dynamic content
+    return True
+
+
+def in_context(f: dict) -> dict:
+    """A hard-coded value in a test file is usually a fixture. It is still shown, but as low severity and never as
+    a reason to block; provider-format credentials and private keys keep their severity everywhere."""
+    if f["rule_id"] in TEST_CONTEXT_RULES and patterns.is_test_file(f["path"]) and f["severity"] != "low":
+        return {**f, "severity": "low", "confidence": "potential", "block": "INFO",
+                "reason": (f["reason"].rstrip(".") + ". This is a test file, where such values are usually fixtures.")[:300]}
+    return f
+
+
 def run_semgrep(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], dict]:
     """Returns ({path: findings}, check record). Project-supplied Semgrep configuration and inline
     `nosemgrep` markers are ignored: only TrustCode's rule files decide what is reported."""
@@ -276,13 +314,8 @@ def run_semgrep(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], di
                         "block": RULES.get(rule_id, {}).get("block") or SEMGREP_BLOCK.get(category, "WARN"), "priority": RULES.get(rule_id, {}).get("priority", "P1")}
             except (KeyError, TypeError, ValueError):
                 continue  # malformed scanner output is dropped, never trusted
-            if sid in ("hardcoded-secret", "js-hardcoded-secret"):
-                # the frozen rule matches on the variable name alone: drop documented placeholders (safe-pattern recognition)
-                src = line_cache.setdefault(path, _lines(root / path))
-                text_line = src[item["line"] - 1] if 0 < item["line"] <= len(src) else ""
-                m = patterns.GENERIC_ASSIGN.search(text_line)
-                if m and patterns._is_placeholder(m.group(3)):
-                    continue
+            if not keep_match(sid, path, line_cache.setdefault(path, _lines(root / path)), item["line"]):
+                continue
             if path in by_path:
                 by_path[path].append(item)
     if failed:
@@ -295,6 +328,10 @@ def run_semgrep(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], di
 BANDIT = {"B608": "sql-injection", "B602": "command-injection", "B605": "command-injection", "B604": "command-injection", "B102": "command-injection",
           "B307": "command-injection", "B301": "unsafe-deserialization", "B506": "unsafe-deserialization", "B324": "cryptography", "B303": "cryptography",
           "B501": "cryptography", "B201": "configuration", "B701": "xss", "B314": "xxe", "B320": "xxe"}
+
+
+BANDIT_TITLES = {"B314": "XML parsed without a hardened parser", "B320": "XML parsed without a hardened parser", "B608": "SQL built from strings",
+                 "B602": "Shell command with shell=True", "B605": "Shell command started with a shell", "B307": "Use of eval"}
 
 
 def bandit_available() -> str | None:
@@ -332,16 +369,17 @@ def run_bandit(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], dic
         for res in results:
             try:
                 tid, category = str(res["test_id"]), BANDIT.get(str(res["test_id"]))
-                if category is None:
-                    continue
+                if category is None or (tid == "B608" and res.get("issue_confidence") == "LOW"):
+                    continue   # B608 at low confidence: a string with SQL words that is not passed to a query call
                 path = os.path.relpath(os.path.realpath(str(res["filename"])), os.path.realpath(root)).replace(os.sep, "/")
                 if path.startswith(".."):
                     continue
                 sev = {"HIGH": "high", "MEDIUM": "medium", "LOW": "low"}.get(str(res["issue_severity"]), "medium")
                 line = int(res["line_number"])
                 out.setdefault(path, []).append({
-                    "rule_id": f"bandit-{tid}", "category": category, "title": str(res.get("test_name", tid)).replace("_", " ")[:120], "severity": sev,
-                    "confidence": "strongly_suspected" if res.get("issue_confidence") == "HIGH" else "potential", "path": path, "line": line,
+                    "rule_id": f"bandit-{tid}", "category": category, "title": BANDIT_TITLES.get(tid, str(res.get("test_name", tid)).replace("_", " "))[:120],
+                    "severity": "low" if tid in ("B314", "B320") else sev,
+                    "confidence": "strongly_suspected" if res.get("issue_confidence") == "HIGH" and tid not in ("B314", "B320") else "potential", "path": path, "line": line,
                     "col": int(res.get("col_offset", 0)) + 1, "end_line": max(line, int((res.get("line_range") or [line])[-1])), "end_col": int(res.get("end_col_offset", 0)) + 1,
                     "file_level": False, "evidence": "", "reason": str(res.get("issue_text", ""))[:300], "remediation": REMEDIATION.get(category, "Review this code."),
                     "source": f"bandit:{tid}", "cwe": [f"CWE-{res['issue_cwe']['id']}"] if isinstance(res.get("issue_cwe"), dict) and res["issue_cwe"].get("id") else [],
@@ -352,7 +390,7 @@ def run_bandit(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], dic
     return out, check
 
 
-def run_gitleaks(root: Path, scanned: set[str], texts: dict[str, str]) -> tuple[list[dict], dict | None]:
+def run_gitleaks(root: Path, scanned: set[str], texts: dict[str, str], private_env: set[str] = frozenset()) -> tuple[list[dict], dict | None]:
     """Credential detection by Gitleaks (optional). Project-supplied Gitleaks configuration, ignore files and
     inline allow markers are not honoured, and values are redacted by the tool before they reach this process."""
     exe = _which("gitleaks", root)
@@ -366,7 +404,8 @@ def run_gitleaks(root: Path, scanned: set[str], texts: dict[str, str]) -> tuple[
                  "--gitleaks-ignore-path", str(neutral), "--report-format", "json", "--report-path", str(neutral / "out.json"), str(root)], cwd=str(neutral), timeout=600)
         try:
             data = json.loads((neutral / "out.json").read_text())
-            assert isinstance(data, list)
+            if not isinstance(data, list):
+                raise ValueError("not a list")
         except Exception:
             check.update(status="failed", detail=f"Gitleaks did not return a readable result ({(r.stderr or '').strip()[-120:]}).")
             return [], check
@@ -381,10 +420,14 @@ def run_gitleaks(root: Path, scanned: set[str], texts: dict[str, str]) -> tuple[
             line, rid = int(res["StartLine"]), str(res["RuleID"])
             src = texts.get(path, "").splitlines()
             text_line = src[line - 1] if 0 < line <= len(src) else ""
-            m = patterns.GENERIC_ASSIGN.search(text_line)
-            if (m and patterns._is_placeholder(m.group(3))) or patterns.ENV_TEMPLATE.search(path) or patterns.PLACEHOLDER.search(text_line) and rid.startswith("generic"):
-                continue
             generic = rid.startswith("generic")
+            m = patterns.GENERIC_ASSIGN.search(text_line)
+            if (m and patterns._is_placeholder(m.group(3))) or patterns.ENV_TEMPLATE.search(path) or patterns.PLACEHOLDER.search(text_line) and generic:
+                continue
+            if path in private_env:
+                continue   # an environment file that Git ignores is where secrets belong; env_file() judges these files
+            if generic and not patterns.ENV_FILE.search(path) and not any(patterns.secret_like(a.group(1), a.group(3)) for a in patterns.GENERIC_ASSIGN.finditer(text_line)):
+                continue   # the generic detector fires on any `key = "..."`: keep it only for a secret-like name and value
             meta = RULES["TC-SEC-004" if generic else "TC-SEC-001"]
             out.append({"rule_id": "TC-SEC-004" if generic else "TC-SEC-001", "category": "secrets", "title": meta["title"], "severity": meta["severity"],
                         "confidence": "potential" if generic else "strongly_suspected", "path": path, "line": line, "col": max(1, int(res.get("StartColumn", 1))),
@@ -704,6 +747,9 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
         cached = cache.get("files", {}) if cache.get("digest") == digest else {}
         by_sha = {v["sha"]: v for v in cached.values()}
 
+        def git_state(p: str) -> str:
+            return "no-git" if not git_view["git"] else "tracked" if p in git_view["tracked"] else "untracked" if p in (git_view["visible"] or ()) else "ignored"
+
         file_findings: dict[str, list[dict]] = {}
         shas: dict[str, str] = {}
         texts: dict[str, str] = {}
@@ -725,8 +771,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
                 file_findings[p] = [{**f, "path": p} for f in hit["findings"]]
                 from_cache += 1
                 continue
-            state = "no-git" if not git_view["git"] else "tracked" if p in git_view["tracked"] else "untracked" if p in (git_view["visible"] or ()) else "ignored"
-            file_findings[p] = analyse_text(p, texts[p], state)
+            file_findings[p] = analyse_text(p, texts[p], git_state(p))
             if os.path.splitext(p)[1].lower() in SEMGREP_LANGS:
                 need_semgrep.append(p)
         scanned = [p for p in targets if p in shas]
@@ -747,7 +792,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
         for p, items in extra.items():
             if p in file_findings:
                 file_findings[p] += items
-        leaks, leak_check = run_gitleaks(scan_root, set(scanned), texts)
+        leaks, leak_check = run_gitleaks(scan_root, set(scanned), texts, {p for p in scanned if patterns.ENV_FILE.search(p) and git_state(p) == "ignored"})
         if leak_check:
             checks.append(leak_check)
         for f in leaks:
@@ -831,7 +876,7 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
                          for p in scanned if p not in sast_failed})
             _write_json(cache_path, {"digest": digest, "files": keep})
 
-        findings = dedupe([f for p in scanned for f in file_findings.get(p, []) if f["rule_id"] not in cfg["disabled_rules"]])
+        findings = dedupe([in_context(f) for p in scanned for f in file_findings.get(p, []) if f["rule_id"] not in cfg["disabled_rules"]])
         findings += [f for f in history_findings + regression_findings + artifact_findings if f["rule_id"] not in cfg["disabled_rules"] or f["rule_id"] == "TC-REG-009"]
         for f in findings:
             lines = texts.get(f["path"], "").splitlines()

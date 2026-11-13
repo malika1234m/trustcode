@@ -493,3 +493,28 @@ def test_tools_are_never_resolved_from_the_scanned_project_or_a_relative_path(tm
     assert "." not in os.environ["PATH"].split(os.pathsep) and "" not in os.environ["PATH"].split(os.pathsep)
     assert engine._which("gitleaks", p) is None or not engine._which("gitleaks", p).startswith(str(p))
     assert r["status"] in ("complete", "incomplete")
+
+
+def test_ordinary_project_code_is_not_reported_and_test_fixtures_never_block(tmp_path):
+    """What a normal project contains must not be reported (import pytest, asserts in tests, process.exit in a script,
+    names that only mention a secret). A hard-coded value in a test file is shown as low severity and never blocks;
+    a provider-format credential keeps its severity wherever it is."""
+    secret = "f3a9c1e7" + "b5d2486a9c0e1f2a3b4c5d6e"
+    token = "gh" + "p_" + "Qq7Kq2LmN8vB4tR7yW1cE5uA3sD6fG0hJ2kLmW"
+    p = project(tmp_path, {
+        "tests/test_pay.py": f'import pytest\n\nWEBHOOK_SECRET = "{secret}"\n\ndef test_ok():\n    assert 1 + 1 == 2, "sum"\n',
+        "tests/test_live.py": f'TOKEN = "{token}"\n',
+        "scripts/build.js": "if (!process.argv[2]) { console.error('usage'); process.exit(2); }\n",
+        "app/settings_names.py": 'token_type: str = "bearer"\nsecret_file = "~/.app/secret"\n',
+        "app/pay.py": f'WEBHOOK_SECRET = "{secret}"\n',
+    })
+    git(p, "add", "-A")
+    r = scan(p, "staged", use_cache=False)
+    by = {f["path"]: f for f in r["findings"]}
+    assert set(by) == {"tests/test_pay.py", "tests/test_live.py", "app/pay.py"}, sorted((f["path"], f["rule_id"]) for f in r["findings"])
+    fixture, live, real = by["tests/test_pay.py"], by["tests/test_live.py"], by["app/pay.py"]
+    assert (fixture["severity"], fixture["block"]) == ("low", "INFO") and "test file" in fixture["reason"]
+    assert (real["severity"], real["category"]) == ("high", "secrets")
+    assert (live["rule_id"], live["severity"]) == ("TC-SEC-001", "critical") and live["fingerprint"] in r["gate"]["blocking"]
+    assert fixture["fingerprint"] not in r["gate"]["blocking"]
+    assert not [f for f in r["findings"] if "tampering" in f["source"] or f["rule_id"] == "assert-for-validation"]

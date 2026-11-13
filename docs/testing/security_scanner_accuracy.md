@@ -1,45 +1,49 @@
 # Security scanner accuracy — measured results
 
-Measured on 2026-11-12 with `python scripts/security_eval/evaluate_scanner.py` (macOS arm64, Semgrep 1.79.0, Bandit 1.9.4, Gitleaks 8.30.1).
+Measured on 2026-11-14 with `python scripts/security_eval/evaluate_scanner.py` (macOS arm64, Semgrep 1.79.0, Bandit 1.9.4, Gitleaks 8.30.1).
 Numbers come from `datasets/security_eval/results.json`.
 
 ## Method
 
-138 small files: 94 vulnerable and 44 safe counterparts (parameterised SQL, placeholder
-environment files, escaped output, verified JWTs and so on). A vulnerable case counts as detected only when a
+160 small files: 98 vulnerable and 62 safe ones. The safe files are counterparts of the vulnerable ones (parameterised SQL,
+placeholder environment files, escaped output, verified JWTs and so on) and, since 2026-11-14, 18 files of ordinary
+project code that scanner version 1.0 reported when it was run on a real repository: test files that import the test
+framework and use `assert`, build scripts that call `process.exit`, rule definitions, bibliography keys, names that
+only mention a secret, an ignored `.env`, retry jitter and constant HTML. Version 1.0 flags 17 of those 18; this
+version flags none. A vulnerable case counts as detected only when a
 finding of the expected category is reported **on the expected line**. A safe case is a false positive when any
 finding of its category is reported in that file.
 
 ## Result
 
-Overall: 94 of 94 vulnerable cases detected at the exact line, 0 false positives on 44 safe cases
+Overall: 98 of 98 vulnerable cases detected at the exact line, 0 false positives on 62 safe cases
 (precision 1.0, recall 1.0, F1 1.0, false-positive rate 0.0, false-negative rate 0.0).
 
 | Category | Cases | Detected at exact line | Missed | False positives on safe cases | Precision | Recall |
 |---|---|---|---|---|---|---|
-| agent-config | 6 | 5 | 0 | 0 | 1.0 | 1.0 |
-| api-security | 5 | 4 | 0 | 0 | 1.0 | 1.0 |
+| agent-config | 9 | 5 | 0 | 0 | 1.0 | 1.0 |
+| api-security | 7 | 5 | 0 | 0 | 1.0 | 1.0 |
 | authentication | 9 | 6 | 0 | 0 | 1.0 | 1.0 |
 | authorization | 9 | 4 | 0 | 0 | 1.0 | 1.0 |
 | ci-cd | 3 | 2 | 0 | 0 | 1.0 | 1.0 |
 | command-injection | 9 | 7 | 0 | 0 | 1.0 | 1.0 |
-| configuration | 5 | 3 | 0 | 0 | 1.0 | 1.0 |
+| configuration | 7 | 3 | 0 | 0 | 1.0 | 1.0 |
 | cors | 4 | 3 | 0 | 0 | 1.0 | 1.0 |
-| cryptography | 7 | 7 | 0 | 0 | 1.0 | 1.0 |
+| cryptography | 13 | 9 | 0 | 0 | 1.0 | 1.0 |
 | database | 2 | 1 | 0 | 0 | 1.0 | 1.0 |
 | dependencies | 2 | 1 | 0 | 0 | 1.0 | 1.0 |
 | destructive-command | 1 | 1 | 0 | 0 | 1.0 | 1.0 |
-| environment | 7 | 5 | 0 | 0 | 1.0 | 1.0 |
+| environment | 8 | 5 | 0 | 0 | 1.0 | 1.0 |
 | frontend | 2 | 1 | 0 | 0 | 1.0 | 1.0 |
 | infrastructure | 9 | 5 | 0 | 0 | 1.0 | 1.0 |
 | logging | 3 | 2 | 0 | 0 | 1.0 | 1.0 |
 | path-traversal | 8 | 6 | 0 | 0 | 1.0 | 1.0 |
-| secrets | 15 | 10 | 0 | 0 | 1.0 | 1.0 |
+| secrets | 21 | 11 | 0 | 0 | 1.0 | 1.0 |
 | sql-injection | 12 | 7 | 0 | 0 | 1.0 | 1.0 |
 | ssrf | 3 | 2 | 0 | 0 | 1.0 | 1.0 |
-| suppression | 1 | 1 | 0 | 0 | 1.0 | 1.0 |
+| suppression | 2 | 1 | 0 | 0 | 1.0 | 1.0 |
 | unsafe-deserialization | 4 | 4 | 0 | 0 | 1.0 | 1.0 |
-| xss | 8 | 5 | 0 | 0 | 1.0 | 1.0 |
+| xss | 9 | 5 | 0 | 0 | 1.0 | 1.0 |
 | xxe | 4 | 2 | 0 | 0 | 1.0 | 1.0 |
 
 The first run of this set had one false positive (a placeholder flagged by the older name-based secret rule); it
@@ -54,6 +58,24 @@ TC-SEC-006 and TC-SEC-007 need a Git history, a network lookup or build output a
 tests in `verification-worker/tests/test_scan.py` instead. No labelled case exists for:
 `assert-for-validation`, `java-trust-all-certificates`, `js-hardcoded-secret`, `js-insecure-random`, `js-runtime-or-test-tampering`, `js-sql-concat`, `runtime-or-test-tampering`.
 Most of the 48 cases added for rule coverage have no safe counterpart, so they measure detection only.
+
+## Check on a real repository (this one)
+
+A full scan of the TrustCode repository itself (445 files, 2026-11-14), before and after scanner 1.1:
+
+| | Scanner 1.0 | Scanner 1.1 |
+|---|---|---|
+| Findings | 991 | 36 |
+| Critical | 31 | 0 |
+| High | 49 | 3 |
+| Medium | 23 | 3 |
+| Low | 888 | 30 |
+
+All 31 critical findings of 1.0 were wrong: 29 were `import pytest`, `require('node:test')` or `process.exit()`, and 2 were
+text that mentions a private key. Of the 36 that remain, the 3 high ones are deliberately vulnerable samples (the
+demo's SQL injection and two secrets in the evaluation dataset). One finding of 1.0 was real and has been fixed: the
+webview's content-security-policy nonce was generated with `Math.random()`. This is one repository, read by the
+people who wrote the scanner; it is not a measurement of accuracy on other projects.
 
 ## These numbers overstate real-world accuracy
 

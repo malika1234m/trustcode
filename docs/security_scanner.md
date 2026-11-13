@@ -88,6 +88,31 @@ generated and binary file types, files over `max_file_kb`, symbolic links (never
 Language coverage: **language-aware rules** for Python, JavaScript, TypeScript, PHP and Java. Every other text file
 gets **generic patterns only** (credentials, configuration); the report says so per language.
 
+## What is deliberately not reported (scanner 1.1)
+
+A match is only useful if it is what the rule is meant to find. After every scanner has run, each match is looked at
+again with what a pattern cannot see: the kind of file and the text around the match. These are not suppressions and
+cannot be switched on by the project being scanned.
+
+| Match | Reported | Why |
+|---|---|---|
+| `import pytest`, `require('node:test')`, `process.exit()`, `os._exit()` | Never in a project scan | The "test-environment tampering" rule exists for snippet verification, where the code runs in the same process as its tests. In a project this is ordinary code |
+| `assert` in a test file | No | `assert` is how tests state what they expect. In application code it is still reported |
+| A secret-like *name* with an ordinary value (`token_type = "bearer"`, `secret_file = "~/.app/secret"`, `key="smith2024"`) | No | The value must look like a secret: not a placeholder, sentence, path, URL or variable reference, and long and random enough. Names that are about a secret (`_file`, `_type`, `_header`, `_format`, …) are not the secret |
+| A hard-coded value in a test file | Yes, as **low**, never blocking | Usually a fixture. Provider-format credentials and private keys keep their severity everywhere |
+| Secrets in an environment file that Git ignores | No | That is where secrets belong. A tracked or un-ignored environment file is still reported |
+| Risky text inside a rule definition (a regular expression or a Semgrep `pattern:` line) | No | Defining a detector is not using what it detects |
+| `Math.random()` / `random.*` | Only near security words (token, nonce, password, session, key, …) | Jitter, shuffling and animation do not need a cryptographic generator |
+| `innerHTML = '<fixed string>'` | No | The rule is about dynamic content |
+| Plain `http://` addresses in test files, in JSON data, or for single-label and reserved test hosts | No | They are test doubles or records, not endpoints the program talks to |
+| A suppression marker word in prose (`nosemgrep` in a docstring) | No | Only a marker in a comment suppresses anything |
+| `"private_key"` mentioned in documentation | No | Key material after the marker is required |
+| Bandit B608 at low confidence | No | A string that contains SQL words but is not passed to a query call. Strings that reach `execute()` are covered by the data-flow rules |
+
+Each row has a labelled safe case in `scripts/security_eval/dataset.py` (`ordinary-*`), next to vulnerable cases that
+prove the same rules still fire where they should. These heuristics can be evaded on purpose (for example by writing
+`re.compile(` on a line that disables TLS); the scanner looks for mistakes, not for an author who hides them.
+
 ## Scanners
 
 | Scanner | Role | Status |

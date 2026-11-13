@@ -1,13 +1,13 @@
 {
- "engine": "trustcode-scan 1.0",
+ "engine": "trustcode-scan 1.1",
  "status": "complete",
- "duration_ms": 2270,
- "files_scanned": 138,
+ "duration_ms": 5903,
+ "files_scanned": 160,
  "overall": {
-  "cases": 138,
-  "tp": 94,
+  "cases": 160,
+  "tp": 98,
   "fp": 0,
-  "tn": 44,
+  "tn": 62,
   "fn": 0,
   "precision": 1.0,
   "recall": 1.0,
@@ -17,10 +17,10 @@
  },
  "by_category": {
   "agent-config": {
-   "cases": 6,
+   "cases": 9,
    "tp": 5,
    "fp": 0,
-   "tn": 1,
+   "tn": 4,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -29,10 +29,10 @@
    "false_negative_rate": 0.0
   },
   "api-security": {
-   "cases": 5,
-   "tp": 4,
+   "cases": 7,
+   "tp": 5,
    "fp": 0,
-   "tn": 1,
+   "tn": 2,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -89,10 +89,10 @@
    "false_negative_rate": 0.0
   },
   "configuration": {
-   "cases": 5,
+   "cases": 7,
    "tp": 3,
    "fp": 0,
-   "tn": 2,
+   "tn": 4,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -113,15 +113,15 @@
    "false_negative_rate": 0.0
   },
   "cryptography": {
-   "cases": 7,
-   "tp": 7,
+   "cases": 13,
+   "tp": 9,
    "fp": 0,
-   "tn": 0,
+   "tn": 4,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
    "f1": 1.0,
-   "false_positive_rate": null,
+   "false_positive_rate": 0.0,
    "false_negative_rate": 0.0
   },
   "database": {
@@ -161,10 +161,10 @@
    "false_negative_rate": 0.0
   },
   "environment": {
-   "cases": 7,
+   "cases": 8,
    "tp": 5,
    "fp": 0,
-   "tn": 2,
+   "tn": 3,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -221,10 +221,10 @@
    "false_negative_rate": 0.0
   },
   "secrets": {
-   "cases": 15,
-   "tp": 10,
+   "cases": 21,
+   "tp": 11,
    "fp": 0,
-   "tn": 5,
+   "tn": 10,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -257,15 +257,15 @@
    "false_negative_rate": 0.0
   },
   "suppression": {
-   "cases": 1,
+   "cases": 2,
    "tp": 1,
    "fp": 0,
-   "tn": 0,
+   "tn": 1,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
    "f1": 1.0,
-   "false_positive_rate": null,
+   "false_positive_rate": 0.0,
    "false_negative_rate": 0.0
   },
   "unsafe-deserialization": {
@@ -281,10 +281,10 @@
    "false_negative_rate": 0.0
   },
   "xss": {
-   "cases": 8,
+   "cases": 9,
    "tp": 5,
    "fp": 0,
-   "tn": 3,
+   "tn": 4,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -306,7 +306,7 @@
   }
  },
  "rules_total": 106,
- "rules_with_a_case": 91,
+ "rules_with_a_case": 93,
  "rules_without_a_case": [
   "TC-DEP-004",
   "TC-REG-001",
@@ -316,10 +316,8 @@
   "TC-REG-009",
   "TC-SEC-006",
   "TC-SEC-007",
-  "assert-for-validation",
   "java-trust-all-certificates",
   "js-hardcoded-secret",
-  "js-insecure-random",
   "js-runtime-or-test-tampering",
   "js-sql-concat",
   "runtime-or-test-tampering"
@@ -1722,6 +1720,194 @@
    "wrong_line": false,
    "rule": "java-weak-hash",
    "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "ordinary-pytest-file",
+   "category": "agent-config",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-test-asserts",
+   "category": "api-security",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-node-test",
+   "category": "agent-config",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-build-script-exit",
+   "category": "agent-config",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-names-about-secrets",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-bibliography-keys",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-shell-variable",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-docs-mention-key",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-private-env",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-private-env-ignore",
+   "category": "environment",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-rule-definition-py",
+   "category": "cryptography",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-rule-definition-yaml",
+   "category": "cryptography",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-retry-jitter",
+   "category": "cryptography",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-shuffle",
+   "category": "cryptography",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-constant-html",
+   "category": "xss",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-test-double-address",
+   "category": "configuration",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-links-in-data",
+   "category": "configuration",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-prose-about-markers",
+   "category": "suppression",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "random-reset-token",
+   "category": "cryptography",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-insecure-random",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "random-session-id-py",
+   "category": "cryptography",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "insecure-random",
+   "severity": "medium",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "assert-validation-in-handler",
+   "category": "api-security",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "assert-for-validation",
+   "severity": "low",
+   "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "secret-in-application-code",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-004",
+   "severity": "high",
    "confidence": "potential",
    "other": []
   }

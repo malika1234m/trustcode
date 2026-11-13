@@ -32,17 +32,17 @@ PROVIDER_TOKENS: list[tuple[str, str, re.Pattern]] = [
 PRIVATE_KEY = re.compile(r"-----BEGIN (?:RSA |EC |DSA |OPENSSH |PGP |ENCRYPTED )?PRIVATE KEY(?: BLOCK)?-----")
 URL_CREDS = re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s/:@'\"]+:([^\s/@'\"{}$<>%]{3,})@[^\s'\"]+")
 PLACEHOLDER = re.compile(r"(?i)(example|placeholder|changeme|change[-_]me|your[-_ ]?\w*|x{4,}|\*{3,}|<[^>]+>|\$\{[^}]*\}|\{\{[^}]*\}\}|dummy|redacted|todo|"
-                         r"user:pass(word)?@|insert[-_ ]|replace[-_ ]|sample|fake|test[-_]?key|not[-_]?set|none|null|undefined)")
+                         r"user:pass(word)?@|insert[-_ ]|replace[-_ ]|sample|fake|test[-_]?key|not[-_]?set|none|null|undefined|generate[-_ ]with|generated?[-_ ]by)")
 SECRET_NAME = re.compile(r"(?i)(pass(word|wd)?|secret|token|api[-_]?key|private[-_]?key|client[-_]?secret|auth[-_]?key|access[-_]?key|credential|signing[-_]?key|smtp[-_]?pass)")
 GENERIC_ASSIGN = re.compile(r"""(?ix)\b([A-Za-z_][\w.-]*)\s*[:=]\s*(['"])([^'"\n]{8,200})\2""")
 WEAK_PASSWORDS = {"admin", "password", "passw0rd", "123456", "12345678", "root", "secret", "admin123", "letmein", "qwerty", "default", "changeit", "toor"}
 PUBLIC_PREFIX = re.compile(r"^(NEXT_PUBLIC_|VITE_|REACT_APP_|EXPO_PUBLIC_|PUBLIC_|NUXT_PUBLIC_|GATSBY_)\w*(SECRET|PRIVATE|SERVICE_ROLE|PASSWORD|PASSWD)\w*$")
-HIDDEN_UNICODE = re.compile("[​-‏‪-‮⁠-⁤⁦-⁩\U000e0000-\U000e007f]|(?<!^)﻿")
+HIDDEN_UNICODE = re.compile("[\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u2069\U000e0000-\U000e007f]|(?<!^)\ufeff")
 AGENT_INSTRUCTIONS = re.compile(r"(?i)(^|/)(\.cursorrules|\.windsurfrules|claude\.md|agents\.md|gemini\.md|\.clinerules|copilot-instructions\.md)$|(^|/)\.cursor/rules/")
 AGENT_FLAGS = re.compile(r"--dangerously-skip-permissions|--yolo\b|--trust-all-tools|--dangerously-bypass-approvals-and-sandbox|--full-auto\b")
 TLS_OFF = re.compile(r"NODE_TLS_REJECT_UNAUTHORIZED\s*[=:]\s*['\"]?0|\bcurl\b[^\n|;]*\s(-k|--insecure)\b|http\.sslVerify\s+false|GIT_SSL_NO_VERIFY\s*=\s*(1|true)|"
                      r"--trusted-host\b|strict-ssl\s*[=:]?\s*false|InsecureSkipVerify:\s*true|ssl\._create_unverified_context")
-SUPPRESSION = re.compile(r"#\s*nosec\b|\bnosemgrep\b|gitleaks:allow|pragma:\s*allowlist secret|#\s*trivy:ignore|#checkov:skip=|//\s*NOSONAR|zizmor:\s*ignore")
+SUPPRESSION = re.compile(r"#\s*nosec\b|(?:#|//|/\*|<!--)\s*(?:nosemgrep\b|gitleaks:allow|pragma:\s*allowlist secret|zizmor:\s*ignore)|#\s*trivy:ignore|#checkov:skip=|//\s*NOSONAR")
 DESTRUCTIVE = re.compile(r"\brm\s+-[A-Za-z]*r[A-Za-z]*f?[A-Za-z]*\s+(-[A-Za-z-]+\s+)*(/(\s|\*|$)|~/?(\s|\*|$)|\$HOME/?(\s|\*|$)|\$\{?[A-Za-z_]+\}?/(\s|\*|$))|"
                          r"\bgit\s+push\b[^\n]*\s(--force\b|-f\b)|\bterraform\s+destroy\b[^\n]*-auto-approve|\bkubectl\s+delete\s+(ns|namespace)\b|\bDROP\s+DATABASE\b")
 RLS = re.compile(r"(?i)DISABLE\s+ROW\s+LEVEL\s+SECURITY|(USING|WITH\s+CHECK)\s*\(\s*true\s*\)")
@@ -52,6 +52,7 @@ SCRIPT_LIKE = re.compile(r"(?i)(\.(sh|bash|zsh|ps1|ya?ml)$|(^|/)(makefile|docker
 GH_UNTRUSTED = re.compile(r"\$\{\{\s*(github\.event\.(issue|pull_request|comment|review|head_commit|discussion)\.[\w.]*(title|body|message|name|ref|label|email)[\w.]*|github\.head_ref)\s*\}\}")
 
 
+SERVICE_ACCOUNT_KEY = re.compile(r'''"private_key"\s*:\s*"-----BEGIN [A-Z ]*PRIVATE KEY-----(?:\\n|\s)*[A-Za-z0-9+/=\\]{40,}''')
 DEDICATED_SECRET = re.compile(r"(?i)(smtp|mail|email)[\w.-]*pass|client[-_]?secret|oauth[\w.-]*secret")
 
 
@@ -70,7 +71,42 @@ def mask(line: str, start: int, end: int) -> str:
 
 def _is_placeholder(value: str) -> bool:
     v = value.strip()
-    return not v or bool(PLACEHOLDER.search(v)) or len(set(v)) <= 2
+    return not v or bool(PLACEHOLDER.search(v)) or len(set(v)) <= 2 or bool(re.fullmatch(r"\{[\w.]+\}|%\(?\w+\)?s?|<\w+>", v))
+
+
+# A name that says the value is ABOUT a secret (where it is kept, what it is called, how it looks), not the secret:
+# token_type = "bearer", secret_file = "~/.app/secret", TOKEN_FORMAT = "...", password_field = "pw", api_key_header = "X-Api-Key".
+NOT_THE_SECRET = re.compile(r"(?i)(?:[-_.]|(?<=[a-z])(?=[A-Z]))(file|filename|path|dir|url|uri|name|id|ids|header|format|type|kind|prefix|suffix|field|param|label|env|var|"
+                            r"length|len|size|ttl|expiry|expires|expiration|regex|pattern|scheme|endpoint|cookie|placeholder|hint|message|msg|error|title|"
+                            r"description|help|text|key_id|kid|algo|algorithm|alg|count|limit|policy|rule|rules|url_template|template)s?$")
+TEST_FILE = re.compile(r"(?i)(^|/)(tests?|testing|__tests__|__mocks__|spec|specs|e2e|fixtures?|testdata|test[-_]data)/|(^|/)(conftest|test_[^/]+)\.py$|_tests?\.(py|go|js|ts)$|"
+                       r"\.(test|spec|e2e)\.[cm]?[jt]sx?$|(^|/)[^/]*[-_]fake\.[cm]?[jt]s$")
+# A line that DEFINES a detection rule (a regular expression or a Semgrep pattern) mentions risky text without using it.
+RULE_DEFINITION = re.compile(r"\bre\.compile\(|\bnew RegExp\(|\\[bsSdwW][*+?)|\]]|\(\?[imsx:=!]|\[\^[^\]]{1,40}\]|^\s*-?\s*(pattern(-[\w-]+)?|regex|metavariable-regex|pattern-regex)\s*:")
+SECURITY_USE = re.compile(r"(?i)nonce|token|secret|passw|salt\b|\botp\b|csrf|session|api[-_]?key|\bauth|credential|\bkey\b|\biv\b|uuid|reset|verif|invit|captcha|"
+                          r"\bcode\b|\bpin\b|signature|\bsign\b|cookie|\bjwt\b|crypt")
+
+
+LOOSE_ASSIGN = re.compile(r"""\b([A-Za-z_][\w.-]*)\s*(?::\s*[\w\[\], |.]+?)?\s*[:=]\s*(['"])([^'"\n]*)\2""")
+
+
+def is_test_file(path: str) -> bool:
+    return bool(TEST_FILE.search(path))
+
+
+def secret_like(name: str, value: str) -> bool:
+    """Whether `name = "value"` plausibly holds a secret itself: a secret-like name that is not about something else,
+    and a value that is not a placeholder, a sentence, a path, a URL, a variable reference or an ordinary word."""
+    v = value.strip()
+    if not SECRET_NAME.search(name) or NOT_THE_SECRET.search(name) or _is_placeholder(v) or " " in v:
+        return False
+    if re.search(r"(?i)(env|getenv|process\.|config\[|settings\.|\$\(|\$\{?[A-Za-z_]|os\.)", v) or v.startswith(("http://", "https://", "/", "./", "~/", "../")):
+        return False
+    if v.lower() in WEAK_PASSWORDS:
+        return True
+    if DEDICATED_SECRET.search(name):
+        return len(v) >= 6
+    return len(v) >= 12 and entropy(v) >= 3.5
 
 
 def secrets(path: str, text: str) -> Iterator[Raw]:
@@ -93,7 +129,7 @@ def secrets(path: str, text: str) -> Iterator[Raw]:
         if m:
             yield ("TC-SEC-002", i, m.start() + 1, i, m.end() + 1, line[:m.end()].strip()[:80] + " …[masked]", "A private key block starts here.", {"detector": "private-key"})
             continue
-        if '"private_key"' in line and "PRIVATE KEY" in line:
+        if SERVICE_ACCOUNT_KEY.search(line):
             yield ("TC-SEC-002", i, 1, i, len(line) + 1, '"private_key": …[masked]', "Service-account key material.", {"detector": "service-account"})
             continue
         m = URL_CREDS.search(line)
@@ -104,9 +140,9 @@ def secrets(path: str, text: str) -> Iterator[Raw]:
             continue  # env files are judged as a whole by env_file()
         for m in GENERIC_ASSIGN.finditer(line):
             name, value = m.group(1), m.group(3)
-            if not SECRET_NAME.search(name) or _is_placeholder(value) or " " in value.strip():
+            if not SECRET_NAME.search(name) or NOT_THE_SECRET.search(name) or _is_placeholder(value) or " " in value.strip():
                 continue
-            if re.search(r"(?i)(env|getenv|process\.|config\[|settings\.|\$\(|os\.)", value) or value.startswith(("http://", "https://", "/", "./")):
+            if re.search(r"(?i)(env|getenv|process\.|config\[|settings\.|\$\(|\$\{?[A-Za-z_]|os\.)", value) or value.startswith(("http://", "https://", "/", "./", "~/", "../")):
                 continue
             dedicated = DEDICATED_SECRET.search(name)
             if dedicated and value.lower() not in WEAK_PASSWORDS and len(value) >= 6:
@@ -159,12 +195,13 @@ def text_rules(path: str, text: str) -> Iterator[Raw]:
     for i, line in enumerate(text.splitlines(), 1):
         if len(line) > 4000:
             continue
+        defines_rule = bool(RULE_DEFINITION.search(line))
         m = HIDDEN_UNICODE.search(line)
         if m:
             yield ("TC-AGT-004", i, m.start() + 1, i, m.end() + 1, f"U+{ord(m.group(0)[0]):04X} at column {m.start() + 1}",
                    "An invisible Unicode character is present" + (" in an agent instruction file." if agent_file else "."),
                    {"severity": "critical" if agent_file else "medium"})
-        if not low.endswith((".md", ".mdx", ".rst", ".txt")):
+        if not low.endswith((".md", ".mdx", ".rst", ".txt")) and not defines_rule:
             m = AGENT_FLAGS.search(line)
             if m and script:
                 yield ("TC-AGT-005", i, m.start() + 1, i, m.end() + 1, line.strip()[:160], "A coding agent is invoked with its permission checks disabled.", {})
@@ -176,7 +213,7 @@ def text_rules(path: str, text: str) -> Iterator[Raw]:
                 yield ("TC-REG-004", i, m.start() + 1, i, m.end() + 1, line.strip()[:160], "An inline marker tells a security tool to ignore this line.", {})
         if script:
             m = DESTRUCTIVE.search(line)
-            if m and not line.lstrip().startswith("#"):
+            if m and not line.lstrip().startswith("#") and not defines_rule:
                 yield ("TC-DESTR-001", i, m.start() + 1, i, m.end() + 1, line.strip()[:160], "A destructive command with a broad or variable target.", {})
         if sql:
             m = RLS.search(line)
@@ -389,7 +426,7 @@ def regressions(diff_text: str) -> Iterator[tuple[str, str, int, str, str, dict]
 
 
 HTTP_URL = re.compile(r"""['"](http://[A-Za-z0-9.-]+(?::\d+)?[^'"\s]*)['"]""")
-HTTP_OK = re.compile(r"(?i)^http://(localhost|127\.|0\.0\.0\.0|\[?::1|[\w.-]*\.(local|test|internal|example)(/|:|$)|example\.|www\.w3\.org|schemas\.|xmlns|json-schema\.org|"
+HTTP_OK = re.compile(r"(?i)^http://(localhost|127\.|0\.0\.0\.0|\[?::1|[\w.-]*\.(local|test|internal|example|invalid|localhost)(/|:|$)|[a-z0-9-]+(/|:|$)|example\.|www\.w3\.org|schemas\.|xmlns|json-schema\.org|"
                      r"maven\.apache\.org|(xml\.|www\.)?apache\.org/xml|xml\.org/sax|javax\.xml|java\.sun\.com|purl\.org|ns\.adobe\.com|docbook\.org|www\.apache\.org/licenses|169\.254\.)")
 
 
@@ -397,7 +434,9 @@ def network(path: str, text: str) -> Iterator[Raw]:
     """Plain-HTTP endpoints in code and configuration, and publicly open cloud resources in Terraform."""
     low = path.lower()
     if low.endswith((".py", ".js", ".jsx", ".ts", ".tsx", ".php", ".java", ".json", ".yml", ".yaml", ".toml", ".env", ".properties")) or ENV_FILE.search(path):
-        if not low.endswith(("package-lock.json", ".lock")):
+        # Addresses the program talks to: not test doubles, and not JSON that is data (records with links) rather than configuration.
+        data_json = low.endswith(".json") and not re.search(r"(?i)(^|/)(package|[\w.-]*(config|settings|rc|manifest|launch|tasks|mcp)[\w.-]*)\.json$", low)
+        if not low.endswith(("package-lock.json", ".lock")) and not is_test_file(path) and not data_json:
             for i, line in enumerate(text.splitlines(), 1):
                 if len(line) > 2000:
                     continue

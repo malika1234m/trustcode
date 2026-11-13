@@ -203,7 +203,7 @@ export class SecurityController implements vscode.Disposable {
       const ed = await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(uri), { preserveFocus: false });
       const r = ed.document.validateRange(this.range(f));
       ed.selection = new vscode.Selection(r.start, r.isEmpty ? r.start : r.end);
-      ed.revealRange(r, vscode.TextEditorRevealType.InCenterIfOutsideViewport);
+      ed.revealRange(r, vscode.TextEditorRevealType.InCenter);
     } catch { vscode.window.showInformationMessage(`TrustCode: ${f.path} can no longer be opened. Rescan to refresh the findings.`); }
   }
 

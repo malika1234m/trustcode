@@ -1,10 +1,11 @@
 import * as vscode from 'vscode';
+import { randomBytes } from 'crypto';
 import { esc } from './render';
 
 // Webview shell. Strict CSP: no remote content, scripts only with a per-load nonce.
 // Colours come from VS Code theme variables, so light/dark/high-contrast themes work automatically.
 export function shellHtml(webview: vscode.Webview): string {
-  const nonce = Array.from({ length: 32 }, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 62)]).join('');
+  const nonce = randomBytes(24).toString('base64');   // unpredictable: the nonce is what the content security policy trusts
   return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'nonce-${nonce}'; script-src 'nonce-${nonce}';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -171,6 +172,8 @@ export function shellHtml(webview: vscode.Webview): string {
   .cmp-counts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; } .compare ul { margin: 4px 0; } .compare details { margin: 4px 0; }
   .cached { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 0 0 var(--gap); font-size: .9em; }
   .finding { transition: box-shadow .25s ease, border-color .25s ease; }
+  .finding.opens { cursor: pointer; } .finding.opens:hover { border-color: var(--vscode-focusBorder); }
+  .finding.opens:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 1px; }
   .finding.flash { border-color: var(--vscode-focusBorder); box-shadow: 0 0 0 2px var(--vscode-focusBorder); }
   .card, .tile, .headline { animation: rise .16s ease-out; } @keyframes rise { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
@@ -225,6 +228,20 @@ export function shellHtml(webview: vscode.Webview): string {
           tab: d.tab, job: d.job, path: d.path, run: d.run, key: d.key,
           paths: Array.from(root.querySelectorAll('input[data-pick]:checked')).map((x) => x.dataset.pick), confidence: conf(), task: val('task'), tests: val('tests'), code: val('pcode'), rationale: val('rationale') });
       });
+    });
+    // The whole finding card opens the code at the reported line; buttons, links, the evidence toggle and text
+    // selection inside the card keep their own behaviour.
+    root.querySelectorAll('li.finding').forEach((card) => {
+      const go = card.querySelector('button.floc');
+      if (!go) return;
+      card.classList.add('opens'); card.tabIndex = 0;
+      card.setAttribute('aria-label', 'Open ' + go.textContent + ' in the editor');
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('button, a, summary, input, select, textarea, details[open] > dl')) return;
+        if (String(window.getSelection() || '').length) return;
+        go.click();
+      });
+      card.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === card) go.click(); });
     });
     root.querySelectorAll('details[data-track]').forEach((el) => el.addEventListener('toggle', () => {
       vscode.postMessage({ action: 'track', type: el.open ? 'evidence_expand' : 'evidence_collapse', finding: el.dataset.finding });

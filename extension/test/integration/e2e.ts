@@ -8,7 +8,11 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function runE2E(hook: any, backend: string): Promise<R[]> {
   const results: R[] = [];
+  /** Set: Verify and Session run on the local engine (this interpreter) and no server exists. */
+  const enginePy = process.env.TRUSTCODE_TEST_ENGINE;
+  const SERVER_ONLY = /backend unreachable|tokens stored in SecretStorage|browser sign-in|signOut removes the token/;
   const t = async (name: string, fn: () => Promise<void>) => {
+    if (enginePy && SERVER_ONLY.test(name)) { console.log(`  skip ${name} (server analysis only)`); return; }
     const t0 = Date.now();
     try { await fn(); results.push({ name, ok: true, ms: Date.now() - t0 }); console.log(`  ok   ${name} (${Date.now() - t0} ms)`); }
     catch (e: any) { results.push({ name, ok: false, ms: Date.now() - t0, err: e?.message }); console.log(`  FAIL ${name}: ${e?.message}`); }
@@ -27,7 +31,9 @@ export async function runE2E(hook: any, backend: string): Promise<R[]> {
 
   const cfg = () => vscode.workspace.getConfiguration('trustcode');
   await cfg().update('backendUrl', backend, vscode.ConfigurationTarget.Global);
-  await cfg().update('mode', 'local', vscode.ConfigurationTarget.Global);
+  await cfg().update('mode', enginePy ? 'account' : 'local', vscode.ConfigurationTarget.Global);
+  await cfg().update('analysis.location', enginePy ? 'local' : 'server', vscode.ConfigurationTarget.Global);
+  await cfg().update('engine.pythonPath', enginePy || undefined, vscode.ConfigurationTarget.Global);
   // this journey covers the optional explanation views (levels, why/next step), which are off by default since 0.7.0
   await cfg().update('showExplanations', true, vscode.ConfigurationTarget.Global);
   await ctx.globalState.update('trustcode.consent', { trustedBackends: [backend.replace(/\/$/, ''), 'http://127.0.0.1:9'] });
@@ -243,7 +249,7 @@ export async function runE2E(hook: any, backend: string): Promise<R[]> {
   });
   await t('ui: account tab shows connection, level and privacy controls; toggles persist', async () => {
     await view.onMessage({ action: 'tab', tab: 'account' }).catch((e: unknown) => view.error(e));
-    assert.match(last(), /Connection/);
+    assert.match(last(), enginePy ? /On this computer[\s\S]*TrustCode account \(optional\)/ : /Connection/);
     assert.match(last(), /data-key="store_history"/);
     await view.onMessage({ action: 'privacy', key: 'store_history', value: true }).catch((e: unknown) => view.error(e));
     await view.onMessage({ action: 'setLevel', level: 'beginner' }).catch((e: unknown) => view.error(e));

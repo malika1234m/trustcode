@@ -16,6 +16,8 @@ class Settings(BaseSettings):
     worker_mode: str = "inline"                    # inline (dev/test) | queue (worker process) | sync (serverless: analyse in-request, static checks only)
     run_tests: bool = True                         # sandboxed test execution enabled
     session_max_files: int = 0                     # files per multi-file request; 0 = automatic (8 in sync mode, else 40)
+    billing_webhook_secret: str = ""               # empty = billing not live: no event can change a subscription
+    min_extension_version: str = "0.4.0"           # oldest extension this API still serves
     engine_profile: str = "extended"  # "study-v1" pins the frozen research check set (ADR-005)
     rate_limit_per_minute: int = 300                # general authenticated limit (status polling included)
     verify_rate_limit_per_minute: int = 10

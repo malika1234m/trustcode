@@ -12,12 +12,18 @@ import { SessionController } from './session/controller';
 import { SecurityController } from './security/controller';
 import { securityPage } from './security/model';
 import { setShowExplanations } from './render';
+import { readRelease, RELEASES_API, tooOldForServer, UpdateInfo } from './updates';
+import { createHash } from 'crypto';
 import { sessionPage } from './session/render';
-import { account, errorCard, history, page, progress as progressCard, summaryTiles, Tab, TABS, verifyForm, waitingForBrowser, welcome } from './ui';
+import { EngineManager } from './engine/manager';
+import { LocalAnalysis, LocalState, RoutedApi } from './engine/local';
+import { account, accountDashboard, engineNotice, errorCard, history, page, progress as progressCard, summaryTiles, Tab, TABS, verifyForm, waitingForBrowser, welcome } from './ui';
 
 // Secrets are bound to the backend origin, so tokens are never sent to a different server.
 const backendUrl = () => vscode.workspace.getConfiguration('trustcode').get<string>('backendUrl')!;
 const TOKEN_KEY = () => `trustcode.tokens:${normaliseBackend(backendUrl())}`;
+/** Where Verify and Session run: on this machine (default) or on the TrustCode server. A local backend (mode "local") is a server. */
+const localEngine = () => { const c = vscode.workspace.getConfiguration('trustcode'); return c.get<string>('analysis.location', 'local') === 'local' && c.get<string>('mode', 'account') !== 'local'; };
 const PARTICIPANT_KEY = () => `trustcode.participantToken:${normaliseBackend(backendUrl())}`;
 const CONSENT_KEY = 'trustcode.consent';
 
@@ -159,11 +165,89 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   }
 
   activeTab: Tab = 'verify';
+  /** The tabs can be used: the local engine is selected, or the user has an account on the server. */
   private signedIn = false;
+  /** There is an account on the TrustCode server (needed only for server analysis, the plan and the study). */
+  private hasAccount = false;
+  engine!: EngineManager;
+  local!: LocalAnalysis;
+  private engineNote() { return localEngine() ? engineNotice(this.engine.info()) : ''; }
+  private sessionHtml() { return this.engineNote() + sessionPage({ ...this.session.model(), local: localEngine() }); }
   session!: SessionController;
   security!: SecurityController;
   securityItem?: vscode.StatusBarItem;
   sessionItem?: vscode.StatusBarItem;
+
+  private lastProfile?: any;
+  update?: UpdateInfo;
+
+  /**
+   * The plan and limits as decided by the server. The last verified answer is kept in SecretStorage (per server)
+   * for display during a network interruption, for at most 72 hours. It is only ever displayed: nothing on this
+   * machine can grant a plan, because every server feature checks the account on the server.
+   */
+  async loadEntitlements(): Promise<{ data?: any; fetchedAt?: number; offline?: boolean }> {
+    const key = `trustcode.entitlements:${normaliseBackend(backendUrl())}`;
+    try {
+      const data = await this.api.request('GET', '/me/entitlements');
+      const fetchedAt = Date.now();
+      await this.ctx.secrets.store(key, JSON.stringify({ data, fetchedAt }));
+      return { data, fetchedAt };
+    } catch (e) {
+      if (!(e instanceof ApiError) || e.status !== 0) { await this.ctx.secrets.delete(key); return {}; }   // a real answer (e.g. signed out) replaces the cache
+      try {
+        const cached = JSON.parse((await this.ctx.secrets.get(key)) ?? 'null');
+        if (cached && typeof cached.fetchedAt === 'number' && Date.now() - cached.fetchedAt < 72 * 3600 * 1000) return { ...cached, offline: true };
+      } catch { /* unreadable cache: treated as absent */ }
+      return { offline: true };
+    }
+  }
+
+  /** Reads the public release record. Sends nothing about the user or the project. */
+  async checkForUpdates(interactive: boolean): Promise<UpdateInfo> {
+    const installed = String(this.ctx.extension.packageJSON.version);
+    try {
+      const res = await fetch(RELEASES_API, { headers: { Accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(15000) });
+      this.update = res.ok ? readRelease(installed, await res.json(), Date.now()) : { installed, available: false, checkedAt: Date.now(), error: `The release list could not be read (HTTP ${res.status}).` };
+    } catch {
+      this.update = { installed, available: false, checkedAt: Date.now(), error: 'The release list could not be reached.' };
+    }
+    await this.ctx.globalState.update('trustcode.lastUpdateCheck', Date.now());
+    if (this.update.available && (interactive || this.ctx.globalState.get('trustcode.notifiedVersion') !== this.update.latest)) {
+      await this.ctx.globalState.update('trustcode.notifiedVersion', this.update.latest);
+      void vscode.window.showInformationMessage(`TrustCode ${this.update.latest} is available (installed: ${installed}).`, 'Show details').then((p) => { if (p) void this.showAccountTab(); });
+    } else if (interactive && !this.update.error) vscode.window.setStatusBarMessage(`TrustCode ${installed} is the latest version`, 4000);
+    if (this.activeTab === 'account') await this.showTab('account');
+    return this.update;
+  }
+  async showAccountTab() { await vscode.commands.executeCommand('trustcode.panel.focus'); await this.showTab('account'); }
+
+  /** Downloads the release package, checks it against the published SHA-256, and installs it through VS Code. */
+  async installUpdate(): Promise<void> {
+    const u = this.update;
+    if (!u?.available || !u.vsixUrl || !u.sha256Url) return void vscode.commands.executeCommand('trustcode.openRelease');
+    if (this.security.scanning || this.session.busy) { vscode.window.showInformationMessage('TrustCode: a scan is running. Install the update when it has finished.'); return; }
+    const ok = await vscode.window.showWarningMessage(`Download TrustCode ${u.latest} from the project's GitHub release, verify its checksum and install it?`, { modal: true }, 'Install');
+    if (ok !== 'Install') return;
+    try {
+      const [pkg, sum] = await Promise.all([fetch(u.vsixUrl, { signal: AbortSignal.timeout(120000) }), fetch(u.sha256Url, { signal: AbortSignal.timeout(30000) })]);
+      if (!pkg.ok || !sum.ok) throw new Error(`download failed (HTTP ${pkg.status}/${sum.status})`);
+      const data = Buffer.from(await pkg.arrayBuffer());
+      const expected = (await sum.text()).trim().split(/\s+/)[0].toLowerCase();
+      const actual = createHash('sha256').update(data).digest('hex');
+      if (!/^[a-f0-9]{64}$/.test(expected) || expected !== actual) throw new Error('the package does not match its published checksum, so it was NOT installed');
+      await vscode.workspace.fs.createDirectory(this.ctx.globalStorageUri);
+      const file = vscode.Uri.joinPath(this.ctx.globalStorageUri, `trustcode-${u.latest}.vsix`);
+      await vscode.workspace.fs.writeFile(file, data);
+      await vscode.commands.executeCommand('workbench.extensions.installExtension', file);
+      await vscode.workspace.fs.delete(file).then(undefined, () => undefined);
+      const reload = await vscode.window.showInformationMessage(`TrustCode ${u.latest} was installed. Reload the window to start using it.`, 'Reload window');
+      if (reload) await vscode.commands.executeCommand('workbench.action.reloadWindow');
+    } catch (e) {
+      vscode.window.showErrorMessage(`TrustCode: the update was not installed — ${String((e as Error)?.message ?? e)}. The installed version is unchanged.`, 'Open release page')
+        .then((p) => { if (p) void vscode.commands.executeCommand('trustcode.openRelease'); });
+    }
+  }
 
   /** The Security tab works without an account: scanning is local. */
   refreshSecurity() {
@@ -181,7 +265,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     this.refreshTimer = setTimeout(() => {
       const text = this.session.statusText();
       if (this.sessionItem) { if (text) { this.sessionItem.text = text; this.sessionItem.show(); } else this.sessionItem.hide(); }
-      if (this.activeTab === 'session' && this.signedIn) this.view?.webview.postMessage({ type: 'render', keepScroll: true, html: page('session', this.signedIn, this.who(), sessionPage(this.session.model())) });
+      if (this.activeTab === 'session' && this.signedIn) this.view?.webview.postMessage({ type: 'render', keepScroll: true, html: page('session', this.signedIn, this.who(), this.sessionHtml()) });
     }, 120);
   }
   async showSessionTab() {
@@ -203,10 +287,12 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   private mode() { return vscode.workspace.getConfiguration('trustcode').get<string>('mode', 'account'); }
   private who() {
     if (this.mode() === 'local') return 'Local mode';
+    if (localEngine()) return 'On this device';
     try { return this.signedIn ? new URL(backendUrl()).hostname : 'Signed out'; } catch { return 'Signed out'; }
   }
   async refreshAuth() {
-    this.signedIn = this.mode() === 'local' || !!(await this.ctx.secrets.get(TOKEN_KEY()));
+    this.hasAccount = this.mode() === 'local' || !!(await this.ctx.secrets.get(TOKEN_KEY()));
+    this.signedIn = localEngine() || this.hasAccount;
     return this.signedIn;
   }
   /** Posts a full page (header + tabs + body). The body is produced by escaping renderers only. */
@@ -219,7 +305,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     if (!this.signedIn) return this.renderRaw(welcome(backendUrl()));
     this.activeTab = 'verify';
     const sel = this.selection && { lines: this.selection.lines, language: this.selection.language, file: path.basename(this.selection.uri.path), whole: this.selection.whole };
-    this.render(verifyForm(sel, this.lastTask));
+    this.render(this.engineNote() + verifyForm(sel, this.lastTask, localEngine()));
   }
   async showTab(tab: Tab) {
     await this.refreshAuth();
@@ -227,14 +313,27 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     if (!this.signedIn && tab !== 'account') return this.renderRaw(welcome(backendUrl()));
     this.activeTab = tab;
     if (tab === 'verify') return this.jobId ? this.showExplanation() : this.showForm();
-    if (tab === 'session') return this.render(sessionPage(this.session.model()));
+    if (tab === 'session') return this.render(this.sessionHtml());
     if (tab === 'history') {
       this.render('<p class="muted">Loading history…</p>');
       const pageData = await this.api.request('GET', '/verifications?limit=25');
-      return this.render(history(pageData.items ?? []));
+      return this.render(history(pageData.items ?? [], localEngine()));
     }
     const profile = this.signedIn ? await this.api.request('GET', '/profile').catch(() => undefined) : undefined;
-    this.render(account({ backend: backendUrl(), mode: this.mode(), signedIn: this.signedIn, profile }));
+    this.lastProfile = profile;
+    const ent = this.hasAccount ? await this.loadEntitlements() : {};
+    const me = this.hasAccount && !ent.offline ? await this.api.request('GET', '/me').catch(() => undefined) : undefined;
+    const health = this.hasAccount ? await this.api.request('GET', '/health', undefined, { auth: false }).catch(() => undefined) : undefined;
+    const cfg = vscode.workspace.getConfiguration('trustcode');
+    const up: UpdateInfo = this.update ?? { installed: String(this.ctx.extension.packageJSON.version), available: false };
+    this.render(account({ backend: backendUrl(), mode: this.mode(), signedIn: this.hasAccount, profile, local: localEngine() }) + accountDashboard({
+      entitlements: ent.data, verifiedAt: ent.fetchedAt, offline: ent.offline, email: me?.email ?? undefined,
+      update: { ...up, canInstall: !!(up.vsixUrl && up.sha256Url), tooOld: tooOldForServer(up.installed, health?.min_extension_version) },
+      privacy: { engine: localEngine() ? this.engine.info() : undefined, localHistory: this.local.counts(), registryLookups: cfg.get('engine.registryLookups', false),
+        scanner: this.security.model().availability, signedIn: this.hasAccount, backend: backendUrl(), localBackend: isLoopback(backendUrl()),
+        llmSetting: cfg.get('useLlmExplanations', false), llmAllowedInProfile: !!profile?.allow_llm, llmAvailableOnServer: !!profile?.llm_available,
+        onlineAdvisories: cfg.get('scanner.onlineAdvisories', false), updateCheck: cfg.get('updates.check', true),
+        entitlementVerifiedAt: ent.fetchedAt, entitlementOffline: ent.offline } }));
   }
   error(e: unknown) {
     const msg = describeError(e);
@@ -330,6 +429,18 @@ class TrustCodeView implements vscode.WebviewViewProvider {
         return void vscode.window.setStatusBarMessage('TrustCode: thanks for the feedback', 2500);
       }
       case 'experiment': return vscode.commands.executeCommand('trustcode.startExperiment');
+      case 'engineSetup': await this.engine.ensure(true); return this.showTab(this.activeTab);
+      case 'engineLog': return void this.engine.log.show();
+      case 'engineUseServer':
+        await vscode.workspace.getConfiguration('trustcode').update('analysis.location', 'server', vscode.ConfigurationTarget.Global);
+        return this.showTab(this.activeTab);
+      case 'engineUseLocal':
+        await vscode.workspace.getConfiguration('trustcode').update('analysis.location', 'local', vscode.ConfigurationTarget.Global);
+        return this.showTab(this.activeTab);
+      case 'checkUpdates': return void (await this.checkForUpdates(true));
+      case 'installUpdate': return this.installUpdate();
+      case 'openRelease': return void vscode.commands.executeCommand('trustcode.openRelease');
+      case 'trustCenter': return void vscode.commands.executeCommand('trustcode.openTrustCenter');
       // ---- security scanner (local)
       case 'secScan': { const mode = oneOf(m.key, ['full', 'changed', 'new', 'staged', 'push', 'production'] as const); return mode ? void (await this.security.scan(mode)) : undefined; }
       case 'secConfig': return this.security.editConfig();
@@ -377,7 +488,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
       case 'openRun': {
         if (m.run !== 'latest' && (typeof m.run !== 'string' || !/^[a-f0-9]{12}$/.test(m.run))) return;
         this.session.viewingRun = m.run === 'latest' ? undefined : m.run;
-        return this.render(sessionPage(this.session.model()));
+        return this.render(this.sessionHtml());
       }
       case 'setSetting': {
         const cfg = vscode.workspace.getConfiguration('trustcode');
@@ -403,7 +514,12 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     }
   }
 
+  /** True when the selected analysis can be used: local analysis needs no account. */
   async ensureSignedIn(): Promise<boolean> {
+    if (localEngine()) return true;
+    return this.ensureAccount();
+  }
+  async ensureAccount(): Promise<boolean> {
     if (await this.ctx.secrets.get(TOKEN_KEY())) return true;
     const cfg = vscode.workspace.getConfiguration('trustcode');
     if (cfg.get('mode') === 'local') {
@@ -491,7 +607,8 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     const sel = this.selection!;
     const cfg = vscode.workspace.getConfiguration('trustcode');
     const backend = cfg.get<string>('backendUrl')!;
-    const key = cacheKey([normaliseBackend(backend), sel.language, sel.code, task, tests]);
+    const local = localEngine();
+    const key = cacheKey([local ? 'local-engine' : normaliseBackend(backend), sel.language, sel.code, task, tests]);
     const docKey = sel.uri.toString();
     const cached = opts.force ? undefined : this.cache.get(key);
     if (cached && await this.refreshAuth()) {
@@ -511,7 +628,10 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     }
     this.clearMarks();
     const consent = this.ctx.globalState.get<ConsentState>(CONSENT_KEY, { trustedBackends: [] });
-    if (needsPrompt(consent, backend)) {
+    // Local analysis: the code stays on this machine, so there is nothing to consent to. It needs the engine instead.
+    if (local) {
+      if (!(await this.engine.ensure(true))) return this.showForm();
+    } else if (needsPrompt(consent, backend)) {
       const choice = await vscode.window.showWarningMessage(
         consentMessage(sel.lines, sel.code.length, backend, !!tests, cfg.get('useLlmExplanations', false)),
         { modal: true }, 'Send', 'Send and don\'t ask again for this server');
@@ -522,8 +642,8 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     if (this.statusItem) { this.statusItem.text = '$(sync~spin) TrustCode: verifying…'; this.statusItem.tooltip = 'TrustCode: verification running'; }
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: 'TrustCode', cancellable: true },
       async (progress, token) => {
-        progress.report({ message: 'submitting…' });
-        this.render(progressCard('submitting'));
+        progress.report({ message: local ? 'running checks on this computer…' : 'submitting…' });
+        this.render(progressCard(local ? 'running' : 'submitting'));
         const job = await this.api.submit(sel.code, sel.language, task, tests);
         this.jobId = job.id;
         this.lastView = undefined;
@@ -560,7 +680,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     const useLlm = vscode.workspace.getConfiguration('trustcode').get('useLlmExplanations', false);
     const q = new URLSearchParams();
     if (this.level) q.set('level', this.level);
-    if (useLlm) q.set('llm', 'true');
+    if (useLlm && !localEngine()) q.set('llm', 'true');
     this.lastView = await this.api.request('GET', `/verifications/${this.jobId}/explanation?${q}`);
     this.renderResultPage();
   }
@@ -695,18 +815,41 @@ export function activate(ctx: vscode.ExtensionContext) {
   const started = Date.now();
   const cfg = () => vscode.workspace.getConfiguration('trustcode');
   const timeout = () => cfg().get<number>('requestTimeoutSeconds', 30) * 1000;
-  const api = new TrustCodeApi(backendUrl, secretStore(ctx, TOKEN_KEY), timeout);
+  // ---- local engine: Verify and Session run on this machine unless the user selects the server
+  const engineLog = vscode.window.createOutputChannel('TrustCode Engine');
+  const engine = new EngineManager(ctx, engineLog);
+  const stateFile = path.join(ctx.globalStorageUri.fsPath, 'local-analysis.json');
+  const localAnalysis = new LocalAnalysis(engine, {
+    load: () => { try { return JSON.parse(fs.readFileSync(stateFile, 'utf8')) as LocalState; } catch { return undefined; } },
+    save: (st) => {
+      try {
+        fs.mkdirSync(path.dirname(stateFile), { recursive: true });
+        fs.writeFileSync(stateFile + '.tmp', JSON.stringify(st), { mode: 0o600 });
+        fs.renameSync(stateFile + '.tmp', stateFile);
+      } catch (e) { engineLog.appendLine(`Local history could not be saved: ${String((e as Error)?.message ?? e)}`); }
+    },
+  }, () => ({ profile: 'extended', registry: cfg().get<boolean>('engine.registryLookups', false), runTests: cfg().get<boolean>('engine.runTests', true) }));
+  const api = new RoutedApi(backendUrl, secretStore(ctx, TOKEN_KEY), timeout, localAnalysis, localEngine);
   const participantApi = new TrustCodeApi(backendUrl, secretStore(ctx, PARTICIPANT_KEY), timeout);
   const view = new TrustCodeView(ctx, api, participantApi);
+  view.engine = engine;
+  view.local = localAnalysis;
+  ctx.subscriptions.push(engineLog, engine.onDidChange(() => { void view.showTab(view.activeTab).catch(() => undefined); }));
   const applyDisplay = () => setShowExplanations(cfg().get<boolean>('showExplanations', false));
   applyDisplay();
   const security = new SecurityController(() => view.refreshSecurity(), (text, tooltip) => {
     const item = view.securityItem;
     if (!item) return;
     if (text) { item.text = text; item.tooltip = tooltip; item.show(); } else item.hide();
-  });
+  }, () => engine.scanner());
   view.security = security;
+  // once the engine is installed its scanner exists too: the Security tab stops saying "scanner not found"
+  ctx.subscriptions.push(engine.onDidChange(() => { if (engine.scanner() && security.model().availability === 'missing') void security.scan('full', { quiet: true }).catch(() => undefined); }));
   if (process.env.TRUSTCODE_TEST !== '1') security.startup();
+  if (process.env.TRUSTCODE_TEST !== '1' && cfg().get<boolean>('updates.check', true)
+      && Date.now() - ctx.globalState.get<number>('trustcode.lastUpdateCheck', 0) > 24 * 3600 * 1000) {
+    setTimeout(() => void view.checkForUpdates(false).catch(() => undefined), 20000);   // once a day at most, never on every start
+  }
   const CI_EXAMPLE = `# .github/workflows/trustcode-scan.yml
 # Runs the TrustCode security scan on every push and pull request. A local hook can be skipped with
 # --no-verify, so this is the check that cannot be bypassed from a developer machine.
@@ -736,6 +879,8 @@ jobs:
     onChangesReady: (paths: string[]) => { if (cfg().get<boolean>('scanner.scanSessionChanges', true) && paths.length) void security.scan('changed', { paths, quiet: true }).catch(() => undefined); },
     api,
     ensureSignedIn: () => view.ensureSignedIn(),
+    local: localEngine,
+    ensureEngine: (interactive: boolean) => engine.ensure(interactive),
     consent: (message: string, interactive: boolean) => view.consentFor(message, interactive),
     backendLabel: () => (isLoopback(backendUrl()) ? `your local TrustCode backend (${backendUrl()})` : `the remote TrustCode server ${backendUrl()}`),
     refresh: () => view.refreshSession(),
@@ -893,6 +1038,9 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
       return item;
     })(),
     sessionCmd('trustcode.openSecurity', () => view.showSecurityTab()),
+    sessionCmd('trustcode.checkForUpdates', async () => { await view.checkForUpdates(true); }),
+    sessionCmd('trustcode.openRelease', async () => { await vscode.env.openExternal(vscode.Uri.parse(view.update?.pageUrl ?? 'https://github.com/malika1234m/trustcode/releases/latest')); }),
+    sessionCmd('trustcode.openTrustCenter', async () => { await vscode.env.openExternal(vscode.Uri.parse('https://github.com/malika1234m/trustcode/blob/main/docs/TRUSTCODE_TRUST_AND_PRIVACY.md')); }),
     session,
     sessionCmd('trustcode.startSession', async () => { if (await session.start()) await view.showSessionTab(); }),
     sessionCmd('trustcode.pauseSession', () => session.pause()),
@@ -989,7 +1137,7 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
         { label: 'Keep verification history (30 days)', key: 'store_history', picked: p.store_history },
         { label: 'Allow LLM-worded explanations (server sends finding details to its LLM provider)', key: 'allow_llm', picked: p.allow_llm },
         { label: 'Suggest explanation level changes from my feedback', key: 'adaptive_suggestions', picked: p.adaptive_suggestions },
-      ], { canPickMany: true, placeHolder: 'Select what you allow (unselected = off)' });
+      ].filter((x) => !(p.local && x.key === 'allow_llm')), { canPickMany: true, placeHolder: 'Select what you allow (unselected = off)' });
       if (!picks) return;
       const on = new Set(picks.map((x) => x.key));
       await api.request('PATCH', '/profile', { store_history: on.has('store_history'), allow_llm: on.has('allow_llm'), adaptive_suggestions: on.has('adaptive_suggestions') });
@@ -1008,16 +1156,49 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
     vscode.workspace.onDidChangeTextDocument((e) => view.onDocumentChanged(e)),
     vscode.commands.registerCommand('trustcode.clearFindings', () => { view.clearMarks(); session.diagnostics.clear(); }),
     vscode.commands.registerCommand('trustcode.deleteMyData', wrap(async () => {
+      if (localEngine()) {
+        const n = localAnalysis.counts();
+        const go = await vscode.window.showWarningMessage(
+          `Delete the TrustCode history, decisions and feedback stored on this computer (${n.runs} runs, ${n.feedback} ratings)? This cannot be undone.`,
+          { modal: true }, 'Delete local data');
+        if (go !== 'Delete local data') return;
+        localAnalysis.clear();
+        view.clearMarks();
+        view.cache.clear();
+        view.jobId = undefined;
+        vscode.window.showInformationMessage('TrustCode: the data stored on this computer was deleted.');
+        if (!(await ctx.secrets.get(TOKEN_KEY()))) return void (await view.showTab(view.activeTab));
+      }
       const ok = await vscode.window.showWarningMessage(
         'Delete your TrustCode account and all stored verification history, decisions and feedback on this server? This cannot be undone.',
         { modal: true }, 'Delete everything');
-      if (ok !== 'Delete everything' || !(await view.ensureSignedIn())) return;
+      if (ok !== 'Delete everything' || !(await view.ensureAccount())) return;
       await api.request('DELETE', '/me/data');
       await ctx.secrets.delete(TOKEN_KEY());
       view.clearMarks();
       view.cache.clear();
       view.jobId = undefined;
       vscode.window.showInformationMessage('TrustCode: your account and data were deleted.');
+    })),
+    vscode.commands.registerCommand('trustcode.setupEngine', wrap(async () => {
+      if (engine.python()) { vscode.window.showInformationMessage('TrustCode: the local engine is already set up.'); return; }
+      await engine.ensure(true);
+    })),
+    vscode.commands.registerCommand('trustcode.engineStatus', wrap(async () => {
+      const info = engine.info();
+      if (info.status !== 'ready') { vscode.window.showWarningMessage(`TrustCode: the local engine is ${info.status === 'installing' ? 'being set up' : 'not set up'}.${info.detail ? ` ${info.detail}` : ''}`); return; }
+      const d = await engine.run({ op: 'doctor' }, { timeoutMs: 120_000 });
+      engineLog.appendLine(`\nEngine ${d.engine} · Python ${d.python} · ${d.executable}`);
+      for (const [name, t] of Object.entries<any>(d.tools ?? {})) engineLog.appendLine(`  ${t.available ? 'available    ' : 'NOT available'}  ${name}${t.version ? ` ${t.version}` : ''} — ${t.used_for}${t.note && !t.available ? ` (${t.note})` : ''}`);
+      engineLog.show();
+      const missing: string[] = d.missing ?? [];
+      vscode.window.showInformationMessage(missing.length ? `TrustCode engine is working. Not available: ${missing.join(', ')} — the checks that need them are reported as not run.` : 'TrustCode engine is working and every tool is available.');
+    })),
+    vscode.commands.registerCommand('trustcode.removeEngine', wrap(async () => {
+      const go = await vscode.window.showWarningMessage('Remove the local engine TrustCode installed? Verify, Session and Security stop working until it is set up again. Your history is kept.', { modal: true }, 'Remove');
+      if (go !== 'Remove') return;
+      await engine.remove();
+      vscode.window.showInformationMessage('TrustCode: the local engine was removed.');
     })),
     vscode.commands.registerCommand('trustcode.forgetConsent', wrap(async () => { await ctx.globalState.update(CONSENT_KEY, { trustedBackends: [] }); vscode.window.showInformationMessage('TrustCode will ask before sending code again.'); })),
   );

@@ -102,6 +102,33 @@ class Feedback(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
 
 
+class Subscription(Base):
+    """One row per account with a paid plan. Written only by verified billing events (app.billing.subscriptions)."""
+    __tablename__ = "subscriptions"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True, index=True)
+    plan_id: Mapped[str] = mapped_column(String(20))
+    status: Mapped[str] = mapped_column(String(20))   # active | past_due | cancelled | expired | refunded | disputed
+    provider: Mapped[str | None] = mapped_column(String(40))
+    provider_ref: Mapped[str | None] = mapped_column(String(120))
+    current_period_start: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    current_period_end: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    grace_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancel_at_period_end: Mapped[bool] = mapped_column(Boolean, default=False, server_default="0")
+    last_event_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class BillingEvent(Base):
+    """Every billing event that was received with a valid signature, by provider event id (idempotency)."""
+    __tablename__ = "billing_events"
+    id: Mapped[str] = mapped_column(String(120), primary_key=True)
+    type: Mapped[str] = mapped_column(String(40))
+    user_id: Mapped[str | None] = mapped_column(String(32))
+    payload_sha256: Mapped[str] = mapped_column(String(64))
+    received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
 class SupportTicket(Base):
     __tablename__ = "support_tickets"
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)

@@ -166,7 +166,7 @@ def test_deep_check_cannot_switch_on_registry_lookups_the_operator_disabled(monk
     files = [F("a.py", "import requests\nimport totally_made_up_pkg\n", "created")]
     r = run(files, depth="deep")
     assert calls == [], "a client-chosen depth made the server contact a registry"
-    assert any(n["check"] == "Package registry lookup" and "switched off on this server" in n["reason"] for n in r["not_executed"])
+    assert any(n["check"] == "Package registry lookup" and "switched off" in n["reason"] for n in r["not_executed"])
     monkeypatch.setenv("TRUSTCODE_REGISTRY_CHECK", "1")
     run(files, depth="deep")
     assert sorted(calls) == ["requests", "totally_made_up_pkg"]

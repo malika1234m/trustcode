@@ -10,6 +10,8 @@ export interface DashboardSettings {
 }
 export interface DashboardModel {
   hasWorkspace: boolean;
+  /** Analysis runs on this machine (nothing is sent). */
+  local?: boolean;
   session?: {
     agent: string; status: string; startedAt: number; endedAt?: number; completion?: Completion; counts: Counts; changes: EffectiveChange[];
     skipped: Skipped[]; warnings: string[]; baselineFiles: number; usesGit: boolean; recovered: boolean;
@@ -197,7 +199,7 @@ export function historyCard(m: DashboardModel): string {
       <span class="chip ${h.findings ? 'st-issue' : 'st-notrun'}">${plural(h.findings, 'finding')}</span></button></li>`).join('')}</ul></details>`;
 }
 
-export function settingsCard(st: DashboardSettings): string {
+export function settingsCard(st: DashboardSettings, local = false): string {
   const select = (key: string, value: string, options: Array<[string, string]>, label: string) =>
     `<label class="set-row"><span>${esc(label)}</span><select data-action="setSetting" data-key="${key}">${options.map(([v, l]) => `<option value="${v}" ${v === value ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select></label>`;
   const toggle = (key: string, on: boolean, label: string, help: string) =>
@@ -205,16 +207,16 @@ export function settingsCard(st: DashboardSettings): string {
   return `<details class="card"><summary class="card-title">Tracking &amp; verification settings</summary>
     ${select('verification.depth', st.depth, [['quick', 'Quick — syntax, lint, types'], ['standard', 'Standard — + security, secrets, dependencies, cross-file'], ['deep', 'Deep — + package registry lookup']], 'Check depth')}
     ${select('verification.defaultScope', st.defaultScope, [['session', 'All changes in the current session'], ['git', 'All Git-changed files'], ['file', 'Current file'], ['selection', 'Selected code'], ['workspace', 'Entire workspace'], ['custom', 'Files I choose']], 'Default scope for “TrustCode: Verify”')}
-    <p class="muted small">Which checks exist for each language, and which tools the server lacks, is shown per check in every report (“Not run” / “Check failed”). Project tests are never run for multi-file changes.</p>
+    <p class="muted small">Which checks exist for each language, and which tools ${local ? 'this computer' : 'the server'} lacks, is shown per check in every report (“Not run” / “Check failed”). Project tests are never run for multi-file changes.</p>
     <div class="card-title">Verify automatically</div>
     ${toggle('autoVerify.onAgentFinished', st.auto.agentFinished, 'When the agent reports it finished', 'Needs an agent hook that writes the TrustCode signal file (see “Agent hook setup”).')}
     ${toggle('autoVerify.onInactivity', st.auto.inactivity, `After ${st.inactivitySeconds || '…'} s without file changes`, st.inactivitySeconds ? 'An estimate: the agent may still be working.' : 'Inactivity detection is off (trustcode.session.inactivitySeconds is 0).')}
     ${toggle('autoVerify.onSessionEnd', st.auto.sessionEnd, 'When I end the session', 'Runs once on the final set of changes.')}
     ${toggle('autoVerify.onSave', st.auto.save, 'After files are saved', 'Waits for a quiet moment; never runs on every keystroke.')}
     ${toggle('autoVerify.onBatch', st.auto.batch, `After a batch of ${st.batchSize} changed files`, 'Runs once the batch has settled.')}
-    <p class="muted small">Automatic runs only send files to a server you have already approved with “don't ask again”. Otherwise TrustCode asks first.</p>
-    <div class="card-title">What is sent</div>
-    ${toggle('verification.sendBaseline', st.sendBaseline, 'Send the previous version of modified files', 'Lets findings be labelled “new” or “already present”. Off: origin is shown as unknown.')}
+    <p class="muted small">${local ? 'Automatic runs check the files on this computer. Nothing is uploaded.' : 'Automatic runs only send files to a server you have already approved with “don\'t ask again”. Otherwise TrustCode asks first.'}</p>
+    <div class="card-title">${local ? 'What is analysed' : 'What is sent'}</div>
+    ${toggle('verification.sendBaseline', st.sendBaseline, local ? 'Compare with the previous version of modified files' : 'Send the previous version of modified files', 'Lets findings be labelled “new” or “already present”. Off: origin is shown as unknown.')}
     ${toggle('verification.includeRelatedFiles', st.includeRelated, 'Include related unchanged files', 'Files that import, or are imported by, a changed file — needed for cross-file checks.')}
     <div class="row"><button data-action="openSessionSettings">All settings (folders, extensions, limits, retention)…</button><button data-action="hookSetup">Agent hook setup…</button></div></details>`;
 }
@@ -237,7 +239,7 @@ export function sessionPage(m: DashboardModel): string {
         <li><strong>Verify all changes together</strong>, including problems between files, then re-verify after fixes.</li></ol>
       <button class="primary wide" data-action="sessionStart">Start tracking session</button>
       <p class="note">Edits you already have before starting are part of the baseline and are not attributed to the session.</p></section>
-      ${runReport(m)}${others}${historyCard(m)}${settingsCard(m.settings)}`;
+      ${runReport(m)}${others}${historyCard(m)}${settingsCard(m.settings, m.local)}`;
   }
-  return `${busy}${sessionHeader(m)}${changedFiles(m)}${runReport(m)}${others}${historyCard(m)}${settingsCard(m.settings)}`;
+  return `${busy}${sessionHeader(m)}${changedFiles(m)}${runReport(m)}${others}${historyCard(m)}${settingsCard(m.settings, m.local)}`;
 }

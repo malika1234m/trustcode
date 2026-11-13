@@ -706,7 +706,7 @@ def verify_session(req: SessionRequest, profile: str = "extended", max_workers: 
     if req.depth != "deep":
         not_executed.append({"check": "Package registry lookup", "reason": "Only part of the Deep check: whether imported packages exist on PyPI / npm was not looked up."})
     elif not registry:
-        not_executed.append({"check": "Package registry lookup", "reason": "Registry lookups are switched off on this server, so whether imported packages exist on PyPI / npm was not looked up."})
+        not_executed.append({"check": "Package registry lookup", "reason": "Registry lookups are switched off, so whether imported packages exist on PyPI / npm was not looked up."})
     return {
         "kind": "session", "schema_version": "1.0", "engine_version": ENGINE_VERSION, "depth": req.depth, "profile": profile,
         "files": files_out, "project_checks": project_checks, "not_executed": not_executed,

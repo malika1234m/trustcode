@@ -33,7 +33,8 @@ export class SecurityController implements vscode.Disposable {
     backgroundColor: new vscode.ThemeColor('editorWarning.background'), borderRadius: '2px',
   });
 
-  constructor(private refresh: () => void, private status: (text: string | undefined, tooltip?: string) => void) {
+  /** `managedScanner`: the scanner of the engine TrustCode installed (outside the workspace), used unless the user configured another one. */
+  constructor(private refresh: () => void, private status: (text: string | undefined, tooltip?: string) => void, private managedScanner: () => string | undefined = () => undefined) {
     const w = vscode.workspace.createFileSystemWatcher('**/*');
     const on = (u: vscode.Uri) => this.onFileEvent(u);
     this.disposables.push(this.diagnostics, this.decoration, w, w.onDidCreate(on), w.onDidChange(on), w.onDidDelete(on),
@@ -56,6 +57,8 @@ export class SecurityController implements vscode.Disposable {
     const inside = (p: string) => !!root && (p === root || p.startsWith(root + path.sep));
     const usable = (p: string) => { try { return path.isAbsolute(p) && !inside(p) && fs.statSync(p).isFile(); } catch { return false; } };
     if (cmd.includes('/') || cmd.includes('\\')) return usable(cmd) ? cmd : undefined;
+    const managed = cmd === 'trustcode-scan' ? this.managedScanner() : undefined;
+    if (managed && usable(managed)) return managed;
     const exts = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
     for (const dir of (process.env.PATH ?? '').split(path.delimiter)) {
       if (!dir || !path.isAbsolute(dir)) continue;

@@ -2,7 +2,7 @@
   "name": "trustcode",
   "displayName": "TrustCode — Verify AI-Generated Code",
   "description": "Security gate for your project: scans every file locally for SQL injection, exposed secrets, unsafe configuration and other vulnerabilities, highlights the exact code, and can block commits, pushes and releases. Also tracks what AI coding agents change.",
-  "version": "0.8.0",
+  "version": "1.0.0",
   "publisher": "trustcode-research",
   "license": "MIT",
   "private": true,
@@ -200,6 +200,30 @@
       {
         "command": "trustcode.editScanConfig",
         "title": "TrustCode: Edit Scan Rules and Exclusions…"
+      },
+      {
+        "command": "trustcode.checkForUpdates",
+        "title": "TrustCode: Check for Updates"
+      },
+      {
+        "command": "trustcode.openTrustCenter",
+        "title": "TrustCode: Open Trust Center"
+      },
+      {
+        "command": "trustcode.openRelease",
+        "title": "TrustCode: Open Latest Release Page"
+      },
+      {
+        "command": "trustcode.setupEngine",
+        "title": "TrustCode: Set Up Local Engine"
+      },
+      {
+        "command": "trustcode.engineStatus",
+        "title": "TrustCode: Check Local Engine"
+      },
+      {
+        "command": "trustcode.removeEngine",
+        "title": "TrustCode: Remove Local Engine"
       }
     ],
     "menus": {
@@ -264,6 +288,44 @@
           "description": "TrustCode server URL. Code is only sent here after you confirm. Use http://127.0.0.1:8000 with mode 'local' to keep code on your machine.",
           "scope": "application"
         },
+        "trustcode.analysis.location": {
+          "type": "string",
+          "enum": [
+            "local",
+            "server"
+          ],
+          "default": "local",
+          "scope": "application",
+          "enumDescriptions": [
+            "Verify and Session run on this computer with TrustCode's local engine. The code is not uploaded and no account is needed.",
+            "Verify and Session send the code you choose to the TrustCode server (trustcode.backendUrl) after you confirm. Needs an account."
+          ],
+          "markdownDescription": "Where the **Verify** and **Session** checks run. The Security tab always runs on this computer."
+        },
+        "trustcode.engine.pythonPath": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "markdownDescription": "Advanced. Full path of a Python interpreter that already has the TrustCode engine installed (`pip install \"trustcode-worker[tools]\"`). Empty: TrustCode uses the engine it sets up itself. Application-scoped so a workspace cannot point it at another program; a path inside the workspace is refused."
+        },
+        "trustcode.engine.basePython": {
+          "type": "string",
+          "default": "",
+          "scope": "application",
+          "markdownDescription": "Advanced. Full path of the Python (3.11 or newer) used to create TrustCode's private engine environment. Empty: the first suitable Python on your PATH."
+        },
+        "trustcode.engine.registryLookups": {
+          "type": "boolean",
+          "default": false,
+          "scope": "application",
+          "markdownDescription": "Local analysis: look imported package names up on PyPI / npm to detect packages that do not exist. Sends package names only, never source code. Off: package existence is reported as not checked."
+        },
+        "trustcode.engine.runTests": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "markdownDescription": "Local analysis: run the unit tests you supply with a verification inside the Docker sandbox (`trustcode-sandbox` image, no network). Without Docker they are reported as not run. Your project's own test suite is never run."
+        },
         "trustcode.mode": {
           "type": "string",
           "enum": [
@@ -271,7 +333,7 @@
             "account"
           ],
           "default": "account",
-          "description": "account: sign in to a TrustCode server (default). local: single-user backend on this machine, no account (reads ~/.trustcode/local-secret).",
+          "description": "Only for server analysis (trustcode.analysis.location = server). account: sign in to a TrustCode server. local: single-user backend on this machine, no account (reads ~/.trustcode/local-secret).",
           "scope": "application"
         },
         "trustcode.requestTimeoutSeconds": {
@@ -494,7 +556,7 @@
           "type": "string",
           "default": "trustcode-scan",
           "scope": "application",
-          "markdownDescription": "Command or full path of the local security scanner. TrustCode never installs it for you: `pip install \"trustcode-worker[tools]\"`. Application-scoped so a workspace cannot point it at another program."
+          "markdownDescription": "Command or full path of the local security scanner. Default: the scanner of the engine TrustCode set up, else `trustcode-scan` on your PATH. Application-scoped so a workspace cannot point it at another program."
         },
         "trustcode.scanner.automatic": {
           "type": "boolean",
@@ -542,6 +604,12 @@
           "default": true,
           "scope": "application",
           "description": "Run a full local scan shortly after a trusted folder is opened, so findings and automatic rescans are available without clicking anything."
+        },
+        "trustcode.updates.check": {
+          "type": "boolean",
+          "default": true,
+          "scope": "application",
+          "description": "Check the project's public GitHub releases for a newer version, at most once a day. Sends no account or project data."
         }
       }
     },
@@ -589,8 +657,9 @@
     "compile": "tsc -p .",
     "watch": "tsc -w -p .",
     "test": "npm run compile && node --test out/test/*.test.js",
-    "package": "vsce package --no-dependencies",
-    "test:integration": "npm run compile && node out/test/integration/run.js"
+    "package": "npm run bundle-engine && vsce package --no-dependencies",
+    "test:integration": "npm run compile && node out/test/integration/run.js",
+    "bundle-engine": "node scripts/bundle-engine.js"
   },
   "devDependencies": {
     "@types/node": "20.14.10",
@@ -634,7 +703,7 @@
   "capabilities": {
     "untrustedWorkspaces": {
       "supported": true,
-      "description": "TrustCode never executes workspace code. In untrusted workspaces it does not run Git either (sessions fall back to file scanning), and its security-relevant settings are application-scoped."
+      "description": "TrustCode never executes workspace code. Its engine is installed outside the workspace and receives the code to check as data. In untrusted workspaces it does not run Git or the project scanner, and its security-relevant settings are application-scoped."
     },
     "virtualWorkspaces": true
   }

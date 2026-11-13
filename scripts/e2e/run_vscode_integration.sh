@@ -4,6 +4,8 @@
 #   2. session tracking scenarios in a Git workspace
 #   3. session tracking scenarios in a large workspace without Git
 #   4. the local project security scanner (mode: security)
+#   5. the same journeys on the local engine with no server (modes: engine, e-session-git, e-session-nogit)
+#   6. a real engine installation from PyPI into a private environment (mode: engine-install; downloads ~300 MB)
 # Needs: VSCODE_EXECUTABLE (path to the VS Code binary), the Python venv, and ~/.trustcode/local-secret
 # (created by starting the backend once in local mode). Usage: scripts/e2e/run_vscode_integration.sh [default|session-git|session-nogit ...]
 set -uo pipefail
@@ -55,9 +57,14 @@ for MODE in "${@:-default session-git session-nogit security}"; do for M in $MOD
   if [ "$M" = security ]; then make_workspace "$TMP/ws-sec" git; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-sec" TRUSTCODE_TEST_SCANNER="$ROOT/.venv/bin/trustcode-scan"; fi
   if [ "$M" = session-git ]; then make_workspace "$TMP/ws-git" git; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-git"; fi
   if [ "$M" = session-nogit ]; then make_workspace "$TMP/ws-plain" nogit; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-plain"; fi
+  unset TRUSTCODE_TEST_ENGINE
+  # local-engine modes: the same journeys with analysis on this machine and no reachable server
+  case "$M" in engine|e-session-git|e-session-nogit) export TRUSTCODE_TEST_ENGINE="$PY";; esac
+  if [ "$M" = e-session-git ]; then make_workspace "$TMP/ws-egit" git; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-egit"; fi
+  if [ "$M" = e-session-nogit ]; then make_workspace "$TMP/ws-eplain" nogit; export TRUSTCODE_TEST_WORKSPACE="$TMP/ws-eplain"; fi
   rm -rf "${TMPDIR:-/tmp}/trustcode-vscode-test-$M"
   TRUSTCODE_TEST_MODE="$M" TRUSTCODE_TEST_BACKEND=http://127.0.0.1:8765 node out/test/integration/run.js 2>&1 \
-    | grep -E "^\s+(ok|FAIL)|activation|large workspace|final run|Integration tests failed|integration test\(s\) failed"
+    | grep -E "^\s+(ok|FAIL|skip)|Error|rror:|engine:|activation|large workspace|final run|Integration tests failed|integration test\(s\) failed"
   [ "${PIPESTATUS[0]}" -eq 0 ] || STATUS=1
 done; done
 echo "exit=$STATUS"; echo "--- api log (errors)"; grep -E '"status": 5' "$TMP/api.log" | tail -5; echo "--- worker log"; tail -2 "$TMP/worker.log"

@@ -35,7 +35,7 @@ from real analysis tools, says exactly **what each check can and cannot tell you
   user, CPU/memory/process limits, timeouts and authenticated results.
 - **Adaptive explanations** — beginner / intermediate / advanced wording; the underlying evidence is identical at every level (enforced by tests).
 - **Human in control** — accept / modify / reject with a confidence rating. TrustCode never edits your files.
-- **Privacy by default** — explicit consent before any code is sent; code deleted right after analysis; LLM explanations off by default.
+- **Local by default** — from 1.0.0 all analysis runs on the developer's machine; code is not uploaded and no account is needed. Server analysis is optional and asks for consent first ([design](docs/LOCAL_ENGINE_ARCHITECTURE.md)).
 - **Research mode** — counterbalanced within-subjects experiment, frozen evidence snapshots, interaction logging and pseudonymous CSV export.
 
 ## Architecture
@@ -43,11 +43,11 @@ from real analysis tools, says exactly **what each check can and cannot tell you
 ```mermaid
 flowchart LR
   U[Developer] --> E[VS Code extension]
-  E -->|HTTPS + JWT| A[FastAPI backend]
+  E -->|stdin / stdout, on the same machine| L[Local engine]
+  L --> T[ruff · Semgrep · mypy · tree-sitter]
+  L --> S[[Docker sandbox]]
+  E -.->|optional: account, study, server analysis| A[FastAPI backend]
   A --> D[(PostgreSQL)]
-  W[Verification worker] --> D
-  W --> T[ruff · Semgrep · node --check · registry lookup]
-  W --> S[[Docker sandbox]]
 ```
 
 Details: [`docs/architecture/architecture.md`](docs/architecture/architecture.md) · API: [`docs/api/openapi.json`](docs/api/openapi.json) ·

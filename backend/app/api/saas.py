@@ -35,14 +35,49 @@ def usage_this_month(db: Session, user_id: str) -> int:
 
 
 def entitlements_for(db: Session, user: User) -> dict:
-    plan = plan_for(user)
+    """The single answer to "what may this account do right now". Decided here, from verified billing state."""
+    from ..billing.subscriptions import state_of, subscription_of
+    from ..config import get_settings
+    st = state_of(subscription_of(db, user))
+    plan = PLANS.get(st["plan_id"], PLANS["free"]) if st["paid"] else PLANS["free"]
     used = usage_this_month(db, user.id)
     limit = plan["limits"]["verifications_per_month"]
     nxt = (month_start() + timedelta(days=32)).replace(day=1)
-    return {"plan": {"id": plan["id"], "name": plan["name"]}, "status": "active", "limits": plan["limits"],
+    iso = lambda d: d.isoformat() if d else None  # noqa: E731
+    return {"plan": {"id": plan["id"], "name": plan["name"]}, "status": "active" if st["state"] == "free" else st["state"], "limits": plan["limits"],
             "features": plan["features"],
+            "subscription": {"state": st["state"], "paid": st["paid"], "reason": st["reason"], "current_period_end": iso(st.get("current_period_end")),
+                             "grace_until": iso(st.get("grace_until")), "cancel_at_period_end": bool(st.get("cancel_at_period_end")),
+                             "billing_live": bool(get_settings().billing_webhook_secret)},
+            "verified_at": now().isoformat(),
             "usage": {"verifications_this_month": used, "remaining": None if limit is None else max(limit - used, 0),
                       "resets_at": nxt.isoformat()}}
+
+
+@router.post("/billing/webhook", tags=["billing"], include_in_schema=False)
+async def billing_webhook(request: Request, db: Session = Depends(get_db)):
+    """Billing events. Only a request signed with the server-side secret can change a subscription; the body is
+    never trusted on its own, and nothing sent by a browser or the extension can mark an account as paid."""
+    from ..billing.subscriptions import apply_event, verify_signature
+    from ..config import get_settings
+    secret = get_settings().billing_webhook_secret
+    if not secret:
+        raise HTTPException(503, "billing is not configured")
+    body = await request.body()
+    if len(body) > 65536 or not verify_signature(secret, request.headers.get("x-trustcode-signature", ""), body):
+        audit(db, request, "billing_webhook_rejected", None)
+        db.commit()
+        raise HTTPException(401, "invalid signature")
+    try:
+        import json
+        event = json.loads(body)
+        assert isinstance(event, dict)
+    except Exception:
+        raise HTTPException(400, "invalid event")
+    outcome = apply_event(db, event)
+    audit(db, request, "billing_event", None, event_type=str(event.get("type"))[:40], outcome=outcome)
+    db.commit()
+    return {"received": True, "outcome": outcome}
 
 
 def enforce_quota(db: Session, user: User):
@@ -207,7 +242,7 @@ def admin_users(q: str | None = Query(None, max_length=254), limit: int = Query(
     total = _count(db, stmt)
     rows = list(db.scalars(stmt.order_by(User.created_at.desc(), User.id).offset(offset).limit(limit)))
     return {"total": total, "items": [{"id": u.id, "email": u.email, "role": u.role, "suspended": u.suspended,
-                                       "created_at": u.created_at, "plan": plan_for(u)["id"],
+                                       "created_at": u.created_at, "plan": plan_for(u, db)["id"],
                                        "verifications_this_month": usage_this_month(db, u.id)} for u in rows]}
 
 

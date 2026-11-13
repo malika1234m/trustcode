@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.0.0
+
+- **Everything runs on your computer.** Verify and Session now use a local engine, like the Security tab. Your
+  code is not uploaded, no account is needed, and there is no per-request file limit. The server remains
+  available as an option (`trustcode.analysis.location`).
+- **One-time engine setup, with your agreement**: a private Python environment in VS Code's storage. Needs
+  Python 3.11+. Commands: Set Up / Check / Remove Local Engine.
+- History, decisions and "wrong finding" feedback are kept on this computer and still adapt explanations.
+- Unit tests you supply run in the Docker sandbox on your machine when Docker is available.
+- **Account tab**: plan and renewal state as verified by the server, a privacy status computed from your
+  settings, and update checking with SHA-256 verified installation from GitHub Releases.
+- Not available with local analysis: AI-worded explanations and the monthly verification limit.
+
 ## 0.8.0
 
 - **Weakened controls are reported from the change itself**: removed authentication guards, skipped or deleted

@@ -30,6 +30,10 @@ const SEV: Record<string, vscode.DiagnosticSeverity> = {
 export interface Host {
   api: TrustCodeApi;
   ensureSignedIn(): Promise<boolean>;
+  /** Analysis runs on this machine: nothing is sent, so there is no consent step and no server limit. */
+  local(): boolean;
+  /** Makes sure the local engine can run; asks before installing, never when `interactive` is false. */
+  ensureEngine(interactive: boolean): Promise<boolean>;
   /** Asks for consent when the server is not yet trusted. `interactive: false` must never show a dialog. */
   consent(message: string, interactive: boolean): Promise<boolean>;
   backendLabel(): string;
@@ -740,7 +744,8 @@ export class SessionController implements vscode.Disposable {
     }
     // The server says how much it accepts per request (less when it analyses inside the request).
     const limits = { ...BATCH };
-    try {
+    const local = this.host.local();
+    if (!local) try {
       const health = await this.host.api.request('GET', '/health', undefined, { auth: false });
       const lf = Number(health?.limits?.session_max_files), lc = Number(health?.limits?.session_max_chars);
       if (Number.isFinite(lf) && lf >= 1) limits.maxFiles = Math.min(limits.maxFiles, lf);
@@ -751,13 +756,13 @@ export class SessionController implements vscode.Disposable {
     for (const p of plan.oversized) skipped.push({ path: p, reason: 'file plus its previous version exceed the request limit: not sent' });
     const totalChars = [...payload.values()].reduce((n, e) => n + (e.content?.length ?? 0) + (e.baseline?.length ?? 0), 0);
     const withBaseline = [...payload.values()].filter((e) => e.baseline !== undefined).length;
-    const ok = await this.host.consent(
+    const ok = local ? await this.host.ensureEngine(interactive) : await this.host.consent(
       `Send ${payload.size} changed file${payload.size === 1 ? '' : 's'} (${Math.round(totalChars / 1024)} KB`
       + `${withBaseline ? `, including the previous version of ${withBaseline}` : ''}`
       + `${attachText.size ? `, plus ${attachText.size} related unchanged file${attachText.size === 1 ? '' : 's'}` : ''}) to ${this.host.backendLabel()} for verification?`
       + ' File paths of the workspace are sent as names only. Files are analysed and then deleted from the server.'
       + (skipped.length ? ` ${skipped.length} file${skipped.length === 1 ? ' is' : 's are'} not sent (sensitive, binary or too large).` : ''), interactive);
-    if (!ok) { if (!interactive) this.announceReady('changes are ready, and sending them needs your confirmation'); return; }
+    if (!ok) { if (!interactive) this.announceReady(local ? 'changes are ready, and the local engine needs to be set up first' : 'changes are ready, and sending them needs your confirmation'); return; }
     if (!(await this.host.ensureSignedIn())) return;
 
     const listingChars = this.listing.reduce((n, p) => n + p.length, 0);

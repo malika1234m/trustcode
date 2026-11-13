@@ -12,9 +12,16 @@ dependency existence) and shows:
 There is deliberately **no overall "safe" score**. You decide: accept, modify or reject, and record how confident you are.
 TrustCode never edits your files.
 
+## Everything runs on your computer
+TrustCode analyses code locally. Your code is not uploaded and **no account is needed**. The first time you use
+it, TrustCode asks to set up its local engine: a private Python environment in VS Code's storage with the
+analysis tools (Ruff, Pyflakes, mypy, Bandit, Semgrep) downloaded from PyPI, about 300 MB. You need Python 3.11
+or newer. Nothing is installed into your project or your system Python. Until the engine is set up, nothing is
+checked, and TrustCode says so.
+
 ## Scan the whole project for security issues (local)
-1. Install the scanner once: `pip install "trustcode-worker[tools]"` (TrustCode never installs it for you).
-2. Open the **Security** tab and choose **Scan entire project** — no account needed, nothing is uploaded.
+1. Open the **Security** tab. If the engine is not set up yet, choose **Set up the local engine**.
+2. Choose **Scan entire project** — no account needed, nothing is uploaded.
 3. Findings appear in the tab, in the Problems panel and underlined at the exact code. Step through them with
    `Ctrl/Cmd+K Alt+N` / `Alt+P`.
 4. Use **Before commit**, **Before push** and **Before production** to apply your blocking policy, or install the
@@ -35,34 +42,37 @@ Setup**), "possibly finished" is an estimate based on files no longer changing. 
 multi-file changes; that is stated in every report. Details and limits: `docs/project/session_tracking_report.md`.
 
 ## Verify a selection or a file
-1. Click **Sign In with browser** in the TrustCode panel (or run **TrustCode: Sign In**). Log in or create an account on the
-   TrustCode website; your browser returns you to VS Code (choose **Open** if asked).
-2. Select AI-generated Python, JavaScript or TypeScript in the editor → right-click → **TrustCode: Verify Selected Code**
+1. Select AI-generated Python, JavaScript or TypeScript in the editor → right-click → **TrustCode: Verify Selected Code**
    (`Ctrl/Cmd+K Alt+V`), or verify the whole file with **TrustCode: Verify Current File** (`Ctrl/Cmd+K Alt+F`).
-3. Optionally describe the task and paste unit tests (`from solution import ...` / `require('./solution')`).
-4. Confirm the consent prompt (nothing is sent before you confirm).
-5. Read the result in the panel, or in the editor: hover a marked line for the evidence, use the lightbulb to open its
+2. Optionally describe the task and paste unit tests (`from solution import ...` / `require('./solution')`). Tests
+   run only inside the Docker sandbox; without Docker they are reported as not run.
+3. Read the result in the panel, or in the editor: hover a marked line for the evidence, use the lightbulb to open its
    explanation, and watch the dotted *not verified* markers on lines your tests never ran. After you edit, run the
    checks again (`Ctrl/Cmd+K Alt+R`) to see what is new and what is no longer reported.
 
-Which checks run depends on the server: a check that is unavailable is listed as **Not run** or **Check failed**, never as passed.
+A check whose tool is unavailable is listed as **Not run** or **Check failed**, never as passed.
+**TrustCode: Check Local Engine** lists which tools are available.
 
 ## Settings
 | Setting | Default | Meaning |
 |---|---|---|
-| `trustcode.backendUrl` | `https://trustcode-api.vercel.app` | Where code is sent after you confirm |
-| `trustcode.mode` | `account` | `account` (sign in) or `local` (own backend on this machine, reads `~/.trustcode/local-secret`) |
-| `trustcode.requestTimeoutSeconds` | 30 | Per-request timeout |
-| `trustcode.useLlmExplanations` | false | Ask for LLM-worded explanations (also needs the server and your profile to allow it) |
+| `trustcode.analysis.location` | `local` | `local`: Verify and Session run on this computer. `server`: they send the code you choose to the TrustCode server after you confirm (needs an account) |
+| `trustcode.engine.registryLookups` | false | Look imported package names up on PyPI / npm (names only) to detect packages that do not exist |
+| `trustcode.engine.runTests` | true | Run the unit tests you supply inside the Docker sandbox |
+| `trustcode.engine.pythonPath` | empty | Advanced: an interpreter that already has the engine installed |
+| `trustcode.backendUrl` | `https://trustcode-api.vercel.app` | The TrustCode server, for the optional account and for server analysis |
+| `trustcode.useLlmExplanations` | false | Server analysis only: ask for LLM-worded explanations |
 
-Commands: Verify Selected Code · Verify Current File · Run the Checks Again · Clear Findings from Editor · Sign In/Out · Set Experience Level · Privacy & History Settings · Join Research Study · Ask Before Sending Code Again.
+Commands: Verify Selected Code · Verify Current File · Run the Checks Again · Clear Findings from Editor · Set Up / Check / Remove Local Engine · Sign In/Out · Set Experience Level · Privacy & History Settings · Join Research Study.
 
 ## Privacy
-- **Nothing is sent until you confirm** in a dialog that shows how many lines will be sent and where.
-- The hosted server runs static checks only (it never executes your code). To keep code entirely on your machine,
-  run your own backend and set `trustcode.mode` to `local` (see the GitHub repository).
-Code is sent only after explicit confirmation, is deleted on the server as soon as analysis ends, and results expire
-(24 h by default, 30 days if you enable history). Research-study data uses a pseudonymous participant code.
+- With local analysis (the default) no code, file name or finding is sent anywhere. History, decisions and ratings
+  stay in VS Code's storage on this computer; **Delete my TrustCode data** removes them.
+- The only downloads are the one-time engine setup from PyPI and a daily check of the public release list
+  (`trustcode.updates.check`). There is no telemetry.
+- If you select server analysis, nothing is sent until you confirm in a dialog that shows how much is sent and where.
+  The code is deleted on the server when analysis ends.
+- An account is optional: it is used for server analysis, a paid plan and the research study.
 
 ## Feedback
 Issues and feature requests: https://github.com/malika1234m/trustcode/issues

@@ -10,7 +10,11 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export async function runSessionScenarios(hook: any, backend: string, gitMode: boolean): Promise<R[]> {
   const results: R[] = [];
+  /** Set: Verify and Session run on the local engine (this interpreter) and no server exists. */
+  const enginePy = process.env.TRUSTCODE_TEST_ENGINE;
+  const SERVER_ONLY = /backend unreachable|never sends to a server that was not approved/;
   const t = async (name: string, fn: () => Promise<void>) => {
+    if (enginePy && SERVER_ONLY.test(name)) { console.log(`  skip ${name} (server analysis only)`); return; }
     const t0 = Date.now();
     try { await fn(); results.push({ name, ok: true, ms: Date.now() - t0 }); console.log(`  ok   ${name} (${Date.now() - t0} ms)`); }
     catch (e: any) { results.push({ name, ok: false, ms: Date.now() - t0, err: e?.message }); console.log(`  FAIL ${name}: ${e?.message} @ ${String(e?.stack ?? '').split('\n').slice(1, 5).map((l: string) => l.trim()).join(' | ')}`); }
@@ -35,7 +39,8 @@ export async function runSessionScenarios(hook: any, backend: string, gitMode: b
 
   const cfg = () => vscode.workspace.getConfiguration('trustcode');
   const set = (k: string, v: unknown) => cfg().update(k, v, vscode.ConfigurationTarget.Global);
-  await set('backendUrl', backend); await set('mode', 'local');
+  await set('backendUrl', backend); await set('mode', enginePy ? 'account' : 'local');
+  await set('analysis.location', enginePy ? 'local' : 'server'); await set('engine.pythonPath', enginePy || undefined);
   await set('session.inactivitySeconds', 0); await set('autoVerify.onAgentFinished', false); await set('session.notifications', 'none');
   await set('verification.depth', 'standard');
   await ctx.globalState.update('trustcode.consent', { trustedBackends: [backend.replace(/\/$/, ''), 'http://127.0.0.1:9'] });

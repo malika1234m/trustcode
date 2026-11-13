@@ -39,6 +39,10 @@ PLANS: dict[str, dict] = {
 }
 
 
-def plan_for(user) -> dict:
-    """Billing is not live, so every account is on Free. Later: look up the active, webhook-verified subscription."""
-    return PLANS["free"]
+def plan_for(user, db=None) -> dict:
+    """The plan an account is entitled to right now, from its webhook-verified subscription (Free without one)."""
+    if db is None:
+        return PLANS["free"]
+    from .subscriptions import state_of, subscription_of
+    st = state_of(subscription_of(db, user))
+    return PLANS.get(st["plan_id"], PLANS["free"]) if st["paid"] else PLANS["free"]

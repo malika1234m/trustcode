@@ -141,8 +141,8 @@ export function securityPage(m: SecurityModel): string {
   if (m.availability === 'missing') {
     return `${controls}<section class="card alert" role="alert"><div class="alert-head"><span class="alert-icon" aria-hidden="true">!</span><h3>Scanner not found</h3></div>
       <p>The local scanner <code>${esc(m.scannerCommand)}</code> could not be started, so <strong>nothing was scanned</strong>.</p>
-      <p class="muted small">Install it yourself (TrustCode never installs software for you): <code>pip install "trustcode-worker[tools]"</code> from the repository's <code>verification-worker</code> folder, or set <code>trustcode.scanner.path</code> to the full path of <code>trustcode-scan</code>.</p>
-      <div class="row"><button data-action="secSettings">Scanner settings…</button><button data-action="secCheck">Check again</button></div></section>`;
+      <p class="muted small">The scanner is part of TrustCode's local engine. Setting the engine up (after you agree) creates a private Python environment in VS Code's storage and downloads the analysis tools from PyPI. You can also install it yourself and set <code>trustcode.scanner.path</code> to the full path of <code>trustcode-scan</code>.</p>
+      <div class="row"><button class="primary" data-action="engineSetup">Set up the local engine</button><button data-action="secSettings">Scanner settings…</button><button data-action="secCheck">Check again</button></div></section>`;
   }
   const r = m.report;
   const progress = busy ? `<section class="card progress" aria-busy="true"><div class="spinner" aria-hidden="true"></div><div><strong>Scanning — ${esc(MODE[m.scanning!.mode] ?? m.scanning!.mode)}…</strong>

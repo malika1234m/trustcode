@@ -50,7 +50,8 @@ def health(db: Session = Depends(get_db)):
             "test_execution": ("disabled" if not s.run_tests else
                                ("sandbox-ready" if docker_available()[0] else "sandbox-unavailable") if s.worker_mode == "inline"
                                else "remote-worker"),
-            "llm_configured": bool(s.anthropic_api_key), "local_mode": s.local_mode, "limits": session_limits()}
+            "llm_configured": bool(s.anthropic_api_key), "local_mode": s.local_mode, "limits": session_limits(),
+            "api_version": 1, "min_extension_version": s.min_extension_version}
 
 
 # ------------------------------------------------------------------ auth
@@ -211,7 +212,7 @@ def create_session_verification(body: SessionVerifyIn, request: Request, user: U
 def get_session_report(job_id: str, level: str | None = Query(None, pattern="^(beginner|intermediate|advanced)$"),
                        user: User = Depends(current_user), db: Session = Depends(get_db)):
     """The multi-file report with an explanation attached to every finding. Evidence is never altered."""
-    from ..explanations.templates import explain_finding
+    from trustcode_worker.present.explain import explain_session
     j = _own_job(db, user, job_id)
     if j.status != "done" or not j.result:
         raise HTTPException(409, f"verification is {j.status}; no result to explain")
@@ -223,21 +224,7 @@ def get_session_report(job_id: str, level: str | None = Query(None, pattern="^(b
     if p.adaptive_suggestions:
         learned = rule_history([tuple(r) for r in db.execute(
             select(Feedback.rule, Feedback.rating).where(Feedback.user_id == user.id, Feedback.rule.is_not(None)))])
-    report = {**j.result, "level": lvl, "job_id": j.id}
-    files = []
-    for f in j.result["files"]:
-        items = []
-        for x in f["findings"]:
-            e = explain_finding(x, lvl)
-            hist = learned.get(f"{x['tool']}:{x.get('rule_id')}")
-            if hist:
-                e["your_feedback"] = {"marked_wrong": hist["incorrect"], "rule": f"{x['tool']}:{x.get('rule_id')}",
-                                      "note": f"You marked findings from this rule as wrong {hist['incorrect']} times. It is still reported; "
-                                              "decide whether this one is different."}
-            items.append({**x, "explained": e})
-        files.append({**f, "findings": items})
-    report["files"] = files
-    return report
+    return {**explain_session(j.result, lvl, learned), "job_id": j.id}
 
 
 @router.get("/verifications", response_model=JobPage, tags=["verification"])

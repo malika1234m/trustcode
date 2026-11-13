@@ -165,6 +165,7 @@ export function shellHtml(webview: vscode.Webview): string {
   .outdated { border-left: 3px solid var(--vscode-editorWarning-foreground); }
   .finding.sec { padding: 7px 10px; } .sec-reason { margin: 4px 0 2px; } pre.sec-ev { font-size: .9em; margin: 2px 0 4px; max-height: 5.5em; overflow: hidden; }
   summary.sev-group { cursor: pointer; margin: 8px 0 6px; } .tabs { overflow-x: auto; } .tab { padding-left: 8px; padding-right: 8px; white-space: nowrap; }
+  pre.notes { max-height: 14em; overflow: auto; font-size: .9em; }
   .sev-group { font-size: .85em; margin: 10px 0 6px; font-weight: 600; } .sev-group:first-of-type { margin-top: 0; }
   .learned { border-left: 2px solid var(--vscode-editorInfo-foreground); padding: 2px 8px; margin: 6px 0; color: var(--vscode-descriptionForeground); }
   .cmp-counts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; } .compare ul { margin: 4px 0; } .compare details { margin: 4px 0; }

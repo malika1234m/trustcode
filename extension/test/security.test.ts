@@ -65,7 +65,7 @@ test('incomplete, failed, missing-scanner and empty states are never shown as a 
   assert.match(inc, /<details class="card" open><summary class="card-title">Checks/);
   const missing = securityPage(model({ availability: 'missing', report: undefined }));
   assert.match(missing, /Scanner not found[\s\S]*nothing was scanned/);
-  assert.match(missing, /TrustCode never installs software for you/);
+  assert.match(missing, /after you agree/);
   assert.match(missing, /data-action="secScan" data-key="full" disabled/);
   assert.match(securityPage(model({ report: undefined, error: 'no readable report <b>' })), /no readable report &lt;b&gt;/);
   assert.match(securityPage(model({ availability: 'untrusted' })), /Workspace not trusted/);

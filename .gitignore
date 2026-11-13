@@ -46,3 +46,4 @@ skills-lock.json
 
 # TrustCode agent signal files
 .trustcode/
+extension/engine/

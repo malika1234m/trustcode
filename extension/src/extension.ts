@@ -17,6 +17,9 @@ import { createHash } from 'crypto';
 import { sessionPage } from './session/render';
 import { EngineManager } from './engine/manager';
 import { LocalAnalysis, LocalState, RoutedApi } from './engine/local';
+import { LicenceManager } from './licence/manager';
+import { LICENCE_KEYS } from './licence/keys';
+import type { LicenceView } from './licence/state';
 import { account, accountDashboard, engineNotice, errorCard, history, page, progress as progressCard, summaryTiles, Tab, TABS, verifyForm, waitingForBrowser, welcome } from './ui';
 
 // Secrets are bound to the backend origin, so tokens are never sent to a different server.
@@ -177,6 +180,8 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   security!: SecurityController;
   securityItem?: vscode.StatusBarItem;
   sessionItem?: vscode.StatusBarItem;
+  /** Offline licence: the plan in force on this device, verified locally (src/licence). */
+  licence!: LicenceManager;
 
   private lastProfile?: any;
   update?: UpdateInfo;
@@ -327,7 +332,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
     const cfg = vscode.workspace.getConfiguration('trustcode');
     const up: UpdateInfo = this.update ?? { installed: String(this.ctx.extension.packageJSON.version), available: false };
     this.render(account({ backend: backendUrl(), mode: this.mode(), signedIn: this.hasAccount, profile, local: localEngine() }) + accountDashboard({
-      entitlements: ent.data, verifiedAt: ent.fetchedAt, offline: ent.offline, email: me?.email ?? undefined,
+      entitlements: ent.data, verifiedAt: ent.fetchedAt, offline: ent.offline, email: me?.email ?? undefined, licence: this.hasAccount ? this.licence?.view : undefined,
       update: { ...up, canInstall: !!(up.vsixUrl && up.sha256Url), tooOld: tooOldForServer(up.installed, health?.min_extension_version) },
       privacy: { engine: localEngine() ? this.engine.info() : undefined, localHistory: this.local.counts(), registryLookups: cfg.get('engine.registryLookups', false),
         scanner: this.security.model().availability, signedIn: this.hasAccount, backend: backendUrl(), localBackend: isLoopback(backendUrl()),
@@ -438,6 +443,8 @@ class TrustCodeView implements vscode.WebviewViewProvider {
         await vscode.workspace.getConfiguration('trustcode').update('analysis.location', 'local', vscode.ConfigurationTarget.Global);
         return this.showTab(this.activeTab);
       case 'checkUpdates': return void (await this.checkForUpdates(true));
+      case 'licenceSync': await this.licence.sync(true); return this.showTab('account');
+      case 'manageDevices': return void vscode.env.openExternal(vscode.Uri.parse(`${SITE_URL}/dashboard/settings#devices`));
       case 'installUpdate': return this.installUpdate();
       case 'openRelease': return void vscode.commands.executeCommand('trustcode.openRelease');
       case 'trustCenter': return void vscode.commands.executeCommand('trustcode.openTrustCenter');
@@ -811,6 +818,9 @@ function secretStore(ctx: vscode.ExtensionContext, key: () => string) {
   };
 }
 
+const SITE_URL = 'https://trustcode-app.vercel.app';
+const LICENCE_NOTICE_KEY = 'trustcode.licenceNotice';
+
 export function activate(ctx: vscode.ExtensionContext) {
   const started = Date.now();
   const cfg = () => vscode.workspace.getConfiguration('trustcode');
@@ -834,6 +844,34 @@ export function activate(ctx: vscode.ExtensionContext) {
   const view = new TrustCodeView(ctx, api, participantApi);
   view.engine = engine;
   view.local = localAnalysis;
+  // ---- offline licence: verified on this device at startup (no network), refreshed in the background when due
+  const licenceLog = vscode.window.createOutputChannel('TrustCode Licence');
+  const licenceItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 99);
+  licenceItem.command = { title: 'Account', command: 'trustcode.showAccount' };
+  const licence = new LicenceManager({
+    secrets: ctx.secrets, fetch: (globalThis as any).fetch, backend: backendUrl, keys: LICENCE_KEYS,
+    authed: (method, p, body) => api.request(method, p, body),
+    log: (msg) => licenceLog.appendLine(`[${new Date().toISOString()}] ${msg}`),
+    deviceName: `${vscode.env.appName} on ${os.hostname().slice(0, 40)}`, platform: `${process.platform}-${process.arch}`,
+    onChange: (v) => licenceChanged(v),
+  });
+  view.licence = licence;
+  // Only states that need the user's attention show anything, and each one is announced at most once a day.
+  function licenceChanged(v: LicenceView) {
+    const attention = v.status === 'expiring_soon' || v.status === 'connection_required' || v.status === 'subscription_expired' || v.status === 'revoked';
+    const paidBefore = !!v.licensedPlan && v.licensedPlan.id !== 'free';
+    if (!attention || (!paidBefore && v.status !== 'revoked' && !v.clockProblem)) { licenceItem.hide(); return; }
+    licenceItem.text = v.status === 'expiring_soon' ? '$(clock) TrustCode plan' : '$(warning) TrustCode plan';
+    licenceItem.tooltip = v.message;
+    licenceItem.show();
+    const seen = ctx.globalState.get<{ status: string; at: number }>(LICENCE_NOTICE_KEY);
+    if (seen?.status === v.status && Date.now() - seen.at < 24 * 3600 * 1000) return;
+    void ctx.globalState.update(LICENCE_NOTICE_KEY, { status: v.status, at: Date.now() });
+    if (process.env.TRUSTCODE_TEST !== '1') void vscode.window.showWarningMessage(`TrustCode: ${v.message}`);
+  }
+  ctx.subscriptions.push(licenceLog, licenceItem, { dispose: () => licence.dispose() },
+    vscode.window.onDidChangeWindowState((w) => { if (w.focused) licence.nudge(); }));
+  void licence.load().then(() => licence.startTimers()).catch((e) => licenceLog.appendLine(`Licence could not be loaded: ${String(e?.message ?? e)}`));
   ctx.subscriptions.push(engineLog, engine.onDidChange(() => { void view.showTab(view.activeTab).catch(() => undefined); }));
   const applyDisplay = () => setShowExplanations(cfg().get<boolean>('showExplanations', false));
   applyDisplay();
@@ -963,6 +1001,15 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
         { code: r.code, code_verifier: r.pending.verifier, redirect_uri: r.pending.redirectUri }, { auth: false });
       await ctx.secrets.store(TOKEN_KEY(), JSON.stringify({ access: t.access_token, refresh: t.refresh_token }));
       vscode.window.showInformationMessage('TrustCode: signed in.');
+      // register this device and store a signed licence, so the plan also holds while offline
+      await licence.activate().catch((e) => {
+        licenceLog.appendLine(`Activation: ${describeError(e)}`);
+        if (e instanceof ApiError && e.code === 'device_limit_reached') {
+          void vscode.window.showWarningMessage(`TrustCode: ${e.message}`, 'Manage devices').then((c) => {
+            if (c) void vscode.env.openExternal(vscode.Uri.parse(`${SITE_URL}/dashboard/settings#devices`));
+          });
+        }
+      });
       await view.showForm();
     },
   };
@@ -1110,12 +1157,16 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
       view.sessionItem = item;
       return item;
     })(),
-    vscode.workspace.onDidChangeConfiguration((e) => { if (e.affectsConfiguration('trustcode')) { applyDisplay(); view.refreshSession(); view.refreshSecurity(); } }),
+    vscode.workspace.onDidChangeConfiguration((e) => {
+      if (e.affectsConfiguration('trustcode')) { applyDisplay(); view.refreshSession(); view.refreshSecurity(); }
+      if (e.affectsConfiguration('trustcode.backendUrl')) void licence.load();   // licences belong to one server
+    }),
     vscode.commands.registerCommand('trustcode.signIn', (intent?: unknown) => wrap(async () => {
       await browserAuth.begin(intent === 'create' ? 'register' : 'login');
     })()),
     vscode.window.registerUriHandler({ handleUri: (uri: vscode.Uri) => browserAuth.handleUri(uri).catch((e) => view.error(e)) }),
     vscode.commands.registerCommand('trustcode.signOut', wrap(async () => {
+      await licence.release();   // frees this device's slot; the licence is removed from this computer
       await ctx.secrets.delete(TOKEN_KEY());
       view.jobId = undefined;
       view.cache.clear();  // results belong to the signed-in account
@@ -1174,11 +1225,20 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
         { modal: true }, 'Delete everything');
       if (ok !== 'Delete everything' || !(await view.ensureAccount())) return;
       await api.request('DELETE', '/me/data');
+      await licence.release();   // the server already removed the device; this clears the licence on this computer
       await ctx.secrets.delete(TOKEN_KEY());
       view.clearMarks();
       view.cache.clear();
       view.jobId = undefined;
       vscode.window.showInformationMessage('TrustCode: your account and data were deleted.');
+    })),
+    vscode.commands.registerCommand('trustcode.showAccount', wrap(async () => {
+      await vscode.commands.executeCommand('trustcode.panel.focus');
+      await view.showTab('account');
+    })),
+    vscode.commands.registerCommand('trustcode.checkLicence', wrap(async () => {
+      await licence.sync(true);
+      vscode.window.showInformationMessage(`TrustCode: ${licence.view.message}`);
     })),
     vscode.commands.registerCommand('trustcode.setupEngine', wrap(async () => {
       if (engine.python()) { vscode.window.showInformationMessage('TrustCode: the local engine is already set up.'); return; }

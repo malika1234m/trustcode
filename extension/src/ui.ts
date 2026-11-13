@@ -1,4 +1,5 @@
 // Pure UI renderers for the TrustCode panel (no vscode import -> unit-testable). Every dynamic value is escaped.
+import type { LicenceView } from './licence/state';
 import { esc, STATUS_LABEL } from './render';
 
 export type Tab = 'security' | 'verify' | 'session' | 'history' | 'account';
@@ -229,7 +230,7 @@ export function privacyStatus(p: PrivacyInputs, now = Date.now()): Array<{ label
 }
 
 export interface DashboardData {
-  entitlements?: any; verifiedAt?: number; offline?: boolean; stale?: boolean; email?: string;
+  entitlements?: any; verifiedAt?: number; offline?: boolean; stale?: boolean; email?: string; licence?: LicenceView;
   update: { installed: string; latest?: string; available: boolean; notes?: string; checkedAt?: number; error?: string; canInstall?: boolean; tooOld?: boolean };
   privacy: PrivacyInputs;
 }
@@ -238,6 +239,27 @@ const STATE_LABEL: Record<string, string> = { free: 'Free plan', active: 'Active
   cancelled: 'Cancelled (active until the period ends)', expired: 'Expired', refunded: 'Refunded', disputed: 'Payment disputed' };
 
 /** Account, usage, updates and privacy. Every value comes from the server response or the running extension. */
+const LICENCE_LABEL: Record<LicenceView['status'], [string, string]> = {
+  free: ['Free plan', 'st-notrun'], active: ['Active', 'st-notrun'], offline: ['Offline · checked on this computer', 'st-notrun'],
+  expiring_soon: ['Expiring soon', 'st-review'], subscription_expired: ['Subscription ended', 'st-review'],
+  revoked: ['Device deactivated', 'st-issue'], connection_required: ['Connection required', 'st-review'],
+};
+const fmtMs = (ms?: number | null) => (ms ? fmtDate(new Date(ms).toISOString()) : '—');
+
+/** The plan in force on this computer, from the signed licence verified locally. */
+export function licenceCard(l: LicenceView): string {
+  const [label, cls] = LICENCE_LABEL[l.status];
+  const licensed = l.licensedPlan && l.licensedPlan.id !== l.plan.id ? `<dt>Your plan</dt><dd>${esc(l.licensedPlan.name)} (paused)</dd>` : '';
+  const showOffline = l.offlineUntil && !['free', 'revoked', 'subscription_expired'].includes(l.status);
+  return `<section class="card" aria-labelledby="h-lic"><h3 id="h-lic" class="section-label">This computer</h3>
+    <dl class="kv"><dt>Status</dt><dd><span class="chip ${cls}">${esc(label)}</span></dd><dt>Plan in use</dt><dd>${esc(l.plan.name)}</dd>${licensed}
+      ${l.validatedAt ? `<dt>Last checked online</dt><dd>${esc(fmtMs(l.validatedAt))}</dd>` : ''}
+      ${showOffline ? `<dt>Works offline until</dt><dd>${esc(fmtMs(l.offlineUntil))}</dd>` : ''}
+      ${l.paidUntil ? `<dt>Paid until</dt><dd>${esc(fmtMs(l.paidUntil))}</dd>` : ''}</dl>
+    <p class="${cls === 'st-notrun' ? 'muted' : 'hint'} small" role="status">${esc(l.message)}</p>
+    <div class="row"><button data-action="licenceSync">Check now</button><button data-action="manageDevices">Manage devices</button></div></section>`;
+}
+
 export function accountDashboard(d: DashboardData, now = Date.now()): string {
   const e = d.entitlements;
   const sub = e?.subscription ?? {};
@@ -264,7 +286,7 @@ export function accountDashboard(d: DashboardData, now = Date.now()): string {
     <div class="row"><button data-action="checkUpdates">Check now</button>${u.available ? `${u.canInstall ? '<button class="primary" data-action="installUpdate">Download, verify and install</button>' : ''}<button data-action="openRelease">Open release page</button>` : ''}</div>
     <p class="muted small">Updates come from the project's GitHub releases. A download is installed only if its SHA-256 checksum matches the one published with the release, and never if it is older than the installed version.</p></section>`;
   const rows = privacyStatus(d.privacy, now).map((r) => `<li><details><summary><span class="chip ${r.on ? 'st-review' : 'st-notrun'}">${r.on ? '↗' : '●'}</span> <strong>${esc(r.label)}</strong>: ${esc(r.value)}</summary><p class="muted small">${esc(r.detail)}</p></details></li>`).join('');
-  return `${plan}${updates}<section class="card" aria-labelledby="h-priv"><h3 id="h-priv" class="section-label">Privacy status</h3>
+  return `${plan}${d.licence ? licenceCard(d.licence) : ''}${updates}<section class="card" aria-labelledby="h-priv"><h3 id="h-priv" class="section-label">Privacy status</h3>
     <ul class="plain">${rows}</ul><div class="row"><button data-action="trustCenter">Trust Center</button><button data-action="openSettings">Settings</button></div></section>`;
 }
 

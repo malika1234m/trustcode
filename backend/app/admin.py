@@ -9,6 +9,7 @@ Promoting a self-registered account is risky because email ownership is not veri
 could register the address first), so grant-researcher shows the account's creation time and
 login history and requires typing the email again on an interactive terminal.
     python -m app.admin purge-expired
+    python -m app.admin licence-keygen          (new Ed25519 licence signing key: seed for the server, public key for the extension)
 """
 import secrets
 import sys
@@ -41,6 +42,14 @@ def main(argv: list[str]) -> int:
     if not argv:
         print(__doc__)
         return 2
+    if argv[0] == "licence-keygen":   # needs no database
+        from .licensing.signing import generate_seed
+        seed, pub = generate_seed()
+        print("TRUSTCODE_LICENCE_SIGNING_KEY (server secret - store it in the hosting provider's secret settings only):")
+        print(seed)
+        print("Public key (add to extension/src/licence/keys.ts under the same key id as TRUSTCODE_LICENCE_KEY_ID):")
+        print(pub)
+        return 0
     Base.metadata.create_all(engine) if engine.dialect.name == "sqlite" else None
     db = SessionLocal()
     try:

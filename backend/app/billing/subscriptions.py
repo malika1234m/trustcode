@@ -127,3 +127,17 @@ def apply_event(db: Session, event: dict) -> str:
         sub.status = "disputed"
     db.commit()
     return "applied"
+
+
+def paid_until(sub: Subscription | None, at: datetime | None = None) -> datetime | None:
+    """The latest moment the current paid entitlement can last without any further billing event, or None when
+    nothing is paid. Offline licences never extend past this, so a lapsed subscription ends offline too."""
+    st = state_of(sub, at)
+    if sub is None or not st["paid"]:
+        return None
+    end, grace = _aware(sub.current_period_end), _aware(sub.grace_until)
+    if st["state"] == "payment_failed":
+        return grace
+    if st["state"] == "cancelled":
+        return end
+    return end + RENEWAL_GRACE if end else None

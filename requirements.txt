@@ -4,6 +4,7 @@ sqlalchemy>=2.0
 pydantic>=2.7
 pydantic-settings>=2.3
 pyjwt>=2.8
+cryptography>=42          # Ed25519 licence signing
 psycopg2-binary>=2.9
 anthropic>=0.40
 ruff==0.6.9

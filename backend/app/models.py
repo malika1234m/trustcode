@@ -3,7 +3,7 @@ analytics and keyed only by pseudonymous participant codes (no user link)."""
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import JSON, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import JSON, BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from .db import Base
@@ -127,6 +127,62 @@ class BillingEvent(Base):
     user_id: Mapped[str | None] = mapped_column(String(32))
     payload_sha256: Mapped[str] = mapped_column(String(64))
     received_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+
+
+class LicenceDevice(Base):
+    """A device (one VS Code installation) activated for an account. `device_id` is a random install identifier
+    created by the extension, not a hardware fingerprint; `public_key` is the device's own Ed25519 key, and every
+    licence refresh must be signed with the matching private key, which never leaves the device's keychain."""
+    __tablename__ = "licence_devices"
+    __table_args__ = (UniqueConstraint("user_id", "device_id"),)
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    device_id: Mapped[str] = mapped_column(String(64))
+    public_key: Mapped[str] = mapped_column(String(64))
+    name: Mapped[str] = mapped_column(String(80), default="VS Code")
+    platform: Mapped[str | None] = mapped_column(String(40))
+    status: Mapped[str] = mapped_column(String(12), default="active", index=True)   # active | deactivated | revoked
+    activated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    last_validated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_request_counter: Mapped[int] = mapped_column(BigInteger, default=0, server_default="0")  # replay protection
+    deactivated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class Licence(Base):
+    """Every signed licence issued. Only metadata is kept; the signed token itself is not stored."""
+    __tablename__ = "licences"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
+    device_row_id: Mapped[str] = mapped_column(ForeignKey("licence_devices.id", ondelete="CASCADE"), index=True)
+    plan_id: Mapped[str] = mapped_column(String(20))
+    key_id: Mapped[str] = mapped_column(String(20))
+    issued_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now)
+    offline_until: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    paid_until: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_reason: Mapped[str | None] = mapped_column(String(40))
+
+
+class LicencePolicy(Base):
+    """Per-account licence policy set by an administrator (e.g. an organisation's offline period). Empty = plan default."""
+    __tablename__ = "licence_policies"
+    user_id: Mapped[str] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    offline_grace_days: Mapped[int | None] = mapped_column(Integer)
+    max_devices: Mapped[int | None] = mapped_column(Integer)
+    updated_by: Mapped[str | None] = mapped_column(String(32))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, onupdate=now)
+
+
+class LicenceEvent(Base):
+    """Licence validation history: activations, refreshes, refusals and rejected requests. No IP addresses."""
+    __tablename__ = "licence_events"
+    id: Mapped[str] = mapped_column(String(32), primary_key=True, default=_id)
+    user_id: Mapped[str | None] = mapped_column(String(32), index=True)
+    device_row_id: Mapped[str | None] = mapped_column(String(32), index=True)
+    licence_id: Mapped[str | None] = mapped_column(String(32))
+    event: Mapped[str] = mapped_column(String(30), index=True)
+    detail: Mapped[str | None] = mapped_column(String(120))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=now, index=True)
 
 
 class SupportTicket(Base):

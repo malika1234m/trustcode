@@ -309,6 +309,9 @@ def feedback(body: FeedbackIn, user: User = Depends(current_user), db: Session =
 def delete_my_data(request: Request, user: User = Depends(current_user), db: Session = Depends(get_db)):
     """Right to erasure: removes the account and all product data (cascade)."""
     audit(db, request, "account_deleted", None)
+    from sqlalchemy import delete as sql_delete
+    from ..models import LicenceEvent
+    db.execute(sql_delete(LicenceEvent).where(LicenceEvent.user_id == user.id))   # not linked by a foreign key
     db.delete(user)
     db.commit()
     return Response(status_code=204)

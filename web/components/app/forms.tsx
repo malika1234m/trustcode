@@ -1,6 +1,6 @@
 'use client';
 import { useActionState } from 'react';
-import { updateProfile, deleteAccount, replyTicket, type Msg } from '@/app/actions/account';
+import { updateProfile, deleteAccount, replyTicket, adminLicencePolicy, type Msg } from '@/app/actions/account';
 
 function Note({ s }: { s: Msg }) {
   if (s.error) return <p role="alert" className="mt-3 text-sm text-err">{s.error}</p>;
@@ -61,6 +61,25 @@ export function ReplyForm({ id, closed }: { id: string; closed: boolean }) {
       <label className="label mt-0" htmlFor="body">Reply</label>
       <textarea id="body" name="body" rows={4} maxLength={5000} required className="input" />
       <button disabled={pending} className="btn btn-primary mt-4">{pending ? 'Sending…' : 'Send reply'}</button>
+      <Note s={s} />
+    </form>
+  );
+}
+
+export function LicencePolicyForm({ user, grace, devices }: { user: string; grace: number | null; devices: number | null }) {
+  const [s, action, pending] = useActionState<Msg, FormData>(adminLicencePolicy, {});
+  return (
+    <form action={action} className="card space-y-4 p-6" aria-labelledby="policy-title">
+      <h2 id="policy-title" className="text-lg font-semibold">Licence policy for this account</h2>
+      <input type="hidden" name="user" value={user} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className="text-sm">Days a device may stay offline
+          <input name="offline_grace_days" type="number" min={1} max={365} defaultValue={grace ?? ''} placeholder="Plan default" className="input" /></label>
+        <label className="text-sm">Maximum devices
+          <input name="max_devices" type="number" min={1} max={50} defaultValue={devices ?? ''} placeholder="Plan default" className="input" /></label>
+      </div>
+      <p className="text-xs text-dim">Leave a field empty to use the plan default. Changes apply when each device next refreshes its licence.</p>
+      <button disabled={pending} className="btn btn-primary">{pending ? 'Saving…' : 'Save policy'}</button>
       <Note s={s} />
     </form>
   );

@@ -64,6 +64,14 @@
         "title": "TrustCode: Sign Out"
       },
       {
+        "command": "trustcode.showAccount",
+        "title": "TrustCode: Account and Plan"
+      },
+      {
+        "command": "trustcode.checkLicence",
+        "title": "TrustCode: Check My Plan Now"
+      },
+      {
         "command": "trustcode.setExperienceLevel",
         "title": "TrustCode: Set Experience Level"
       },

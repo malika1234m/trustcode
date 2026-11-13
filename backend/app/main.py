@@ -14,6 +14,7 @@ from fastapi.responses import JSONResponse, RedirectResponse
 
 from .api.routes import router
 from .api.saas import router as saas_router
+from .api.licence import router as licence_router
 from .api.web_auth import router as web_auth_router
 from .config import get_settings
 from .db import Base, engine
@@ -74,6 +75,7 @@ def create_app() -> FastAPI:
     app.include_router(router)
     app.include_router(web_auth_router)
     app.include_router(saas_router)
+    app.include_router(licence_router)
 
     @app.get("/", include_in_schema=False)
     def root():

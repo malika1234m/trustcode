@@ -33,6 +33,12 @@ class Settings(BaseSettings):
     trusted_proxies: str = ""                      # mirrors uvicorn --forwarded-allow-ips; validated in production
     local_secret_file: str = "~/.trustcode/local-secret"  # per-install secret for local mode (mode 0600)
 
+    # Offline licences (app.licensing). Empty signing key = licensing not configured: activation answers 503 and
+    # the extension simply stays on the Free plan, which needs no licence.
+    licence_signing_key: str = ""                  # base64url Ed25519 private seed (32 bytes); never leaves the server
+    licence_key_id: str = "k1"                     # must match a public key embedded in the extension
+    licence_refresh_hours: int = 24                # the extension refreshes its licence after this long when online
+
 
 PLACEHOLDER_MARKERS = ("change-me", "change_me", "generate-with", "dev-only", "example", "secret", "password")
 
@@ -45,6 +51,15 @@ def strong_secret(value: str) -> bool:
 
 
 ON_VERCEL = os.environ.get("VERCEL") == "1"
+
+
+def _valid_seed(value: str) -> bool:
+    import base64
+    v = value.strip()
+    try:
+        return len(base64.urlsafe_b64decode(v + "=" * (-len(v) % 4))) == 32
+    except ValueError:
+        return False
 
 
 def _normalise_db_url(url: str) -> str:
@@ -73,6 +88,9 @@ def get_settings() -> Settings:
                                "(untrusted code is never executed in the API)")
         if s.local_mode:
             raise RuntimeError("local_mode is not allowed in production")
+        if s.licence_signing_key and not _valid_seed(s.licence_signing_key):
+            raise RuntimeError("TRUSTCODE_LICENCE_SIGNING_KEY must be a base64url Ed25519 seed (32 bytes); "
+                               "generate one with: python -m app.admin licence-keygen")
         tp = {x.strip() for x in s.trusted_proxies.split(",") if x.strip()}
         if ON_VERCEL:
             tp = {"vercel-edge"}  # client IP comes from Vercel's edge header (x-vercel-forwarded-for), not from proxies

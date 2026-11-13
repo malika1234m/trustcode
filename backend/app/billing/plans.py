@@ -11,6 +11,7 @@ PLANS: dict[str, dict] = {
         "id": "free", "name": "Free", "status": "available", "tagline": "Everything you need to check AI-generated code.",
         "prices": None,
         "limits": {"verifications_per_month": 300, "max_code_chars": 50_000, "history_days": 30},
+        "licence": {"offline_grace_days": 30, "max_devices": 3},
         "features": {
             "languages": ["python", "javascript", "typescript"],
             "syntax_lint_security_dependencies": True,
@@ -25,6 +26,7 @@ PLANS: dict[str, dict] = {
         "id": "pro", "name": "Pro", "status": "planned", "tagline": "For professionals who verify AI code every day.",
         "prices": None,
         "limits": {"verifications_per_month": None, "max_code_chars": 50_000, "history_days": 365},
+        "licence": {"offline_grace_days": 30, "max_devices": 3},
         "features": {"languages": ["python", "javascript", "typescript"], "syntax_lint_security_dependencies": True,
                      "sandboxed_tests": "hosted (planned)", "explanation_levels": True, "history": True,
                      "llm_explanations": True, "support": "email"},
@@ -32,6 +34,7 @@ PLANS: dict[str, dict] = {
     "team": {
         "id": "team", "name": "Team", "status": "planned", "tagline": "Shared billing and administration for teams.",
         "prices": None, "limits": {"verifications_per_month": None, "max_code_chars": 50_000, "history_days": 365},
+        "licence": {"offline_grace_days": 30, "max_devices": 5},   # per-account overrides: admin licence policy
         "features": {"languages": ["python", "javascript", "typescript"], "syntax_lint_security_dependencies": True,
                      "sandboxed_tests": "hosted (planned)", "explanation_levels": True, "history": True,
                      "llm_explanations": True, "support": "priority email", "seats": "per seat"},

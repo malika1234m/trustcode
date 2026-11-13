@@ -58,3 +58,34 @@ export async function adminTicketUpdate(form: FormData) {
   revalidatePath(`/admin/tickets/${id}`);
   revalidatePath('/admin/tickets');
 }
+
+// ---------------------------------------------------------------- devices (offline licences)
+const ID = /^[a-f0-9]{32}$/;
+
+export async function deactivateDevice(form: FormData) {
+  const id = String(form.get('id') ?? '');
+  if (!ID.test(id)) return;
+  await api(`/licence/devices/${id}/deactivate`, { method: 'POST' });
+  revalidatePath('/dashboard/settings');
+}
+
+export async function adminLicenceDevice(form: FormData) {
+  const id = String(form.get('id') ?? '');
+  const action = form.get('action') === 'restore' ? 'restore' : 'revoke';
+  if (!ID.test(id)) return;
+  await api(`/admin/licences/devices/${id}/${action}`, { method: 'POST' });
+  revalidatePath('/admin/licences');
+}
+
+export async function adminLicencePolicy(_: Msg, form: FormData): Promise<Msg> {
+  const user = String(form.get('user') ?? '');
+  if (!ID.test(user)) return { error: 'Unknown account.' };
+  const num = (k: string) => { const v = String(form.get(k) ?? '').trim(); return v === '' ? null : Number(v); };
+  const grace = num('offline_grace_days'), devices = num('max_devices');
+  if ((grace !== null && !(Number.isInteger(grace) && grace >= 1 && grace <= 365)) || (devices !== null && !(Number.isInteger(devices) && devices >= 1 && devices <= 50)))
+    return { error: 'Offline days must be 1–365 and devices 1–50, or empty for the plan default.' };
+  try { await api(`/admin/licences/users/${user}/policy`, { method: 'PATCH', body: { offline_grace_days: grace, max_devices: devices } }); }
+  catch (e) { return err(e); }
+  revalidatePath('/admin/licences');
+  return { ok: 'Saved. It applies the next time each device refreshes its licence.' };
+}

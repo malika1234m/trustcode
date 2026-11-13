@@ -133,3 +133,15 @@ def test_quota_is_enforced_by_the_server_for_free_and_lifted_only_by_a_verified_
 def test_health_reports_api_compatibility(client):
     h = client.get(f"{V}/health").json()
     assert h["api_version"] == 1 and h["min_extension_version"]
+
+
+def test_oversized_webhook_is_rejected_without_reading_it_all(client, monkeypatch):
+    from app.config import get_settings
+    monkeypatch.setattr(get_settings(), "billing_webhook_secret", "s" * 40)
+    big = b"x" * 200_000
+    assert client.post("/api/v1/billing/webhook", content=big, headers={"x-trustcode-signature": "t=1,v1=00"}).status_code == 401
+
+    def chunks():  # no Content-Length: the limit must hold for a streamed body too
+        for _ in range(50):
+            yield b"y" * 10_000
+    assert client.post("/api/v1/billing/webhook", content=chunks(), headers={"x-trustcode-signature": "t=1,v1=00"}).status_code == 401

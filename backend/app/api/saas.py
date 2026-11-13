@@ -54,6 +54,8 @@ def entitlements_for(db: Session, user: User) -> dict:
                       "resets_at": nxt.isoformat()}}
 
 
+
+WEBHOOK_MAX_BYTES = 65536
 @router.post("/billing/webhook", tags=["billing"], include_in_schema=False)
 async def billing_webhook(request: Request, db: Session = Depends(get_db)):
     """Billing events. Only a request signed with the server-side secret can change a subscription; the body is
@@ -63,8 +65,17 @@ async def billing_webhook(request: Request, db: Session = Depends(get_db)):
     secret = get_settings().billing_webhook_secret
     if not secret:
         raise HTTPException(503, "billing is not configured")
-    body = await request.body()
-    if len(body) > 65536 or not verify_signature(secret, request.headers.get("x-trustcode-signature", ""), body):
+    # bounded read: stop as soon as the limit is passed instead of buffering whatever an unauthenticated caller sends
+    declared = request.headers.get("content-length", "")
+    too_large = declared.isdigit() and int(declared) > WEBHOOK_MAX_BYTES
+    body = b""
+    if not too_large:
+        async for chunk in request.stream():
+            body += chunk
+            if len(body) > WEBHOOK_MAX_BYTES:
+                too_large = True
+                break
+    if too_large or not verify_signature(secret, request.headers.get("x-trustcode-signature", ""), body):
         audit(db, request, "billing_webhook_rejected", None)
         db.commit()
         raise HTTPException(401, "invalid signature")

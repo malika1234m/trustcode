@@ -4,10 +4,16 @@ TrustCode runs on the developer's computer. Plan checks work the way installed d
 activate online once, check the licence on the device at every start, keep working offline for a bounded
 period, and refresh in the background when a connection is available.
 
-**One rule overrides the rest: the Free plan needs no licence.** Local analysis works without an account,
-offline from the moment the engine is set up, and nothing in this system can turn it off. A licence only carries
-what an account is entitled to beyond Free (paid plans, once billing is live), so the device can honour that plan
-without contacting the server on every start.
+**TrustCode is free, but every user needs a registered account** (product decision, 2026-11-13). Nothing in the
+extension runs without a valid licence: not Verify, Session, the Security scan, nor the startup scan. Code is still
+analysed on the computer and never uploaded; the licence confirms who is using TrustCode and carries the plan.
+When online, the account is confirmed at startup (if last confirmed more than an hour ago) and about once a day.
+A deleted, suspended or signed-out account stops TrustCode at the next online check. Offline, TrustCode keeps
+working until the licence's offline period ends (30 days by default), then pauses until it can confirm the account.
+
+Plans: administrators set an account's plan from **Admin → Users** (Free, Pro or Team, with an optional end
+date; `POST /api/v1/admin/users/{id}/plan`). It is stored as a subscription with provider `admin`, so the same
+entitlement rules apply, and a later verified billing event replaces it. Paid features will be added later.
 
 ## 1. Architecture
 
@@ -185,10 +191,11 @@ Ordinary use shows no licence prompts.
   each licence bounds this.
 * **Storage depends on the OS keychain.** SecretStorage uses the OS keychain where VS Code supports one. On Linux
   without a keyring, VS Code may fall back to weaker storage (Linux is untested).
-* **No paid plan is on sale yet.** Today every licence carries the Free plan, and no local feature is gated. When
-  a paid local feature is added, gate it with `LicenceManager.allows(feature)`.
-* **Admins cannot change an account's plan.** Plans change only through signed billing events, by design (see
-  `app/billing/subscriptions.py`). Admins control offline days, device limits and device revocation.
+* **No paid features yet.** Plans can be set by administrators, but no feature differs between plans yet. When a
+  paid feature is added, gate it with `LicenceManager.allows(feature)`.
+* **The account gate lives in the extension.** Git hooks and the CI scanner run the open-source scanner directly,
+  outside VS Code, and are not covered. Hooks that were already installed keep working.
+* **Released 1.0.0 builds do not enforce accounts.** Only builds that include this change do.
 * **Rate limits are per instance.** The in-memory rate limiter is per instance (`docs/project/known_issues.md`).
 
 ## 10. Deployment and key configuration

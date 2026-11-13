@@ -48,6 +48,8 @@ def state_of(sub: Subscription | None, at: datetime | None = None) -> dict:
         ok = end is not None and at < end
         return {**base, "state": "cancelled" if ok else "expired", "paid": ok, "plan_id": sub.plan_id if ok else "free",
                 "reason": "Cancelled; paid features stay on until the end of the period already paid for." if ok else "The paid period has ended."}
+    if sub.provider == "admin" and sub.status == "active" and (end is None or at < end):
+        return {**base, "state": "active", "paid": True, "reason": "Plan set by an administrator" + ("." if end is None else " until the end date.")}
     if end is not None and at < end:
         return {**base, "state": "active", "paid": True, "reason": "Paid for the current billing period."}
     if end is not None and at < end + RENEWAL_GRACE:
@@ -140,4 +142,29 @@ def paid_until(sub: Subscription | None, at: datetime | None = None) -> datetime
         return grace
     if st["state"] == "cancelled":
         return end
+    if sub.provider == "admin":
+        return end          # None = no end date; the offline licence still bounds it (licensing.service.issue)
     return end + RENEWAL_GRACE if end else None
+
+
+def admin_set_plan(db: Session, user: User, plan_id: str, until: datetime | None) -> Subscription | None:
+    """An administrator grants a plan (e.g. a team trial or a comp) or returns the account to Free. Recorded as a
+    subscription with provider "admin", so the same entitlement rules apply. A later verified billing event for the
+    account replaces it (it is newer)."""
+    if plan_id not in PLANS:
+        raise ValueError("unknown plan")
+    sub = subscription_of(db, user)
+    t = now()
+    if plan_id == "free":
+        if sub is not None:
+            sub.status, sub.current_period_end, sub.grace_until, sub.last_event_at = "expired", t, None, t
+        return sub
+    if until is not None and _aware(until) <= t:
+        raise ValueError("the end date must be in the future")
+    if sub is None:
+        sub = Subscription(user_id=user.id, plan_id=plan_id, status="active")
+        db.add(sub)
+    sub.plan_id, sub.status, sub.provider, sub.provider_ref = plan_id, "active", "admin", None
+    sub.current_period_start, sub.current_period_end, sub.grace_until = t, until, None
+    sub.cancel_at_period_end, sub.last_event_at = False, t
+    return sub

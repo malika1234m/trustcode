@@ -33,22 +33,21 @@ export function page(active: Tab, signedIn: boolean, who: string, body: string):
   return `${header(signedIn, who)}${tabs(active)}<main class="content">${body}</main>`;
 }
 
-export function welcome(backend: string): string {
+export function welcome(backend: string, reason?: string): string {
   return `<header class="topbar"><div class="brand">${ICON.shield}<span>TrustCode</span></div></header>
   <section class="welcome">
     <div class="hero">${ICON.shield}</div>
     <h2>Welcome to TrustCode</h2>
-    <p class="muted">Check AI-generated code with real evidence before you accept it.</p>
+    <p class="muted">Check AI-written code on your computer before it reaches your repository.</p>
     <ul class="benefits">
-      <li><span aria-hidden="true">✓</span><div>Security, lint and dependency checks on the code you select</div></li>
+      <li><span aria-hidden="true">✓</span><div>Security, secret and dependency checks across your project</div></li>
       <li><span aria-hidden="true">?</span><div>A clear list of what was <strong>not</strong> verified</div></li>
-      <li><span aria-hidden="true">✎</span><div>You decide — your files are never changed</div></li>
+      <li><span aria-hidden="true">✎</span><div>Your code is checked on this computer, and your files are never changed</div></li>
     </ul>
-    <button class="primary wide" data-action="signIn">Sign In with browser</button>
-    <button class="link" data-action="createAccount">Create free account</button>
-    <div class="divider"><span>or</span></div>
-    <button class="secondary wide" data-action="useLocal">Use local mode (code stays on this machine)</button>
-    <button class="secondary wide" data-action="tab" data-tab="security">Scan this project for security issues (local, no account)</button>
+    ${reason ? `<p class="hint small" role="status">${esc(reason)}</p>` : ''}
+    <button class="primary wide" data-action="createAccount">Create a free account</button>
+    <button class="secondary wide" data-action="signIn">I have an account — sign in</button>
+    <p class="note">TrustCode is free. An account is needed to use it; sign-in happens in your browser.</p>
     <p class="note">Server: ${esc(backend)}</p>
   </section>`;
 }
@@ -240,17 +239,17 @@ const STATE_LABEL: Record<string, string> = { free: 'Free plan', active: 'Active
 
 /** Account, usage, updates and privacy. Every value comes from the server response or the running extension. */
 const LICENCE_LABEL: Record<LicenceView['status'], [string, string]> = {
-  free: ['Free plan', 'st-notrun'], active: ['Active', 'st-notrun'], offline: ['Offline · checked on this computer', 'st-notrun'],
+  sign_in_required: ['Sign-in required', 'st-review'], active: ['Active', 'st-notrun'], offline: ['Offline · checked on this computer', 'st-notrun'],
   expiring_soon: ['Expiring soon', 'st-review'], subscription_expired: ['Subscription ended', 'st-review'],
-  revoked: ['Device deactivated', 'st-issue'], connection_required: ['Connection required', 'st-review'],
+  revoked: ['Signed out', 'st-issue'], connection_required: ['Connection required', 'st-review'],
 };
 const fmtMs = (ms?: number | null) => (ms ? fmtDate(new Date(ms).toISOString()) : '—');
 
 /** The plan in force on this computer, from the signed licence verified locally. */
 export function licenceCard(l: LicenceView): string {
   const [label, cls] = LICENCE_LABEL[l.status];
-  const licensed = l.licensedPlan && l.licensedPlan.id !== l.plan.id ? `<dt>Your plan</dt><dd>${esc(l.licensedPlan.name)} (paused)</dd>` : '';
-  const showOffline = l.offlineUntil && !['free', 'revoked', 'subscription_expired'].includes(l.status);
+  const licensed = l.licensedPlan && l.licensedPlan.id !== l.plan.id && l.usable ? `<dt>Your plan</dt><dd>${esc(l.licensedPlan.name)} (ended)</dd>` : '';
+  const showOffline = l.offlineUntil && !['sign_in_required', 'revoked'].includes(l.status);
   return `<section class="card" aria-labelledby="h-lic"><h3 id="h-lic" class="section-label">This computer</h3>
     <dl class="kv"><dt>Status</dt><dd><span class="chip ${cls}">${esc(label)}</span></dd><dt>Plan in use</dt><dd>${esc(l.plan.name)}</dd>${licensed}
       ${l.validatedAt ? `<dt>Last checked online</dt><dd>${esc(fmtMs(l.validatedAt))}</dd>` : ''}

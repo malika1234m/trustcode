@@ -29,7 +29,7 @@ const F: { t: string; lead: string; more: string; status: string }[] = [
     more: 'Step through findings one by one, and copy a ready-made fix prompt for your coding agent.', status: 'Available' },
   { t: 'Explanations at your level', lead: 'Beginner, intermediate or advanced wording for every finding.',
     more: 'The evidence is the same at every level; only the explanation changes.', status: 'Available' },
-  { t: 'Private by design', lead: 'Runs on your computer. Your code is never uploaded and no account is needed.',
+  { t: 'Private by design', lead: 'Runs on your computer. Your code is never uploaded.',
     more: 'No telemetry. Results, decisions and history stay in VS Code’s storage on your machine.', status: 'Available' },
   { t: 'AI-worded explanations', lead: 'Natural-language explanations of your findings.',
     more: 'Grounded in the same evidence, and off unless you turn it on.', status: 'Planned' },

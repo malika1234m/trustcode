@@ -113,7 +113,7 @@ test('4-6. offline within the period, warning near the end, paused after it', as
   env.now += 4 * DAY;                      // 31 days in
   await m.sync();
   assert.equal(m.view.status, 'connection_required');
-  assert.equal(m.view.plan.id, 'free', 'paid features pause; Free keeps working');
+  assert.equal(m.view.usable, false, 'after the offline period TrustCode waits for the account to be confirmed');
 });
 
 test('7. subscription ends while offline: paid features stop at paid_until even inside the offline period', async () => {
@@ -129,6 +129,7 @@ test('7. subscription ends while offline: paid features stop at paid_until even 
   await m.sync();
   assert.equal(m.view.status, 'subscription_expired');
   assert.equal(m.view.plan.id, 'free');
+  assert.equal(m.view.usable, true, 'a lapsed paid plan falls back to Free, still registered');
 });
 
 test('8-9. after reconnecting, the server decides: cancelled/expired plan comes back as Free', async () => {
@@ -151,7 +152,8 @@ test('10. revoked device: licence removed, Free keeps working, a fresh sign-in c
   await m.sync();
   assert.equal(m.view.status, 'revoked');
   assert.equal(m.view.plan.id, 'free');
-  assert.match(m.view.message, /Free plan keeps working/);
+  assert.equal(m.view.usable, false);
+  assert.match(m.view.message, /Sign in again/);
   srv.refusal = undefined;
   srv.clock = env.now;
   assert.equal((await m.activate()).status, 'active');
@@ -168,7 +170,8 @@ test('11-12. modified licence or invalid signature is rejected and the plan fall
   rec.token = [h, b64u(Buffer.from(JSON.stringify(p))), sig].join('.');
   secrets.m.set(key, JSON.stringify(rec));
   const v = await mk().load();
-  assert.equal(v.plan.id, 'free');
+  assert.equal(v.status, 'sign_in_required');
+  assert.equal(v.usable, false);
   const other = generateKeyPairSync('ed25519');
   assert.deepEqual(verifyLicence(signToken(p, other.privateKey), KEYS), { ok: false, reason: 'bad_signature' });
   assert.deepEqual(verifyLicence(signToken({ ...p, kid: 'nope' }), KEYS), { ok: false, reason: 'unknown_key' });
@@ -212,14 +215,15 @@ test('15. sign-out releases the device on the server and removes the licence', a
   assert.equal(srv.devices.size, 1);
   await m.release();
   assert.equal(srv.devices.size, 0);
-  assert.equal(m.view.status, 'free');
+  assert.equal(m.view.status, 'sign_in_required');
+  assert.equal(m.view.usable, false);
 });
 
 test('16. corrupted storage is reset safely', async () => {
   const secrets = memorySecrets({ 'trustcode.licence:https://api.example': '{not json', 'trustcode.licence.device': '[]' });
   const { m } = setup(undefined, secrets);
   const v = await m.load();
-  assert.equal(v.status, 'free');
+  assert.equal(v.status, 'sign_in_required');
   assert.ok(!secrets.m.has('trustcode.licence:https://api.example') || JSON.parse(secrets.m.get('trustcode.licence:https://api.example')!));
   assert.equal((await m.activate()).status, 'active', 'a broken device record is replaced');
 });
@@ -267,10 +271,48 @@ test('no network call when the licence is not yet due', async () => {
   assert.equal(srv.calls.length, n + 1);
 });
 
-test('without a licence everything on the Free plan is available and nothing asks to activate', () => {
+test('without a licence nothing runs: a registered account is required', () => {
   const v = evaluate({ nowMs: Date.now(), clockFloorMs: 0, offline: true });
-  assert.equal(v.status, 'free');
-  assert.match(v.message, /without an account/);
+  assert.equal(v.status, 'sign_in_required');
+  assert.equal(v.usable, false);
+  assert.match(v.message, /free/);
+});
+
+test('a registered Free account is usable, online and offline within the period', async () => {
+  const srv = new FakeServer();
+  srv.plan = { id: 'free', name: 'Free' };
+  const { m, env } = setup(srv);
+  assert.equal((await m.activate()).usable, true);
+  srv.reachable = false;
+  env.now += 20 * DAY;
+  await m.sync();
+  assert.equal(m.view.status, 'offline');
+  assert.equal(m.view.usable, true);
+  env.now += 6 * DAY;
+  await m.sync();
+  assert.equal(m.view.status, 'expiring_soon', 'free accounts are warned before the offline period ends too');
+});
+
+test('at startup the account is confirmed online when last confirmed over an hour ago', async () => {
+  const { m, srv, env } = setup();
+  await m.activate();
+  const n = srv.calls.length;
+  env.now += 30 * 60_000;
+  await m.sync(false, 60 * 60_000);
+  assert.equal(srv.calls.length, n, 'confirmed 30 minutes ago: no call');
+  env.now += 60 * 60_000;
+  await m.sync(false, 60 * 60_000);
+  assert.equal(srv.calls.length, n + 1);
+});
+
+test('a deleted account is noticed at the next online check and TrustCode stops', async () => {
+  const { m, srv, env } = setup();
+  await m.activate();
+  srv.devices.clear();                 // account deleted: the server no longer knows the device
+  env.now += 2 * DAY;
+  await m.sync();
+  assert.equal(m.view.usable, false);
+  assert.equal(m.view.status, 'revoked');
 });
 
 test('the shipped verification key is a valid Ed25519 public key', () => {
@@ -279,9 +321,8 @@ test('the shipped verification key is a valid Ed25519 public key', () => {
 
 test('account card shows the plan in force and escapes server text', async () => {
   const { licenceCard } = await import('../src/ui');
-  const html = licenceCard({ status: 'revoked', plan: { id: 'free', name: 'Free' }, licensedPlan: { id: 'pro', name: '<b>Pro</b>' }, features: {},
+  const html = licenceCard({ status: 'revoked', usable: false, plan: { id: 'free', name: 'Free' }, licensedPlan: { id: 'pro', name: '<b>Pro</b>' }, features: {},
     message: '<img src=x onerror=alert(1)>' });
   assert.ok(!html.includes('<img'));
-  assert.match(html, /Device deactivated/);
-  assert.match(html, /&lt;b&gt;Pro&lt;\/b&gt; \(paused\)/);
+  assert.match(html, /Signed out/);
 });

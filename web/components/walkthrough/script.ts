@@ -16,7 +16,7 @@ export const STAGE = { w: 1120, h: 630 } as const;
 const WIDE: Camera = { s: 1, x: 560, y: 315 };
 const raw: Omit<Scene, 'start'>[] = [
   { id: 'setup', chapter: 'One-time setup', title: 'Set up the local engine once', duration: 7.5,
-    caption: 'The first time, TrustCode asks, then sets up its local engine on your computer. No account needed.', camera: { s: 1.18, x: 560, y: 330 } },
+    caption: 'The first time, TrustCode asks, then sets up its local engine on your computer. Nothing is uploaded.', camera: { s: 1.18, x: 560, y: 330 } },
   { id: 'edits', chapter: 'AI edits', title: 'The agent starts working', duration: 10,
     caption: 'Your AI coding agent starts modifying your project.', camera: { s: 1.22, x: 470, y: 400 } },
   { id: 'detected', chapter: 'Changes detected', title: 'Every change is noticed', duration: 10,

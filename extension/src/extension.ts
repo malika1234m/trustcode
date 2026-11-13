@@ -297,8 +297,18 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   }
   async refreshAuth() {
     this.hasAccount = this.mode() === 'local' || !!(await this.ctx.secrets.get(TOKEN_KEY()));
-    this.signedIn = localEngine() || this.hasAccount;
+    this.signedIn = !!this.licence?.usable();   // every feature needs a registered account confirmed on this device
     return this.signedIn;
+  }
+  /** Why the welcome screen is showing, when it is not simply a first start. */
+  welcomeReason(): string | undefined {
+    const v = this.licence?.view;
+    return v && v.status !== 'sign_in_required' ? v.message : undefined;
+  }
+  /** Shown when a feature is used before an account is confirmed on this device. */
+  async showAccountRequired() {
+    await vscode.commands.executeCommand('trustcode.panel.focus');
+    await this.showForm();
   }
   /** Posts a full page (header + tabs + body). The body is produced by escaping renderers only. */
   render(html: string) { this.view?.webview.postMessage({ type: 'render', html: page(this.activeTab, this.signedIn, this.who(), html) }); }
@@ -307,15 +317,15 @@ class TrustCodeView implements vscode.WebviewViewProvider {
 
   async showForm() {
     await this.refreshAuth();
-    if (!this.signedIn) return this.renderRaw(welcome(backendUrl()));
+    if (!this.signedIn) return this.renderRaw(welcome(backendUrl(), this.welcomeReason()));
     this.activeTab = 'verify';
     const sel = this.selection && { lines: this.selection.lines, language: this.selection.language, file: path.basename(this.selection.uri.path), whole: this.selection.whole };
     this.render(this.engineNote() + verifyForm(sel, this.lastTask, localEngine()));
   }
   async showTab(tab: Tab) {
     await this.refreshAuth();
+    if (!this.signedIn && tab !== 'account') return this.renderRaw(welcome(backendUrl(), this.welcomeReason()));
     if (tab === 'security') { this.activeTab = tab; return this.render(securityPage(this.security.model())); }
-    if (!this.signedIn && tab !== 'account') return this.renderRaw(welcome(backendUrl()));
     this.activeTab = tab;
     if (tab === 'verify') return this.jobId ? this.showExplanation() : this.showForm();
     if (tab === 'session') return this.render(this.sessionHtml());
@@ -377,6 +387,7 @@ class TrustCodeView implements vscode.WebviewViewProvider {
   /** Webview messages are untrusted input: every field is validated against an allow-list before use. */
   async onMessage(m: any) {
     if (!m || typeof m !== 'object') return;
+    if (!OPEN_ACTIONS.has(m.action) && !this.licence?.usable()) return this.showForm();   // account required
     switch (m.action) {
       case 'ready': return this.showForm();
       case 'home': this.jobId = undefined; this.comparison = undefined; this.cachedAge = undefined; return this.showForm();
@@ -819,6 +830,12 @@ function secretStore(ctx: vscode.ExtensionContext, key: () => string) {
 }
 
 const SITE_URL = 'https://trustcode-app.vercel.app';
+/** Panel actions and commands that work without a confirmed account (signing in, account, privacy and updates). */
+const OPEN_ACTIONS = new Set(['ready', 'home', 'refresh', 'tab', 'signIn', 'createAccount', 'signOut', 'checkUpdates', 'installUpdate', 'openRelease',
+  'trustCenter', 'licenceSync', 'manageDevices', 'openSettings', 'deleteData']);
+const OPEN_COMMANDS = new Set(['trustcode.signIn', 'trustcode.signOut', 'trustcode.showAccount', 'trustcode.checkLicence', 'trustcode.openRelease',
+  'trustcode.openTrustCenter', 'trustcode.checkForUpdates', 'trustcode.deleteMyData', 'trustcode.forgetConsent', 'trustcode.clearFindings',
+  'trustcode.engineStatus', 'trustcode.removeEngine']);
 const LICENCE_NOTICE_KEY = 'trustcode.licenceNotice';
 
 export function activate(ctx: vscode.ExtensionContext) {
@@ -857,11 +874,25 @@ export function activate(ctx: vscode.ExtensionContext) {
   });
   view.licence = licence;
   // Only states that need the user's attention show anything, and each one is announced at most once a day.
+  let wasUsable = false;
   function licenceChanged(v: LicenceView) {
+    if (v.usable !== wasUsable) {
+      wasUsable = v.usable;
+      // account confirmed: start the usual startup scan; account lost: the panel switches to the sign-in screen
+      if (v.usable && process.env.TRUSTCODE_TEST !== '1') setTimeout(() => { try { view.security.startup(); } catch { /* not ready */ } }, 0);
+      void view.showTab(view.activeTab).catch(() => undefined);
+    }
     const attention = v.status === 'expiring_soon' || v.status === 'connection_required' || v.status === 'subscription_expired' || v.status === 'revoked';
-    const paidBefore = !!v.licensedPlan && v.licensedPlan.id !== 'free';
-    if (!attention || (!paidBefore && v.status !== 'revoked' && !v.clockProblem)) { licenceItem.hide(); return; }
-    licenceItem.text = v.status === 'expiring_soon' ? '$(clock) TrustCode plan' : '$(warning) TrustCode plan';
+    if (v.status === 'sign_in_required') {   // first start or signed out: a quiet pointer, no pop-up
+      licenceItem.text = '$(account) TrustCode: sign in';
+      licenceItem.tooltip = v.message;
+      licenceItem.command = { title: 'Sign in', command: 'trustcode.panel.focus' };
+      licenceItem.show();
+      return;
+    }
+    licenceItem.command = { title: 'Account', command: 'trustcode.showAccount' };
+    if (!attention) { licenceItem.hide(); return; }
+    licenceItem.text = v.status === 'expiring_soon' ? '$(clock) TrustCode' : v.usable ? '$(info) TrustCode plan' : '$(warning) TrustCode paused';
     licenceItem.tooltip = v.message;
     licenceItem.show();
     const seen = ctx.globalState.get<{ status: string; at: number }>(LICENCE_NOTICE_KEY);
@@ -871,7 +902,13 @@ export function activate(ctx: vscode.ExtensionContext) {
   }
   ctx.subscriptions.push(licenceLog, licenceItem, { dispose: () => licence.dispose() },
     vscode.window.onDidChangeWindowState((w) => { if (w.focused) licence.nudge(); }));
-  void licence.load().then(() => licence.startTimers()).catch((e) => licenceLog.appendLine(`Licence could not be loaded: ${String(e?.message ?? e)}`));
+  void licence.load().then(async () => {
+    // signed in before licences existed (or activation failed offline): activate now, without asking again
+    if (licence.view.status === 'sign_in_required' && (await ctx.secrets.get(TOKEN_KEY()))) {
+      await licence.activate().catch((e) => licenceLog.appendLine(`Activation: ${describeError(e)}`));
+    }
+    licence.startTimers();
+  }).catch((e) => licenceLog.appendLine(`Licence could not be loaded: ${String(e?.message ?? e)}`));
   ctx.subscriptions.push(engineLog, engine.onDidChange(() => { void view.showTab(view.activeTab).catch(() => undefined); }));
   const applyDisplay = () => setShowExplanations(cfg().get<boolean>('showExplanations', false));
   applyDisplay();
@@ -883,7 +920,7 @@ export function activate(ctx: vscode.ExtensionContext) {
   view.security = security;
   // once the engine is installed its scanner exists too: the Security tab stops saying "scanner not found"
   ctx.subscriptions.push(engine.onDidChange(() => { if (engine.scanner() && security.model().availability === 'missing') void security.scan('full', { quiet: true }).catch(() => undefined); }));
-  if (process.env.TRUSTCODE_TEST !== '1') security.startup();
+  security.gate = () => licence.usable();
   if (process.env.TRUSTCODE_TEST !== '1' && cfg().get<boolean>('updates.check', true)
       && Date.now() - ctx.globalState.get<number>('trustcode.lastUpdateCheck', 0) > 24 * 3600 * 1000) {
     setTimeout(() => void view.checkForUpdates(false).catch(() => undefined), 20000);   // once a day at most, never on every start
@@ -928,8 +965,12 @@ jobs:
   };
   const session = new SessionController(ctx, sessionHost);
   view.session = session;
+  session.gate = () => licence.usable();
+  // TrustCode is free, but every feature needs a registered account confirmed on this device (src/licence).
+  const reg = (id: string, fn: (...a: any[]) => any) => vscode.commands.registerCommand(id, OPEN_COMMANDS.has(id) ? fn
+    : async (...a: any[]) => { if (licence.usable()) return fn(...a); await view.showAccountRequired(); });
   const sessionCmd = (id: string, fn: (...a: any[]) => Promise<unknown>) =>
-    vscode.commands.registerCommand(id, (...a: any[]) => fn(...a).catch((e) => view.error(e)));
+    reg(id, (...a: any[]) => fn(...a).catch((e) => view.error(e)));
   const relOf = (u: unknown) => (u instanceof vscode.Uri ? session.toRel(u) : undefined);
   const HOOK_DOC = `# TrustCode: tell TrustCode when your coding agent has finished
 
@@ -1016,22 +1057,22 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
 
   ctx.subscriptions.push(
     vscode.window.registerWebviewViewProvider('trustcode.panel', view, { webviewOptions: { retainContextWhenHidden: true } }),
-    vscode.commands.registerCommand('trustcode.verifySelection', wrap(async () => {
+    reg('trustcode.verifySelection', wrap(async () => {
       if (!view.captureSelection()) return;
       await vscode.commands.executeCommand('trustcode.panel.focus');
       view.showForm();
     })),
-    vscode.commands.registerCommand('trustcode.verifyFile', wrap(async () => {
+    reg('trustcode.verifyFile', wrap(async () => {
       if (!view.captureFile()) return;
       await vscode.commands.executeCommand('trustcode.panel.focus');
       await view.verify(undefined, undefined, { file: true });
     })),
-    vscode.commands.registerCommand('trustcode.rerun', wrap(async () => {
+    reg('trustcode.rerun', wrap(async () => {
       if (!view.selection) { vscode.window.showInformationMessage('TrustCode: nothing has been verified yet in this window.'); return; }
       await vscode.commands.executeCommand('trustcode.panel.focus');
       await view.onMessage({ action: 'rerun' });
     })),
-    vscode.commands.registerCommand('trustcode.showFinding', (id?: unknown, source?: unknown) => view.showFinding(id, source).catch((e) => view.error(e))),
+    reg('trustcode.showFinding', (id?: unknown, source?: unknown) => view.showFinding(id, source).catch((e) => view.error(e))),
     vscode.languages.registerHoverProvider([{ scheme: 'file' }, { scheme: 'untitled' }], {
       provideHover(doc, pos) {
         const mark = view.markAt(doc.uri, pos.line);
@@ -1161,11 +1202,11 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
       if (e.affectsConfiguration('trustcode')) { applyDisplay(); view.refreshSession(); view.refreshSecurity(); }
       if (e.affectsConfiguration('trustcode.backendUrl')) void licence.load();   // licences belong to one server
     }),
-    vscode.commands.registerCommand('trustcode.signIn', (intent?: unknown) => wrap(async () => {
+    reg('trustcode.signIn', (intent?: unknown) => wrap(async () => {
       await browserAuth.begin(intent === 'create' ? 'register' : 'login');
     })()),
     vscode.window.registerUriHandler({ handleUri: (uri: vscode.Uri) => browserAuth.handleUri(uri).catch((e) => view.error(e)) }),
-    vscode.commands.registerCommand('trustcode.signOut', wrap(async () => {
+    reg('trustcode.signOut', wrap(async () => {
       await licence.release();   // frees this device's slot; the licence is removed from this computer
       await ctx.secrets.delete(TOKEN_KEY());
       view.jobId = undefined;
@@ -1174,14 +1215,14 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
       vscode.window.showInformationMessage('TrustCode: signed out.');
       await view.showForm();
     })),
-    vscode.commands.registerCommand('trustcode.setExperienceLevel', wrap(async () => {
+    reg('trustcode.setExperienceLevel', wrap(async () => {
       const lvl = await vscode.window.showQuickPick(['beginner', 'intermediate', 'advanced'], { placeHolder: 'How detailed should explanations be?' });
       if (!lvl || !(await view.ensureSignedIn())) return;
       await api.request('PATCH', '/profile', { experience_level: lvl });
       view.level = undefined;
       vscode.window.showInformationMessage(`TrustCode: explanation level set to ${lvl}.`);
     })),
-    vscode.commands.registerCommand('trustcode.privacySettings', wrap(async () => {
+    reg('trustcode.privacySettings', wrap(async () => {
       if (!(await view.ensureSignedIn())) return;
       const p = await api.request('GET', '/profile');
       const picks = await vscode.window.showQuickPick([
@@ -1194,7 +1235,7 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
       await api.request('PATCH', '/profile', { store_history: on.has('store_history'), allow_llm: on.has('allow_llm'), adaptive_suggestions: on.has('adaptive_suggestions') });
       vscode.window.showInformationMessage('TrustCode: privacy settings saved.');
     })),
-    vscode.commands.registerCommand('trustcode.startExperiment', wrap(async () => { await vscode.commands.executeCommand('trustcode.panel.focus'); await view.startExperiment(); })),
+    reg('trustcode.startExperiment', wrap(async () => { await vscode.commands.executeCommand('trustcode.panel.focus'); await view.startExperiment(); })),
     view.diagnostics,
     (() => {
       const item = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
@@ -1205,8 +1246,8 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
       return item;
     })(),
     vscode.workspace.onDidChangeTextDocument((e) => view.onDocumentChanged(e)),
-    vscode.commands.registerCommand('trustcode.clearFindings', () => { view.clearMarks(); session.diagnostics.clear(); }),
-    vscode.commands.registerCommand('trustcode.deleteMyData', wrap(async () => {
+    reg('trustcode.clearFindings', () => { view.clearMarks(); session.diagnostics.clear(); }),
+    reg('trustcode.deleteMyData', wrap(async () => {
       if (localEngine()) {
         const n = localAnalysis.counts();
         const go = await vscode.window.showWarningMessage(
@@ -1232,19 +1273,19 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
       view.jobId = undefined;
       vscode.window.showInformationMessage('TrustCode: your account and data were deleted.');
     })),
-    vscode.commands.registerCommand('trustcode.showAccount', wrap(async () => {
+    reg('trustcode.showAccount', wrap(async () => {
       await vscode.commands.executeCommand('trustcode.panel.focus');
       await view.showTab('account');
     })),
-    vscode.commands.registerCommand('trustcode.checkLicence', wrap(async () => {
+    reg('trustcode.checkLicence', wrap(async () => {
       await licence.sync(true);
       vscode.window.showInformationMessage(`TrustCode: ${licence.view.message}`);
     })),
-    vscode.commands.registerCommand('trustcode.setupEngine', wrap(async () => {
+    reg('trustcode.setupEngine', wrap(async () => {
       if (engine.python()) { vscode.window.showInformationMessage('TrustCode: the local engine is already set up.'); return; }
       await engine.ensure(true);
     })),
-    vscode.commands.registerCommand('trustcode.engineStatus', wrap(async () => {
+    reg('trustcode.engineStatus', wrap(async () => {
       const info = engine.info();
       if (info.status !== 'ready') { vscode.window.showWarningMessage(`TrustCode: the local engine is ${info.status === 'installing' ? 'being set up' : 'not set up'}.${info.detail ? ` ${info.detail}` : ''}`); return; }
       const d = await engine.run({ op: 'doctor' }, { timeoutMs: 120_000 });
@@ -1254,13 +1295,13 @@ a completion event to other extensions, so for Copilot TrustCode relies on the i
       const missing: string[] = d.missing ?? [];
       vscode.window.showInformationMessage(missing.length ? `TrustCode engine is working. Not available: ${missing.join(', ')} — the checks that need them are reported as not run.` : 'TrustCode engine is working and every tool is available.');
     })),
-    vscode.commands.registerCommand('trustcode.removeEngine', wrap(async () => {
+    reg('trustcode.removeEngine', wrap(async () => {
       const go = await vscode.window.showWarningMessage('Remove the local engine TrustCode installed? Verify, Session and Security stop working until it is set up again. Your history is kept.', { modal: true }, 'Remove');
       if (go !== 'Remove') return;
       await engine.remove();
       vscode.window.showInformationMessage('TrustCode: the local engine was removed.');
     })),
-    vscode.commands.registerCommand('trustcode.forgetConsent', wrap(async () => { await ctx.globalState.update(CONSENT_KEY, { trustedBackends: [] }); vscode.window.showInformationMessage('TrustCode will ask before sending code again.'); })),
+    reg('trustcode.forgetConsent', wrap(async () => { await ctx.globalState.update(CONSENT_KEY, { trustedBackends: [] }); vscode.window.showInformationMessage('TrustCode will ask before sending code again.'); })),
   );
   void session.activate().catch(() => undefined);   // restores a session that was being tracked before a restart
   // Test-only hook (never active for users): lets the integration suite drive the real panel object.

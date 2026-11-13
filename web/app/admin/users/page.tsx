@@ -1,12 +1,13 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { PageTitle, Skeleton, StatusBadge } from '@/components/app/shell';
+import { PlanForm } from '@/components/app/forms';
 import { adminUserAction } from '@/app/actions/account';
 import { load, fmtDate } from '@/lib/data';
 import { Pagination, pageFrom } from '@/components/app/pagination';
 
 export const metadata: Metadata = { title: 'Users' };
-type U = { id: string; email: string | null; role: string; suspended: boolean; created_at: string; plan: string; verifications_this_month: number };
+type U = { id: string; email: string | null; role: string; suspended: boolean; created_at: string; plan: string; plan_until: string | null; verifications_this_month: number };
 type SP = Promise<{ q?: string; page?: string }>;
 
 async function Table({ searchParams }: { searchParams: SP }) {
@@ -17,11 +18,11 @@ async function Table({ searchParams }: { searchParams: SP }) {
     <>
       <div className="card overflow-x-auto">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-line text-xs uppercase tracking-wide text-dim"><tr>{['Email', 'Role', 'Plan', 'This month', 'Joined', 'Status', ''].map((h) => <th key={h} className="p-4 font-medium">{h}</th>)}</tr></thead>
+          <thead className="border-b border-line text-xs uppercase tracking-wide text-dim"><tr>{['Email', 'Role', 'Plan (end date optional)', 'This month', 'Joined', 'Status', ''].map((h) => <th key={h} className="p-4 font-medium">{h}</th>)}</tr></thead>
           <tbody className="divide-y divide-line">
             {data.items.map((u) => (
               <tr key={u.id}>
-                <td className="max-w-[16rem] truncate p-4" title={u.id}>{u.email ?? '—'}</td><td className="p-4">{u.role}</td><td className="p-4 capitalize">{u.plan}</td>
+                <td className="max-w-[16rem] truncate p-4" title={u.id}>{u.email ?? '—'}</td><td className="p-4">{u.role}</td><td className="p-4"><PlanForm key={`${u.plan}:${u.plan_until ?? ""}`} user={u.id} plan={u.plan} until={u.plan_until} label={u.email ?? u.id} /></td>
                 <td className="p-4 tabular-nums">{u.verifications_this_month}</td><td className="p-4">{fmtDate(u.created_at)}</td>
                 <td className="p-4"><StatusBadge s={u.suspended ? 'suspended' : 'active'} /></td>
                 <td className="p-4 text-right"><form action={adminUserAction}><input type="hidden" name="id" value={u.id} />
@@ -42,7 +43,7 @@ async function Table({ searchParams }: { searchParams: SP }) {
 export default function Users({ searchParams }: { searchParams: SP }) {
   return (
     <>
-      <PageTitle title="Users">Suspending a user signs them out everywhere and blocks new sign-ins. It is logged in the audit log.</PageTitle>
+      <PageTitle title="Users">Set an account’s plan here; its devices pick it up at their next licence check (within about a day while online). Suspending a user signs them out everywhere, stops TrustCode on their devices at the next check and blocks new sign-ins. Every change is logged in the audit log.</PageTitle>
       <form className="mb-5 flex max-w-md gap-2" role="search"><input name="q" placeholder="Search email or user id" aria-label="Search users" className="input mt-0" />
         <button className="btn btn-ghost">Search</button></form>
       <Suspense fallback={<Skeleton h="h-80" />}><Table searchParams={searchParams} /></Suspense>

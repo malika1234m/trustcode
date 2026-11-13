@@ -228,6 +228,18 @@ def current_admin(user: User = Depends(current_user)) -> User:
     return user
 
 
+def _plan_counts(db: Session) -> dict:
+    from ..billing.subscriptions import state_of
+    from ..models import Subscription
+    total = db.scalar(select(func.count()).select_from(User).where(User.is_local.is_(False))) or 0
+    counts: dict[str, int] = {}
+    for sub in db.scalars(select(Subscription)):
+        st = state_of(sub)
+        if st["paid"]:
+            counts[st["plan_id"]] = counts.get(st["plan_id"], 0) + 1
+    return {"free": max(total - sum(counts.values()), 0), **counts}
+
+
 @router.get("/admin/overview", tags=["admin"])
 def admin_overview(admin: User = Depends(current_admin), db: Session = Depends(get_db)):
     n = now()
@@ -239,7 +251,7 @@ def admin_overview(admin: User = Depends(current_admin), db: Session = Depends(g
         "active_users_30d": count(select(func.count(func.distinct(VerificationJob.user_id))).where(VerificationJob.created_at >= n - timedelta(days=30))),
         "verifications_this_month": count(select(func.count()).select_from(VerificationJob).where(VerificationJob.created_at >= month_start())),
         "tickets_open": count(select(func.count()).select_from(SupportTicket).where(SupportTicket.status.in_(["open", "pending"]))),
-        "plans": {"free": count(select(func.count()).select_from(User).where(User.is_local.is_(False)))},
+        "plans": _plan_counts(db),
         "billing_live": False,
     }
 
@@ -253,8 +265,44 @@ def admin_users(q: str | None = Query(None, max_length=254), limit: int = Query(
     total = _count(db, stmt)
     rows = list(db.scalars(stmt.order_by(User.created_at.desc(), User.id).offset(offset).limit(limit)))
     return {"total": total, "items": [{"id": u.id, "email": u.email, "role": u.role, "suspended": u.suspended,
-                                       "created_at": u.created_at, "plan": plan_for(u, db)["id"],
+                                       "created_at": u.created_at, "plan": plan_for(u, db)["id"], "plan_until": _plan_until(db, u),
                                        "verifications_this_month": usage_this_month(db, u.id)} for u in rows]}
+
+
+class PlanIn(BaseModel):
+    plan: Literal["free", "pro", "team"]
+    until: str | None = Field(default=None, max_length=10, description="YYYY-MM-DD (end of that day, UTC); empty = no end date")
+
+
+@router.post("/admin/users/{user_id}/plan", tags=["admin"])
+def admin_set_plan(user_id: str, body: PlanIn, request: Request, admin: User = Depends(current_admin), db: Session = Depends(get_db)):
+    """Set an account's plan. Devices pick it up at their next licence refresh (within about a day while online)."""
+    from datetime import datetime, timezone
+    from ..billing.subscriptions import admin_set_plan as set_plan
+    from ..licensing.service import record
+    u = db.get(User, user_id)
+    if not u:
+        raise HTTPException(404, "user not found")
+    until = None
+    if body.until:
+        try:
+            until = datetime.strptime(body.until, "%Y-%m-%d").replace(hour=23, minute=59, second=59, tzinfo=timezone.utc)
+        except ValueError:
+            raise HTTPException(422, "until must be a date (YYYY-MM-DD)")
+    try:
+        set_plan(db, u, body.plan, until)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    record(db, "plan_changed", u.id, detail=f"{body.plan} until {body.until or 'no end date'} (administrator)")
+    audit(db, request, "admin_set_plan", admin.id, target=u.id, plan=body.plan, until=body.until)
+    db.commit()
+    return {"id": u.id, "plan": plan_for(u, db)["id"], "entitlements": entitlements_for(db, u)["subscription"]}
+
+
+def _plan_until(db: Session, u: User):
+    from ..billing.subscriptions import state_of, subscription_of
+    st = state_of(subscription_of(db, u))
+    return st.get("current_period_end") if st["paid"] else None
 
 
 @router.post("/admin/users/{user_id}/{action}", tags=["admin"])

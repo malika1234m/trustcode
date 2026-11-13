@@ -4,7 +4,7 @@ import { fmtDate, fmtTime } from '@/lib/data';
 export type Device = { id: string; name: string; platform: string | null; status: string; activated_at: string; last_validated_at: string | null };
 export type Devices = { configured: boolean; plan: { id: string; name: string }; offline_grace_days: number; max_devices: number; active_devices: number; items: Device[] };
 
-/** Devices signed in to this account. The extension works without an account; a device appears here after signing in. */
+/** Devices signed in to this account. TrustCode needs a signed-in account; a device appears here after signing in. */
 export function DeviceList({ d }: { d: Devices }) {
   const active = d.items.filter((x) => x.status === 'active');
   return (
@@ -29,7 +29,7 @@ export function DeviceList({ d }: { d: Devices }) {
         </ul>
       ) : <p className="mt-4 text-sm text-muted">No devices yet. Sign in from the TrustCode extension in VS Code to add one.</p>}
       {d.items.some((x) => x.status === 'revoked') && <p className="mt-3 text-sm text-warn">A device on this account was blocked by an administrator. Contact support if this is unexpected.</p>}
-      <p className="mt-4 text-xs text-dim">Signing out a device turns off its plan the next time it connects. Checks on the Free plan keep working on every device, with or without an account.</p>
+      <p className="mt-4 text-xs text-dim">Signing out a device stops TrustCode on it the next time it connects (or when its offline period ends). Sign in again on that device to use it.</p>
     </section>
   );
 }

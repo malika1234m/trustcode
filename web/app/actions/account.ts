@@ -89,3 +89,17 @@ export async function adminLicencePolicy(_: Msg, form: FormData): Promise<Msg> {
   revalidatePath('/admin/licences');
   return { ok: 'Saved. It applies the next time each device refreshes its licence.' };
 }
+
+export async function adminSetPlan(_: Msg, form: FormData): Promise<Msg> {
+  const user = String(form.get('user') ?? '');
+  const plan = String(form.get('plan') ?? '');
+  const until = String(form.get('until') ?? '').trim();
+  if (!ID.test(user)) return { error: 'Unknown account.' };
+  if (!['free', 'pro', 'team'].includes(plan)) return { error: 'Choose a plan.' };
+  if (until && !/^\d{4}-\d{2}-\d{2}$/.test(until)) return { error: 'Use a date, or leave it empty for no end date.' };
+  try { await api(`/admin/users/${user}/plan`, { method: 'POST', body: { plan, until: plan === 'free' ? null : until || null } }); }
+  catch (e) { return err(e); }
+  revalidatePath('/admin/users');
+  revalidatePath('/admin');
+  return { ok: 'Saved' };
+}

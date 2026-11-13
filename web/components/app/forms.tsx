@@ -1,6 +1,6 @@
 'use client';
 import { useActionState } from 'react';
-import { updateProfile, deleteAccount, replyTicket, adminLicencePolicy, type Msg } from '@/app/actions/account';
+import { updateProfile, deleteAccount, replyTicket, adminLicencePolicy, adminSetPlan, type Msg } from '@/app/actions/account';
 
 function Note({ s }: { s: Msg }) {
   if (s.error) return <p role="alert" className="mt-3 text-sm text-err">{s.error}</p>;
@@ -81,6 +81,24 @@ export function LicencePolicyForm({ user, grace, devices }: { user: string; grac
       <p className="text-xs text-dim">Leave a field empty to use the plan default. Changes apply when each device next refreshes its licence.</p>
       <button disabled={pending} className="btn btn-primary">{pending ? 'Saving…' : 'Save policy'}</button>
       <Note s={s} />
+    </form>
+  );
+}
+
+
+/** Admin: set an account's plan, with an optional end date. Devices pick it up at their next licence check. */
+export function PlanForm({ user, plan, until, label }: { user: string; plan: string; until: string | null; label: string }) {
+  const [s, action, pending] = useActionState<Msg, FormData>(adminSetPlan, {});
+  return (
+    <form action={action} className="flex min-w-[19rem] flex-wrap items-center gap-2">
+      <input type="hidden" name="user" value={user} />
+      <select name="plan" defaultValue={plan} aria-label={`Plan for ${label}`} className="input mt-0 h-9 !w-24 py-0 text-xs">
+        <option value="free">Free</option><option value="pro">Pro</option><option value="team">Team</option>
+      </select>
+      <input name="until" type="date" defaultValue={until ? until.slice(0, 10) : ''} aria-label={`Plan end date for ${label} (empty: no end date)`}
+        title="End date (empty: no end date)" className="input mt-0 h-9 !w-36 py-0 text-xs" />
+      <button disabled={pending} className="min-h-9 rounded-lg border border-line2 px-3 text-xs font-medium hover:bg-card2">{pending ? 'Saving…' : 'Set'}</button>
+      {s.error ? <span role="alert" className="text-xs text-err">{s.error}</span> : s.ok ? <span role="status" className="text-xs text-ok">{s.ok}</span> : null}
     </form>
   );
 }

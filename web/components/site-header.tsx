@@ -118,7 +118,7 @@ export function SiteHeaderClient() {
           ))}
           <div className="mt-6 grid gap-3">
             <a href={INSTALL_URL} className="btn btn-primary w-full">Download for VS Code</a>
-            <Link href="/login" onClick={() => setOpen(false)} className="btn btn-ghost w-full">Sign in (optional)</Link>
+            <Link href="/login" onClick={() => setOpen(false)} className="btn btn-ghost w-full">Sign in</Link>
           </div>
         </nav>
       </div>

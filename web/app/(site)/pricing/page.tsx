@@ -5,7 +5,7 @@ import { INSTALL_LABEL, INSTALL_URL } from '@/lib/config';
 import { getPlans, type Plan } from '@/lib/plans';
 import { CheckIcon, MinusIcon } from '@/components/icons';
 
-export const metadata: Metadata = { title: 'Pricing', description: 'Analysis on your computer is free, not metered and needs no account. Plans apply to the optional TrustCode server.', alternates: { canonical: '/pricing' } };
+export const metadata: Metadata = { title: 'Pricing', description: 'TrustCode is free with an account. Analysis on your computer is not metered. Plans apply to the optional TrustCode server.', alternates: { canonical: '/pricing' } };
 
 const yes = <><CheckIcon className="h-4 w-4 text-ok" label="Included" /></>;
 const no = <><MinusIcon className="h-4 w-4 text-dim" label="Not included" /></>;
@@ -24,7 +24,7 @@ export default async function Pricing() {
   const data = await getPlans();
   return (
     <>
-      <PageHero eyebrow="Pricing" title="Free on your computer">Analysis on your computer is free, is not metered and needs no account. The plans below apply only to the optional TrustCode server. Paid plans are planned: no payment provider is connected, no prices are set and every account is Free.</PageHero>
+      <PageHero eyebrow="Pricing" title="Free on your computer">TrustCode is free: create an account and sign in from VS Code. Analysis on your computer is not metered. The plans below apply only to the optional TrustCode server. Paid plans are planned: no payment provider is connected, no prices are set and every account is Free.</PageHero>
       <Container>
         {!data ? (
           <p className="card p-6 text-center text-muted">Plan details are temporarily unavailable. Please try again shortly.</p>
@@ -59,7 +59,7 @@ export default async function Pricing() {
         <div className="mx-auto mt-14 max-w-3xl space-y-4">
           {[
             ['Will the Free plan stay?', 'Yes. A free tier is part of the plan; limits may change with notice.'],
-            ['Do I need an account?', 'No. The Security, Verify and Session tabs run on your computer without one. An account is only for server analysis, if you choose it, or a paid plan once plans are on sale.'],
+            ['Do I need an account?', 'Yes. TrustCode is free, but you sign in with a TrustCode account to use it. Your code is still checked on your computer and is not uploaded.'],
             ['What happens at the monthly limit?', 'The limit applies to server analysis only; local analysis is not metered. On the server, new verifications pause until the next month and results you already have stay available.'],
             ['How will payment work?', 'When paid plans launch, checkout will be handled by a Merchant of Record that takes care of payments, invoices and sales tax. TrustCode never stores card details.'],
           ].map(([q, a]) => <div key={q} className="card p-5"><h3 className="font-semibold">{q}</h3><p className="mt-1 text-sm text-muted">{a}</p></div>)}

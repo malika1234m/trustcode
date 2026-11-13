@@ -100,7 +100,11 @@ export class SecurityController implements vscode.Disposable {
   }
 
   /** `paths`: scan exactly these workspace-relative files (used for AI-session change sets). */
+  /** Set by the extension: false until a registered account is confirmed on this device. */
+  gate: () => boolean = () => true;
+
   async scan(mode: string, opts: { noCache?: boolean; paths?: string[]; quiet?: boolean } = {}): Promise<SecReport | undefined> {
+    if (!this.gate()) return undefined;
     if (!MODES.includes(mode) || !this.root() || !vscode.workspace.isTrusted) { this.refresh(); return undefined; }
     if (this.scanning) { this.dirty = true; return undefined; }
     this.scanning = { mode };

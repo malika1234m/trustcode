@@ -76,6 +76,8 @@ def issue(db: Session, user: User, device: LicenceDevice) -> tuple[str, dict]:
     t = now().replace(microsecond=0)
     offline_until = t + timedelta(days=pol["offline_grace_days"])
     paid = pol["paid_until"]
+    if paid is None and pol["plan"]["id"] != "free":
+        paid = offline_until   # open-ended plan (admin grant): bounded by the offline period, renewed at each refresh
     _revoke_licences(db, device, "superseded")
     lic = Licence(user_id=user.id, device_row_id=device.id, plan_id=pol["plan"]["id"], key_id=s.licence_key_id,
                   issued_at=t, offline_until=offline_until, paid_until=paid)

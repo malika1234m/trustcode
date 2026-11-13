@@ -246,3 +246,33 @@ def test_device_can_release_its_own_activation(client, auth):
     assert r.json() == {"status": "deactivated"}
     assert client.get(f"{V}/licence/devices", headers=auth).json()["active_devices"] == 0
     assert d.refresh(client, user).status_code == 403
+
+
+def _admin_headers(client):
+    reg = client.post(f"{V}/auth/register", json={"email": f"pl{uuid.uuid4().hex[:6]}@uni.example", "password": "correct-horse-1"}).json()
+    h = {"Authorization": f"Bearer {reg['access_token']}"}
+    make_admin(client, h)
+    return h
+
+
+def test_admin_sets_plan_and_licence_follows(client, auth):
+    user = uid(client, auth)
+    ah = _admin_headers(client)
+    assert client.post(f"{V}/admin/users/{user}/plan", headers=auth, json={"plan": "pro"}).status_code == 403
+    r = client.post(f"{V}/admin/users/{user}/plan", headers=ah, json={"plan": "pro"})
+    assert r.status_code == 200 and r.json()["plan"] == "pro"
+    p = payload(Device().activate(client, auth))
+    assert p["plan"]["id"] == "pro" and p["paid_until"] == p["offline_until"]   # open-ended grant, bounded offline
+    assert client.get(f"{V}/me/entitlements", headers=auth).json()["plan"]["id"] == "pro"
+    until = (now() + timedelta(days=10)).strftime("%Y-%m-%d")
+    client.post(f"{V}/admin/users/{user}/plan", headers=ah, json={"plan": "team", "until": until})
+    p = payload(Device().activate(client, auth))
+    assert p["plan"]["id"] == "team" and p["paid_until"] < p["offline_until"]
+    assert client.post(f"{V}/admin/users/{user}/plan", headers=ah, json={"plan": "pro", "until": "2001-01-01"}).status_code == 422
+    assert client.post(f"{V}/admin/users/{user}/plan", headers=ah, json={"plan": "gold"}).status_code == 422
+    client.post(f"{V}/admin/users/{user}/plan", headers=ah, json={"plan": "free"})
+    assert client.get(f"{V}/me/entitlements", headers=auth).json()["plan"]["id"] == "free"
+    listing = client.get(f"{V}/admin/users", headers=ah, params={"q": user}).json()["items"][0]
+    assert listing["plan"] == "free" and listing["plan_until"] is None
+    events = [e["event"] for e in client.get(f"{V}/licence/history", headers=auth).json()["items"]]
+    assert "plan_changed" in events

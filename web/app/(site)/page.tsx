@@ -12,7 +12,7 @@ import { WorkspaceScan } from '@/components/visuals/workspace-scan';
 import { AgentHub } from '@/components/visuals/agent-hub';
 import { Architecture } from '@/components/visuals/pipeline';
 import { LocalProof } from '@/components/landing/local-proof';
-import { INSTALL_URL, RELEASE_VERSION, TRUST_CENTER_URL } from '@/lib/config';
+import { RELEASE_VERSION, TRUST_CENTER_URL } from '@/lib/config';
 import { getPlans } from '@/lib/plans';
 import type { Status } from '@/lib/capabilities';
 
@@ -36,13 +36,14 @@ const RISKS: { icon: Icon; title: string; line: string; code: [string, string, s
 ];
 
 const STEPS: [Icon, string, string][] = [
-  [CodeIcon, 'Install the extension', `Download trustcode-${RELEASE_VERSION}.vsix and run “Extensions: Install from VSIX…” in VS Code.`],
+  [LockIcon, 'Create a free account', 'Register on this website. It takes a minute and costs nothing.'],
+  [CodeIcon, 'Install and sign in', `Download trustcode-${RELEASE_VERSION}.vsix, install it in VS Code and sign in with your account.`],
   [ServerIcon, 'Set up the local engine once', 'TrustCode asks first, then creates a private Python environment and downloads the analysis tools from PyPI.'],
   [ShieldIcon, 'Verify', 'Select code, or track an AI session, and verify. The checks run on your computer.'],
 ];
 
 const PRIVACY: [string, string][] = [
-  ['Nothing uploaded', 'Security, Verify and Session analyse code on your computer. No account is needed.'],
+  ['Nothing uploaded', 'Security, Verify and Session analyse code on your computer. Your account only confirms who is using TrustCode.'],
   ['No telemetry', 'The extension contains no analytics, usage tracking or crash reporting.'],
   ['History kept locally', 'Results, decisions and feedback are stored in VS Code’s storage on your computer.'],
   ['Two downloads only', 'The one-time engine setup from PyPI, and a daily update check against GitHub releases.'],
@@ -71,7 +72,7 @@ async function Pricing() {
                 <li className="flex gap-2"><CheckIcon className="mt-0.5 h-4 w-4 text-ok" />{p.limits.history_days}-day server history</li>
                 <li className="flex gap-2">{p.features.llm_explanations ? <CheckIcon className="mt-0.5 h-4 w-4 text-ok" /> : <MinusIcon className="mt-0.5 h-4 w-4 text-dim" />}AI-worded explanations</li>
               </ul>
-              {live ? <a href={INSTALL_URL} className="btn btn-neon mt-7">Download for VS Code</a>
+              {live ? <Link href="/register" className="btn btn-neon mt-7">Create a free account</Link>
                     : <Link href="/contact" className="btn btn-ghost mt-7">Tell us you’re interested</Link>}
             </div>
           </Reveal>
@@ -92,9 +93,9 @@ export default function Home() {
             <h1 className="mt-6 text-[3rem] font-bold leading-[1] tracking-[-0.035em] sm:text-[4.2rem] lg:text-[4.6rem]">
               Your AI writes.<br /><span className="text-neon">TrustCode protects.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-xl leading-relaxed text-muted">Checks AI-written code on your computer. <span className="text-fg">Your code is never uploaded. No account needed.</span></p>
+            <p className="mt-6 max-w-xl text-xl leading-relaxed text-muted">Checks AI-written code on your computer. <span className="text-fg">Your code is never uploaded. Free with an account.</span></p>
             <div className="mt-9 flex flex-wrap gap-3">
-              <a href={INSTALL_URL} className="btn btn-neon !min-h-14 !px-6"><CodeIcon className="h-5 w-5" />Download for VS Code</a>
+              <Link href="/register" className="btn btn-neon !min-h-14 !px-6"><CodeIcon className="h-5 w-5" />Get started free</Link>
               <Link href="#demo" className="btn btn-ghost !min-h-14 !px-6"><PlayIcon className="h-5 w-5" />Explore the demo</Link>
             </div>
             <LocalProof />
@@ -123,8 +124,8 @@ export default function Home() {
       {/* How it works */}
       <section id="how-it-works" aria-labelledby="how-title" className="scroll-mt-20 pt-20 md:pt-24">
         <Container>
-          <Reveal className="mb-10"><Title id="how-title">Three steps. All on your machine.</Title></Reveal>
-          <ol className="grid gap-4 md:grid-cols-3">
+          <Reveal className="mb-10"><Title id="how-title">Four steps. Free, and your code stays on your machine.</Title></Reveal>
+          <ol className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {STEPS.map(([I, t, d], i) => (
               <li key={t} className="tile relative p-6">
                 <span className="mono text-sm text-[var(--neon-cyan)]">{String(i + 1).padStart(2, '0')}</span>
@@ -231,7 +232,7 @@ export default function Home() {
         <Container>
           <Reveal className="mb-14 text-center">
             <Title id="pricing-title" center>Free on your computer.</Title>
-            <p className="mx-auto mt-4 max-w-xl text-muted">Local analysis is not metered and needs no account. Plans and limits apply to the optional server. No payment provider is connected: every account is Free.</p>
+            <p className="mx-auto mt-4 max-w-xl text-muted">TrustCode is free with an account, and local analysis is not metered. Plans and limits apply to the optional server. No payment provider is connected: every account is Free.</p>
           </Reveal>
           <Pricing />
         </Container>
@@ -246,7 +247,7 @@ export default function Home() {
             <div className="relative">
               <h2 id="cta-title" className="text-4xl font-bold tracking-[-0.03em] sm:text-6xl">Ship code with confidence.</h2>
               <div className="mt-9 flex flex-wrap justify-center gap-3">
-                <a href={INSTALL_URL} className="btn btn-neon !min-h-14 !px-8 text-base">Get TrustCode<ArrowRightIcon className="h-4 w-4" /></a>
+                <Link href="/register" className="btn btn-neon !min-h-14 !px-8 text-base">Create your free account<ArrowRightIcon className="h-4 w-4" /></Link>
                 <Link href="/docs/getting-started" className="btn btn-ghost !min-h-14 !px-6">Setup guide</Link>
               </div>
             </div>

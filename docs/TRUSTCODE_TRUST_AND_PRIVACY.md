@@ -10,7 +10,7 @@ This describes what the code does today (extension 1.0.0, engine 1.0.0). Where s
                       │   ├─ Security tab ──▶ local scanner (trustcode-scan)             │   nothing leaves
                       │   ├─ Verify / Session tabs ──▶ local engine (Python)             │   the machine
                       │   │      Ruff · Pyflakes · mypy · Semgrep · tree-sitter           │
-                      │   ├─ Account tab ──(only if you sign in: account identity)───────┼──▶ TrustCode server
+                      │   ├─ Account and licence check ──(account identity, no code)──┼──▶ TrustCode server
                       │   └─ Update check ──(no account or project data)─────────────────┼──▶ GitHub releases
                       └───────────────────────────────────────────────────────────────────┘
  One-time engine setup (after you agree) downloads the analysis tools from PyPI.
@@ -36,8 +36,8 @@ you choose is sent after a confirmation dialog, exactly as before 1.0.0. Design:
 | Your API keys and credentials | Never collected | TrustCode asks for none. Secrets the scanner finds are masked before display or storage | — |
 | Sign-in token | Sent to the TrustCode server only | Every authenticated request | VS Code SecretStorage, bound to the server address |
 | Account identity for plan checks | Yes | When the Account tab is opened | Last answer cached in SecretStorage for 72 hours |
-| Device registration (only when you sign in) | A random install id, a device public key, the device name (`<editor> on <computer name>`) and the platform, to the TrustCode server | At sign-in; shown to you under Devices in the web dashboard | Until you sign the device out or delete the account |
-| Licence check (only when signed in) | The install id, your account id and a request counter, signed with the device key. No code, file names or project data | At most about once a day, plus retries after a failed attempt; nothing when signed out | The signed licence and device key in VS Code SecretStorage (the OS keychain) |
+| Device registration (at sign-in; an account is required to use TrustCode) | A random install id, a device public key, the device name (`<editor> on <computer name>`) and the platform, to the TrustCode server | At sign-in; shown to you under Devices in the web dashboard | Until you sign the device out or delete the account |
+| Account and licence check | The install id, your account id and a request counter, signed with the device key. No code, file names or project data | At startup if last confirmed over an hour ago, then about once a day, plus retries after a failed attempt | The signed licence and device key in VS Code SecretStorage (the OS keychain) |
 | Dependency names and versions | Only if you turn on advisory lookups | `trustcode.scanner.onlineAdvisories` | Not stored by TrustCode |
 | Finding details to an AI provider | Only if the setting, your profile toggle and the server all allow it | Off by default; the hosted server has no provider configured | — |
 | Telemetry, analytics, crash reports | None | The code contains none | — |

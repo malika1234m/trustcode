@@ -34,6 +34,7 @@ const DEVICE_KEY = 'trustcode.licence.device';
 const MIN = 60_000;
 export const BACKOFF_MS = [1, 2, 4, 8, 16, 32, 60, 120, 240, 360].map((m) => m * MIN);
 const TICK_MS = 60 * MIN;
+export const STARTUP_MAX_AGE_MS = 60 * MIN;
 const REFUSALS = new Set(['device_not_recognised', 'device_deactivated', 'device_revoked', 'account_suspended']);
 
 export const normaliseBackend = (u: string) => u.trim().replace(/\/+$/, '').toLowerCase();
@@ -50,7 +51,7 @@ export class LicenceManager {
   private disposed = false;
 
   constructor(private d: LicenceDeps) {
-    this.view = evaluate({ nowMs: this.now(), clockFloorMs: 0, offline: false, freeFeatures: d.freeFeatures });
+    this.view = evaluate({ nowMs: this.now(), clockFloorMs: 0, offline: false, freeFeatures: d.freeFeatures });   // until load(): not usable
   }
 
   private now() { return (this.d.now ?? Date.now)(); }
@@ -141,15 +142,16 @@ export class LicenceManager {
   }
 
   /** Contacts the server only when due (or forced). Never throws: failures become the offline state. */
-  sync(force = false): Promise<void> {
+  sync(force = false, maxAgeMs?: number): Promise<void> {
     if (this.syncing) return this.syncing;
-    this.syncing = this.doSync(force).finally(() => { this.syncing = undefined; });
+    this.syncing = this.doSync(force, maxAgeMs).finally(() => { this.syncing = undefined; });
     return this.syncing;
   }
 
-  private async doSync(force: boolean) {
+  private async doSync(force: boolean, maxAgeMs?: number) {
     if (!this.payload || this.disposed) return;
-    const due = this.now() >= this.payload.refresh_after * 1000 || !!this.rec.offline || this.view.status === 'connection_required';
+    const due = this.now() >= this.payload.refresh_after * 1000 || !!this.rec.offline || this.view.status === 'connection_required'
+      || (maxAgeMs !== undefined && this.now() - this.payload.validated_at * 1000 > maxAgeMs);
     if (!force && !due) return;
     const device = await this.loadDevice(false);
     if (!device) return;
@@ -223,11 +225,18 @@ export class LicenceManager {
   startTimers() {
     if (this.tickTimer || this.disposed) return;
     const tick = () => { void this.touchClock().then(() => this.sync()).then(() => this.publish()); this.tickTimer = this.schedule(tick, TICK_MS); };
-    this.tickTimer = this.schedule(tick, 15_000);   // first check shortly after startup, never during it
+    // Shortly after startup (never during it), confirm the account online if it was last confirmed over an hour ago:
+    // a deleted, suspended or signed-out account is noticed at the next start while online.
+    this.tickTimer = this.schedule(() => { void this.touchClock().then(() => this.sync(false, STARTUP_MAX_AGE_MS)).then(() => this.publish());
+      this.tickTimer = this.schedule(tick, TICK_MS); }, 15_000);
   }
+
+  /** A registered account is confirmed on this device (TrustCode may run). */
+  usable(): boolean { return this.view.usable; }
 
   /** True when the plan currently in force includes `feature`. The server checks again for anything it serves. */
   allows(feature: string): boolean {
+    if (!this.view.usable) return false;
     const v = this.view.features[feature];
     return v === true || (typeof v === 'string' && v.length > 0);
   }

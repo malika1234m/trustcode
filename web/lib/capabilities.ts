@@ -74,7 +74,7 @@ export const ROADMAP: { group: string; items: Capability[] }[] = [
       { name: 'Evidence and not-checked list', detail: 'Every finding shows file, exact range, rule and redacted evidence. Every report lists what was skipped and why.', status: 'available' },
       { name: 'Confidence levels', detail: 'Confirmed, strongly suspected or potential, separate from severity.', status: 'available' },
       { name: 'Reviews and baselines', detail: 'Mark a finding as a reviewed false positive (who, when, why) or accept existing findings as a baseline.', status: 'available' },
-      { name: 'Analysis on your computer', detail: 'Security, Verify and Session run on your machine. Code is not uploaded and no account is needed.', status: 'available' },
+      { name: 'Analysis on your computer', detail: 'Security, Verify and Session run on your machine. Code is not uploaded.', status: 'available' },
       { name: 'Optional server analysis', detail: 'Choose trustcode.analysis.location = server to send selected code to the TrustCode server, after a consent dialog. Needs an account.', status: 'available' },
       { name: 'Copy a fix prompt for your agent', detail: 'Hand findings back to your coding agent as a ready-made prompt.', status: 'available' },
     ],

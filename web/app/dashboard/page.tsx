@@ -41,7 +41,7 @@ export default function Overview() {
       <PageTitle title="Overview">Your plan, usage and quick links.</PageTitle>
       <Suspense fallback={<Skeleton h="h-52" />}><Plan /></Suspense>
       <div className="mt-5 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {[['Use it in VS Code', 'Analysis runs on your computer without an account. Sign in from the Account tab only for account features or server analysis.', INSTALL_URL, INSTALL_LABEL],
+        {[['Use it in VS Code', 'Install the extension and sign in with this account. The checks run on your computer; the account confirms who is using TrustCode.', INSTALL_URL, INSTALL_LABEL],
           ['Read your results', 'What each check means, and why “Not verified” matters.', '/docs/reading-results', 'Open guide'],
           ['Need help?', 'Open a support ticket and track replies here.', '/dashboard/support', 'Support']].map(([t, d, h, l]) => (
           <div key={t} className="card p-6"><h2 className="font-semibold">{t}</h2><p className="mt-1 text-sm text-muted">{d}</p>

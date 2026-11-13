@@ -230,7 +230,11 @@ export class SessionController implements vscode.Disposable {
   }
 
   // ------------------------------------------------------------------ session lifecycle
+  /** Set by the extension: false until a registered account is confirmed on this device. */
+  gate: () => boolean = () => true;
+
   async start(agentHint?: string): Promise<boolean> {
+    if (!this.gate()) return false;
     if (!this.hasWorkspace()) { vscode.window.showInformationMessage('TrustCode: open a folder to track a session.'); return false; }
     if (this.session && this.session.status !== 'ended') {
       const c = counts(this.session);
@@ -642,6 +646,7 @@ export class SessionController implements vscode.Disposable {
    * the server is not already approved, the run is not started and the user is told a review is ready.
    */
   async verify(scope: string, trigger: Trigger, interactive: boolean, picked?: string[]): Promise<void> {
+    if (!this.gate()) return;
     if (this.busy) { if (interactive) vscode.window.setStatusBarMessage('TrustCode: a verification is already running', 3000); else this.rerunRequested = true; return; }
     this.busy = { message: 'Collecting changes…', done: 0, total: 0 };
     this.host.refresh();

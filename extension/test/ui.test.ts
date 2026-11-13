@@ -11,9 +11,10 @@ test('page shows header, five tabs and marks the active one', () => {
   assert.match(html, /● trustcode-api\.vercel\.app/);
 });
 
-test('welcome offers sign in, create account and local mode, and escapes the server URL', () => {
-  const html = welcome(`https://x.example/${XSS}`);
-  for (const a of ['signIn', 'createAccount', 'useLocal']) assert.match(html, new RegExp(`data-action="${a}"`));
+test('welcome asks for a free account (no way around it), and escapes the server URL and reason', () => {
+  const html = welcome(`https://x.example/${XSS}`, XSS);
+  for (const a of ['signIn', 'createAccount']) assert.match(html, new RegExp(`data-action="${a}"`));
+  assert.doesNotMatch(html, /data-action="useLocal"|data-tab="security"/);
   assert.ok(!html.includes('<img src=x'));
 });
 

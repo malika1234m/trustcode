@@ -930,11 +930,25 @@ export function activate(ctx: vscode.ExtensionContext) {
   ctx.subscriptions.push(engineLog, engine.onDidChange(() => { void view.showTab(view.activeTab).catch(() => undefined); }));
   const applyDisplay = () => setShowExplanations(cfg().get<boolean>('showExplanations', false));
   applyDisplay();
+  // The last result is kept per workspace in VS Code's storage (outside the project, file mode 0600), so starting
+  // VS Code shows it at once instead of scanning the whole project again.
+  const reportFile = ctx.storageUri ? path.join(ctx.storageUri.fsPath, 'security-report.json') : undefined;
+  const reportStore = reportFile ? {
+    load: () => { try { return fs.readFileSync(reportFile, 'utf8'); } catch { return undefined; } },
+    save: (json: string | undefined) => {
+      try {
+        if (json === undefined) { fs.rmSync(reportFile, { force: true }); return; }
+        fs.mkdirSync(path.dirname(reportFile), { recursive: true });
+        fs.writeFileSync(reportFile + '.tmp', json, { mode: 0o600 });
+        fs.renameSync(reportFile + '.tmp', reportFile);
+      } catch { /* a convenience: without it the next start scans again */ }
+    },
+  } : undefined;
   const security = new SecurityController(() => view.refreshSecurity(), (text, tooltip) => {
     const item = view.securityItem;
     if (!item) return;
     if (text) { item.text = text; item.tooltip = tooltip; item.show(); } else item.hide();
-  }, () => engine.scanner());
+  }, () => engine.scanner(), reportStore);
   view.security = security;
   // once the engine is installed its scanner exists too: the Security tab stops saying "scanner not found"
   ctx.subscriptions.push(engine.onDidChange(() => { if (engine.scanner() && security.model().availability === 'missing') void security.scan('full', { quiet: true }).catch(() => undefined); }));

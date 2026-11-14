@@ -12,6 +12,11 @@ const SEV: Record<string, vscode.DiagnosticSeverity> = {
 };
 const CONF: Record<string, string> = { confirmed: 'confirmed', strongly_suspected: 'strongly suspected', potential: 'needs review' };
 const MODES = ['full', 'changed', 'new', 'staged', 'push', 'production'];
+/** Where the last result is kept between sessions (per workspace, outside the project). */
+export interface ReportStore { load(): string | undefined; save(json: string | undefined): void }
+/** Above this many changed files an automatic rescan covers the whole project instead of a list of files. */
+export const MAX_CHANGED_PATHS = 300;
+const STORE_VERSION = 1;
 const IGNORED_EVENT = /(^|[\\/])(\.git|\.trustcode|node_modules|\.venv|venv|dist|build|out|__pycache__|\.next)([\\/]|$)/;
 
 export class SecurityController implements vscode.Disposable {
@@ -26,6 +31,10 @@ export class SecurityController implements vscode.Disposable {
   private proc?: ChildProcess;
   private timer?: NodeJS.Timeout;
   private dirty = false;
+  /** Workspace-relative files created, changed or deleted since the last automatic rescan. */
+  private pending = new Set<string>();
+  /** The result on screen was restored from the previous session (when it was scanned). */
+  restoredFrom?: string;
   private disposables: vscode.Disposable[] = [];
   readonly diagnostics = vscode.languages.createDiagnosticCollection('trustcode-security');
   private readonly decoration = vscode.window.createTextEditorDecorationType({
@@ -34,7 +43,8 @@ export class SecurityController implements vscode.Disposable {
   });
 
   /** `managedScanner`: the scanner of the engine TrustCode installed (outside the workspace), used unless the user configured another one. */
-  constructor(private refresh: () => void, private status: (text: string | undefined, tooltip?: string) => void, private managedScanner: () => string | undefined = () => undefined) {
+  constructor(private refresh: () => void, private status: (text: string | undefined, tooltip?: string) => void, private managedScanner: () => string | undefined = () => undefined,
+              private store?: ReportStore) {
     const w = vscode.workspace.createFileSystemWatcher('**/*');
     const on = (u: vscode.Uri) => this.onFileEvent(u);
     this.disposables.push(this.diagnostics, this.decoration, w, w.onDidCreate(on), w.onDidChange(on), w.onDidDelete(on),
@@ -96,7 +106,7 @@ export class SecurityController implements vscode.Disposable {
   model(): SecurityModel {
     const availability = !this.root() ? 'no-workspace' : !vscode.workspace.isTrusted ? 'untrusted' : this.availability;
     return { availability, scanning: this.scanning, report: this.report, error: this.error, groupBy: this.groupBy, automatic: this.cfg().get('scanner.automatic', true),
-      scannerCommand: this.command(), hooks: this.hooks, online: this.cfg().get('scanner.onlineAdvisories', false) };
+      scannerCommand: this.command(), hooks: this.hooks, online: this.cfg().get('scanner.onlineAdvisories', false), restoredFrom: this.restoredFrom };
   }
 
   /** `paths`: scan exactly these workspace-relative files (used for AI-session change sets). */
@@ -107,9 +117,9 @@ export class SecurityController implements vscode.Disposable {
     if (!this.gate()) return undefined;
     if (!MODES.includes(mode) || !this.root() || !vscode.workspace.isTrusted) { this.refresh(); return undefined; }
     if (this.scanning) { this.dirty = true; return undefined; }
-    this.scanning = { mode };
+    this.scanning = { mode: opts.paths ? 'changed' : mode };
     this.error = undefined;
-    this.lastMode = mode;
+    if (!opts.paths) this.lastMode = mode;   // Rescan repeats the last scan the user chose, not an automatic file list
     this.status('$(sync~spin) TrustCode: scanning…', 'Security scan running');
     this.refresh();
     const args = ['--format', 'json', '--mode', opts.paths ? 'changed' : mode];
@@ -130,6 +140,8 @@ export class SecurityController implements vscode.Disposable {
       }
       // a scan limited to some files must not wipe the findings of files it did not look at
       this.report = opts.paths && this.report ? this.merge(this.report, report, opts.paths) : report;
+      this.restoredFrom = undefined;
+      this.persist();
       this.mark();
       void this.loadHooks();
       const n = visible(this.report).length;
@@ -149,12 +161,36 @@ export class SecurityController implements vscode.Disposable {
 
   private merge(prev: SecReport, part: SecReport, paths: string[]): SecReport {
     const touched = new Set(paths);
+    // a path can be a folder (created, renamed or deleted as a whole): it covers every file under it
+    const covered = (p: string) => touched.has(p) || paths.some((t) => p.startsWith(t + '/'));
     return { ...part, mode: prev.mode, files: { ...prev.files, fromCache: prev.files.fromCache },
-      findings: [...prev.findings.filter((f) => !touched.has(f.path)), ...part.findings],
+      findings: [...prev.findings.filter((f) => !covered(f.path)), ...part.findings],
       baseline: prev.baseline, gate: prev.gate, notes: [...new Set([...prev.notes, ...part.notes])] };
   }
 
   cancel() { this.proc?.kill(); }
+
+  /** Keeps the current result for the next session, so opening VS Code does not mean scanning the project again. */
+  private persist() {
+    if (!this.store || !this.report) return;
+    try { this.store.save(JSON.stringify({ v: STORE_VERSION, root: this.root(), savedAt: new Date().toISOString(), report: this.report })); } catch { /* storage is a convenience */ }
+  }
+
+  /** The result of the previous session for this folder, if there is one. Returns true when one was restored. */
+  restore(): boolean {
+    if (this.report || !this.store) return !!this.report;
+    try {
+      const d = JSON.parse(this.store.load() ?? 'null');
+      const r = d?.report;
+      if (!d || d.v !== STORE_VERSION || d.root !== this.root() || !r || !Array.isArray(r.findings) || typeof r.generatedAt !== 'string' || !r.files || !r.gate) return false;
+      this.report = { ...r, notes: Array.isArray(r.notes) ? r.notes : [] };
+      this.restoredFrom = r.generatedAt;
+      this.mark();
+      this.updateStatus();
+      this.refresh();
+      return true;
+    } catch { return false; }
+  }
   rescan() { return this.scan(this.lastMode, { noCache: true }); }
 
   private updateStatus() {
@@ -274,9 +310,14 @@ export class SecurityController implements vscode.Disposable {
     await this.scan(this.lastMode, { noCache: true, quiet: true });
   }
 
-  /** First scan of a session, without being asked: so a project is covered as soon as it is opened. */
+  /**
+   * A folder is opened. The previous result for it is shown at once; only a folder that was never scanned is scanned
+   * in full. Files changed while VS Code was closed are rescanned as soon as they change again, or with Rescan.
+   */
   startup() {
-    if (!this.cfg().get('scanner.scanOnStartup', true) || !this.root() || !vscode.workspace.isTrusted) return;
+    if (!this.gate() || !this.root() || !vscode.workspace.isTrusted) return;   // signed out: nothing is shown or scanned
+    if (this.restore()) return;
+    if (!this.cfg().get('scanner.scanOnStartup', true)) return;
     setTimeout(() => { if (!this.report && !this.scanning) void this.scan('full', { quiet: true }).catch(() => undefined); }, 4000);
   }
 
@@ -303,6 +344,9 @@ export class SecurityController implements vscode.Disposable {
   // ------------------------------------------------------------------ automatic scanning
   private onFileEvent(u: vscode.Uri) {
     if (u.scheme !== 'file' || IGNORED_EVENT.test(u.fsPath) || !this.cfg().get('scanner.automatic', true) || this.availability !== 'ready') return;
+    const root = this.root();
+    if (!root || !(u.fsPath === root || u.fsPath.startsWith(root + path.sep))) return;
+    this.pending.add(path.relative(root, u.fsPath).split(path.sep).join('/'));
     this.schedule();
   }
   /** One scan after changes have been quiet for a few seconds; a burst of writes by an agent is one batch. */
@@ -312,7 +356,11 @@ export class SecurityController implements vscode.Disposable {
     this.timer = setTimeout(() => {
       if (!this.report) return;   // automatic scans start after the first scan the user asked for
       if (this.scanning) { this.dirty = true; return; }
-      void this.scan(this.lastMode === 'production' ? 'full' : this.lastMode === 'staged' || this.lastMode === 'push' ? 'full' : this.lastMode, { quiet: true });
+      // only the files that changed; a very large batch (a checkout, a formatter run) covers the whole project
+      const paths = [...this.pending];
+      this.pending.clear();
+      if (paths.length && paths.length <= MAX_CHANGED_PATHS) void this.scan('changed', { paths, quiet: true });
+      else if (paths.length) void this.scan('full', { quiet: true });
     }, wait);
   }
 

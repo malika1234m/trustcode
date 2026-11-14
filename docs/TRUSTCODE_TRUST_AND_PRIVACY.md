@@ -26,7 +26,7 @@ you choose is sent after a confirmation dialog, exactly as before 1.0.0. Design:
 
 | Data | Leaves your machine? | When | Stored |
 |---|---|---|---|
-| Files read by the Security tab | No | — | Findings in `.trustcode/` inside the project |
+| Files read by the Security tab | No | — | Findings in `.trustcode/` inside the project, and the last result per folder in VS Code's workspace storage on this machine (file mode 0600, secrets masked), so it is shown again when VS Code starts |
 | Code you verify (Verify tab), files a session changed (Session tab) | **No** with local analysis (default) | — | Results of the last 25 runs, decisions and ratings in VS Code's storage on this machine (file mode 0600, not encrypted) |
 | The same, if you select server analysis | Yes, to the TrustCode server | Only after a confirmation dialog that states how much is sent and where | Source is deleted when analysis ends; results expire after 24 hours (30 days with history on) |
 | Imported package names | Only if you turn on `trustcode.engine.registryLookups` | To PyPI / npm, names only | Not stored by TrustCode |

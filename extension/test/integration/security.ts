@@ -15,6 +15,9 @@ export async function runSecurityScenarios(hook: any, scanner: string): Promise<
     catch (e: any) { results.push({ name, ok: false, ms: Date.now() - t0, err: e?.message }); console.log(`  FAIL ${name}: ${e?.message}`); }
   };
   const { view, security } = hook;
+  // The account gate is tested in licence.ts; here a confirmed account is assumed so the scanner itself is exercised.
+  security.gate = () => true;
+  view.licence.usable = () => true;
   const root = vscode.workspace.workspaceFolders![0].uri.fsPath;
   const abs = (rel: string) => path.join(root, ...rel.split('/'));
   const write = (rel: string, text: string) => { fs.mkdirSync(path.dirname(abs(rel)), { recursive: true }); fs.writeFileSync(abs(rel), text); };
@@ -77,12 +80,24 @@ export async function runSecurityScenarios(hook: any, scanner: string): Promise<
 
   await t('files created by any tool are picked up automatically, after changes settle, as one batch', async () => {
     await set('scanner.automatic', true);
-    for (let i = 0; i < 6; i++) write(`agent/handler_${i}.js`, `function h${i}(req, res) { res.send("<p>" + req.query.q + "</p>"); }\nmodule.exports = h${i};\n`);
-    await until(() => found('js-taint-xss').length === 6 && !security.scanning, 'automatic rescan of agent-created files');
-    assert.ok(security.report.files.fromCache > 0, 'unchanged files should be reused from the cache');
-    fs.rmSync(abs('agent/handler_0.js'));
-    await until(() => found('js-taint-xss').length === 5 && !security.scanning, 'deleted file leaves the report');
-    await set('scanner.automatic', false);
+    const calls: Array<{ mode: string; paths?: string[] }> = [];
+    const origScan = security.scan.bind(security);
+    security.scan = (mode: string, opts: any = {}) => { calls.push({ mode, paths: opts.paths }); return origScan(mode, opts); };
+    const before = (security.report?.findings ?? []).filter((f: any) => !f.path.startsWith('agent/')).length;
+    try {
+      for (let i = 0; i < 6; i++) write(`agent/handler_${i}.js`, `function h${i}(req, res) { res.send("<p>" + req.query.q + "</p>"); }\nmodule.exports = h${i};\n`);
+      await until(() => found('js-taint-xss').length === 6 && !security.scanning, 'automatic rescan of agent-created files');
+      // only the changed files are scanned again, never the whole project
+      assert.ok(calls.length >= 1 && calls.every((c) => c.mode === 'changed' && c.paths && c.paths.every((p) => p === 'agent' || p.startsWith('agent/'))), `automatic scans: ${JSON.stringify(calls)}`);
+      assert.strictEqual((security.report?.findings ?? []).filter((f: any) => !f.path.startsWith('agent/')).length, before, 'findings of other files are kept');
+      assert.strictEqual(security.model().report?.mode, 'full', 'the overview still describes the full scan it is based on');
+      fs.rmSync(abs('agent/handler_0.js'));
+      await until(() => found('js-taint-xss').length === 5 && !security.scanning, 'deleted file leaves the report');
+      assert.ok(calls.every((c) => c.mode === 'changed'), 'deleting a file does not trigger a full scan either');
+      fs.rmSync(abs('agent'), { recursive: true, force: true });
+      await until(() => found('js-taint-xss').length === 0 && !security.scanning, 'a deleted folder takes its findings with it');
+      assert.ok(calls.every((c) => c.mode === 'changed'));
+    } finally { security.scan = origScan; await set('scanner.automatic', false); }
   });
 
   await t('AI session integration: when a tracked session reaches a review point its changes are scanned', async () => {
@@ -131,5 +146,25 @@ export async function runSecurityScenarios(hook: any, scanner: string): Promise<
     await view.onMessage({ action: 'secGroup', key: 'file' });
     assert.strictEqual(security.groupBy, 'file');
   });
+  await t('the last result is kept for the next session: opening VS Code again shows it without scanning', async () => {
+    const kept = (security.report?.findings ?? []).map((f: any) => f.fingerprint).sort();
+    assert.ok(kept.length > 0, 'set-up: a result exists');
+    security.report = undefined;                  // what a fresh start looks like
+    let scans = 0;
+    const origScan = security.scan.bind(security);
+    security.scan = (mode: string, opts: any = {}) => { scans++; return origScan(mode, opts); };
+    try {
+      await set('scanner.scanOnStartup', true);
+      security.startup();
+      assert.deepStrictEqual((security.report?.findings ?? []).map((f: any) => f.fingerprint).sort(), kept, 'the previous findings are shown at once');
+      assert.ok(security.model().restoredFrom, 'marked as kept from the last session');
+      await view.showTab('security');
+      assert.match(html[html.length - 1], /kept from your last session/);
+      await sleep(5000);                          // the startup scan would have begun after 4 s
+      assert.strictEqual(scans, 0, 'no scan was started');
+      assert.ok(!security.scanning);
+    } finally { security.scan = origScan; }
+  });
+
   return results;
 }

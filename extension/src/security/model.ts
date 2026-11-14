@@ -84,6 +84,8 @@ export type GroupBy = 'severity' | 'file' | 'category';
 export interface SecurityModel {
   availability: 'ready' | 'missing' | 'untrusted' | 'no-workspace'; scanning?: { mode: string; detail?: string; done?: number; total?: number }; report?: SecReport; error?: string; groupBy: GroupBy;
   automatic: boolean; scannerCommand: string; hooks?: Record<string, string>; online: boolean;
+  /** Set when the result on screen was kept from the previous session: when that scan ran. */
+  restoredFrom?: string;
 }
 const CONFIDENCE: Record<string, [string, string]> = { confirmed: ['Confirmed', 'st-failed'], strongly_suspected: ['Strongly suspected', 'st-issue'], potential: ['Needs review', 'st-review'] };
 const STATE: Record<string, [string, string]> = { new: ['New', 'st-issue'], reintroduced: ['Reintroduced', 'st-failed'], existing: ['In baseline', 'st-notrun'], unclassified: ['', ''], suppressed: ['Reviewed', 'st-notrun'] };
@@ -173,6 +175,7 @@ export function securityPage(m: SecurityModel): string {
       ${r.baseline.present ? `<p class="muted small">Baseline: ${st('new')} new · ${st('reintroduced')} reintroduced · ${st('existing')} already in the baseline · ${r.baseline.resolved} resolved · ${r.baseline.notRevalidated} not revalidated · ${r.baseline.suppressed} reviewed.</p>`
         : '<p class="muted small">No baseline yet: findings are not classified as new or existing.</p>'}
       <div class="row"><button data-action="secBaseline" ${dis} title="Run a full scan and record its findings as the existing state. They stay visible; later scans show what is new.">${r.baseline.present ? 'Update baseline' : 'Set baseline from a full scan'}</button></div>
+      ${m.restoredFrom ? `<p class="hint small" role="note">Result of the scan on ${esc(m.restoredFrom.replace('T', ' ').slice(0, 16))}, kept from your last session. Files changed while VS Code was closed are included when they change again or when you rescan.</p>` : ''}
       ${r.notes.map((n) => `<p class="hint small" role="note">${esc(n)}</p>`).join('')}</section>
     ${gate}${findingsPanel(r, m.groupBy)}
     ${suppressed.length ? `<details class="card"><summary class="card-title">Reviewed false positives (${suppressed.length})</summary><ul class="plain">${suppressed.map((f) => `<li><code>${esc(f.path)}:${f.line}</code> ${esc(f.title)} — “${esc(f.review?.reason ?? '')}” <span class="muted small">${esc(f.review?.by ?? '')} ${esc((f.review?.at ?? '').slice(0, 10))}</span></li>`).join('')}</ul>

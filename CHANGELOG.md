@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.1] — 2026-11-14
+### Changed
+- Security scanner 1.2, after a scan of a second real project (391 findings, almost all false; now 12):
+  SQL rules require SQL text (API URLs in tests are not SQL injection); zero-width joiners inside Sinhala, Indic,
+  Arabic and emoji text are not hidden characters; passwords in loopback database URLs and in Git-ignored
+  environment files are not reported; secret fallbacks in tests are low.
+- The Security tab keeps its last result per folder between sessions and no longer runs a full project scan at every
+  start; automatic rescans scan only the files that changed (a deleted folder removes its findings).
+### Added
+- A literal password passed to `bcrypt.hash`, `make_password` or `generate_password_hash` is reported as a hardcoded
+  secret (seed scripts that publish real accounts' passwords).
+
 ## [1.2.0] — 2026-11-14
 ### Security
 - Licences: a removed, blocked, suspended or deleted account now stops the extension within an hour while online

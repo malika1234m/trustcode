@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'How it works', description: 'Create 
 
 const STEPS = [
   ['Create a free account', 'Register on this website. TrustCode is free; the account confirms who is using it.'],
-  ['Install the extension', 'Download trustcode-1.2.0.vsix from the GitHub release and run “Extensions: Install from VSIX…” in VS Code. It is not on the Marketplace. A shield icon appears in the activity bar. Sign in from the TrustCode panel.'],
+  ['Install the extension', 'Download trustcode-1.2.1.vsix from the GitHub release and run “Extensions: Install from VSIX…” in VS Code. It is not on the Marketplace. A shield icon appears in the activity bar. Sign in from the TrustCode panel.'],
   ['Set up the local engine once', 'The first time, TrustCode asks, then creates a private Python environment in VS Code’s storage and downloads the analysis tools from PyPI (about 300 MB, needs Python 3.11 or newer).'],
   ['Select AI-generated code', 'Select Python, JavaScript or TypeScript in the editor, then right-click → “TrustCode: Verify Selected Code”.'],
   ['Describe the task (optional)', 'Tell TrustCode what the code should do and paste unit tests that import the selection as solution. With Docker running, the tests run in a sandbox on your computer.'],

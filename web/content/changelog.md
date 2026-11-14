@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.2.1
+- **Fewer false alarms**: translated text (such as Sinhala), API addresses in tests and local test databases are no longer reported as risks.
+- **Faster Security tab**: your last scan result is shown straight away when VS Code starts, and only changed files are rescanned.
+- **New check**: plain-text passwords in seed scripts that create real accounts are now reported.
+
 ## 1.2.0
 - **Far fewer false alarms**: the security scan no longer reports ordinary code such as test files and build scripts, so what it shows is worth reading.
 - **Click a finding to open it**: clicking a finding takes you straight to the line in your file.

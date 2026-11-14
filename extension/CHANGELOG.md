@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.2.1
+
+- **Fewer false alarms in more projects.** API URLs in tests are no longer reported as SQL injection, Sinhala, Indic,
+  Arabic and emoji text is no longer reported as hidden characters, and passwords for a database on your own machine
+  or in a Git-ignored `.env` file are no longer reported.
+- **No full scan every time you open VS Code.** The Security tab shows the result from your last session at once
+  (marked with its date); only a folder that was never scanned gets a full scan. Automatic rescans check only the
+  files that changed, not the whole project again.
+- **New check:** a password written in plain text and passed to `bcrypt.hash` (or similar) in a seed or setup script
+  is reported, because anyone who can read the repository then knows that account's password.
+
 ## 1.2.0
 
 - **Far fewer false alarms in the Security tab.** Ordinary code is no longer reported: test files that import the test

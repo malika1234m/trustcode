@@ -2,7 +2,7 @@
   "name": "trustcode",
   "displayName": "TrustCode — Verify AI-Generated Code",
   "description": "Security gate for your project: scans every file locally for SQL injection, exposed secrets, unsafe configuration and other vulnerabilities, highlights the exact code, and can block commits, pushes and releases. Also tracks what AI coding agents change.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "publisher": "trustcode-research",
   "license": "MIT",
   "private": true,
@@ -570,7 +570,7 @@
           "type": "boolean",
           "default": true,
           "scope": "application",
-          "description": "After the first scan, rescan automatically when files are created, changed or deleted (waits until changes settle; unchanged files are reused from the cache)."
+          "description": "After the first scan, rescan the files that are created, changed or deleted (waits until changes settle). Only those files are scanned again."
         },
         "trustcode.scanner.settleSeconds": {
           "type": "number",
@@ -611,7 +611,7 @@
           "type": "boolean",
           "default": true,
           "scope": "application",
-          "description": "Run a full local scan shortly after a trusted folder is opened, so findings and automatic rescans are available without clicking anything."
+          "description": "Run a full local scan shortly after a trusted folder is opened for the first time. Later, the last result is shown at once and only changed files are rescanned."
         },
         "trustcode.updates.check": {
           "type": "boolean",

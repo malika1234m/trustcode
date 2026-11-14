@@ -2,7 +2,7 @@ export const API_URL = (process.env.TRUSTCODE_API_URL ?? 'https://trustcode-api.
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? 'https://trustcode-app.vercel.app').replace(/\/$/, '');
 export const GITHUB_URL = 'https://github.com/malika1234m/trustcode';
 /** The current release. Update with each release (the extension is distributed as a .vsix from GitHub). */
-export const RELEASE_VERSION = '1.2.0';
+export const RELEASE_VERSION = '1.2.1';
 export const DOWNLOAD_URL = `${GITHUB_URL}/releases/tag/v${RELEASE_VERSION}`;
 /** Trust Center: privacy, data flows and honest limits, as of the current release. */
 export const TRUST_CENTER_URL = `${GITHUB_URL}/blob/v${RELEASE_VERSION}/docs/TRUSTCODE_TRUST_AND_PRIVACY.md`;

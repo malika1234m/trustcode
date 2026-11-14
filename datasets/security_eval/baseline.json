@@ -1,10 +1,10 @@
 {
  "note": "Recorded by scripts/security_eval/evaluate_scanner.py. Regenerate deliberately.",
  "overall": {
-  "cases": 160,
-  "tp": 98,
+  "cases": 169,
+  "tp": 101,
   "fp": 0,
-  "tn": 62,
+  "tn": 68,
   "fn": 0,
   "precision": 1.0,
   "recall": 1.0,
@@ -31,11 +31,21 @@
   "nosql-js-taint": {
    "detected": true
   },
-  "sqli-py-safe-params": {},
-  "sqli-js-safe-params": {},
-  "sqli-php-safe-prepared": {},
-  "sqli-java-safe-prepared": {},
-  "sqli-py-safe-constant": {},
+  "sqli-py-safe-params": {
+   "flagged": false
+  },
+  "sqli-js-safe-params": {
+   "flagged": false
+  },
+  "sqli-php-safe-prepared": {
+   "flagged": false
+  },
+  "sqli-java-safe-prepared": {
+   "flagged": false
+  },
+  "sqli-py-safe-constant": {
+   "flagged": false
+  },
   "secret-github": {
    "detected": true
   },
@@ -57,10 +67,18 @@
   "secret-jwt-generic": {
    "detected": true
   },
-  "secret-safe-env": {},
-  "secret-safe-placeholder": {},
-  "secret-safe-names": {},
-  "secret-safe-aws-doc-example": {},
+  "secret-safe-env": {
+   "flagged": false
+  },
+  "secret-safe-placeholder": {
+   "flagged": false
+  },
+  "secret-safe-names": {
+   "flagged": false
+  },
+  "secret-safe-aws-doc-example": {
+   "flagged": false
+  },
   "env-committed": {
    "detected": true
   },
@@ -76,8 +94,12 @@
   "env-fallback-js": {
    "detected": true
   },
-  "env-safe-example": {},
-  "env-safe-validation": {},
+  "env-safe-example": {
+   "flagged": false
+  },
+  "env-safe-validation": {
+   "flagged": false
+  },
   "jwt-py-noverify": {
    "detected": true
   },
@@ -93,9 +115,15 @@
   "auth-plain-compare": {
    "detected": true
   },
-  "jwt-py-safe": {},
-  "jwt-js-safe": {},
-  "auth-safe-bcrypt": {},
+  "jwt-py-safe": {
+   "flagged": false
+  },
+  "jwt-js-safe": {
+   "flagged": false
+  },
+  "auth-safe-bcrypt": {
+   "flagged": false
+  },
   "xss-js-reflect": {
    "detected": true
   },
@@ -105,9 +133,15 @@
   "xss-py-template": {
    "detected": true
   },
-  "xss-js-safe-escaped": {},
-  "xss-php-safe-escaped": {},
-  "xss-js-safe-json": {},
+  "xss-js-safe-escaped": {
+   "flagged": false
+  },
+  "xss-php-safe-escaped": {
+   "flagged": false
+  },
+  "xss-js-safe-json": {
+   "flagged": false
+  },
   "cmd-py-taint": {
    "detected": true
   },
@@ -117,8 +151,12 @@
   "cmd-php-taint": {
    "detected": true
   },
-  "cmd-py-safe-list": {},
-  "cmd-php-safe-escaped": {},
+  "cmd-py-safe-list": {
+   "flagged": false
+  },
+  "cmd-php-safe-escaped": {
+   "flagged": false
+  },
   "path-py-taint": {
    "detected": true
   },
@@ -128,7 +166,9 @@
   "path-php-include": {
    "detected": true
   },
-  "path-py-safe-basename": {},
+  "path-py-safe-basename": {
+   "flagged": false
+  },
   "cors-js-wildcard-creds": {
    "detected": true
   },
@@ -147,20 +187,30 @@
   "deser-py-taint": {
    "detected": true
   },
-  "cors-js-safe-list": {},
-  "ssrf-py-safe-constant": {},
-  "debug-safe": {},
+  "cors-js-safe-list": {
+   "flagged": false
+  },
+  "ssrf-py-safe-constant": {
+   "flagged": false
+  },
+  "debug-safe": {
+   "flagged": false
+  },
   "cicd-pwn-request": {
    "detected": true
   },
   "cicd-injection": {
    "detected": true
   },
-  "cicd-safe": {},
+  "cicd-safe": {
+   "flagged": false
+  },
   "docker-curl-sh": {
    "detected": true
   },
-  "docker-safe": {},
+  "docker-safe": {
+   "flagged": false
+  },
   "agent-autoapprove": {
    "detected": true
   },
@@ -173,81 +223,117 @@
   "agent-hidden-unicode": {
    "detected": true
   },
-  "agent-safe-settings": {},
+  "agent-safe-settings": {
+   "flagged": false
+  },
   "db-rls-off": {
    "detected": true
   },
-  "db-rls-safe": {},
+  "db-rls-safe": {
+   "flagged": false
+  },
   "dep-install-script": {
    "detected": true
   },
-  "dep-safe-scripts": {},
+  "dep-safe-scripts": {
+   "flagged": false
+  },
   "log-py-secret": {
    "detected": true
   },
   "log-js-secret": {
    "detected": true
   },
-  "log-py-safe": {},
+  "log-py-safe": {
+   "flagged": false
+  },
   "err-js-stack": {
    "detected": true
   },
   "err-py-traceback": {
    "detected": true
   },
-  "err-js-safe": {},
+  "err-js-safe": {
+   "flagged": false
+  },
   "xxe-py-lxml": {
    "detected": true
   },
   "xxe-java-default": {
    "detected": true
   },
-  "xxe-py-safe": {},
-  "xxe-java-safe": {},
+  "xxe-py-safe": {
+   "flagged": false
+  },
+  "xxe-java-safe": {
+   "flagged": false
+  },
   "front-postmessage": {
    "detected": true
   },
-  "front-postmessage-safe": {},
+  "front-postmessage-safe": {
+   "flagged": false
+  },
   "upload-js-clientname": {
    "detected": true
   },
   "upload-py-clientname": {
    "detected": true
   },
-  "upload-py-safe": {},
+  "upload-py-safe": {
+   "flagged": false
+  },
   "k8s-privileged": {
    "detected": true
   },
-  "k8s-safe": {},
+  "k8s-safe": {
+   "flagged": false
+  },
   "iam-wildcard": {
    "detected": true
   },
-  "iam-safe": {},
+  "iam-safe": {
+   "flagged": false
+  },
   "authz-express-admin": {
    "detected": true
   },
-  "authz-express-safe": {},
+  "authz-express-safe": {
+   "flagged": false
+  },
   "authz-flask-admin": {
    "detected": true
   },
-  "authz-flask-safe": {},
-  "authz-flask-public-ok": {},
+  "authz-flask-safe": {
+   "flagged": false
+  },
+  "authz-flask-public-ok": {
+   "flagged": false
+  },
   "authz-spring-delete": {
    "detected": true
   },
-  "authz-spring-safe": {},
+  "authz-spring-safe": {
+   "flagged": false
+  },
   "net-http-endpoint": {
    "detected": true
   },
-  "net-http-safe": {},
+  "net-http-safe": {
+   "flagged": false
+  },
   "cloud-public-bucket": {
    "detected": true
   },
-  "cloud-private-bucket": {},
+  "cloud-private-bucket": {
+   "flagged": false
+  },
   "authz-django-delete": {
    "detected": true
   },
-  "authz-django-safe": {},
+  "authz-django-safe": {
+   "flagged": false
+  },
   "secret-smtp": {
    "detected": true
   },
@@ -257,7 +343,9 @@
   "secret-docker-env": {
    "detected": true
   },
-  "secret-docker-safe": {},
+  "secret-docker-safe": {
+   "flagged": false
+  },
   "rule-agt-hook": {
    "detected": true
   },
@@ -339,24 +427,60 @@
   "rule-java-md5": {
    "detected": true
   },
-  "ordinary-pytest-file": {},
-  "ordinary-test-asserts": {},
-  "ordinary-node-test": {},
-  "ordinary-build-script-exit": {},
-  "ordinary-names-about-secrets": {},
-  "ordinary-bibliography-keys": {},
-  "ordinary-shell-variable": {},
-  "ordinary-docs-mention-key": {},
-  "ordinary-private-env": {},
-  "ordinary-private-env-ignore": {},
-  "ordinary-rule-definition-py": {},
-  "ordinary-rule-definition-yaml": {},
-  "ordinary-retry-jitter": {},
-  "ordinary-shuffle": {},
-  "ordinary-constant-html": {},
-  "ordinary-test-double-address": {},
-  "ordinary-links-in-data": {},
-  "ordinary-prose-about-markers": {},
+  "ordinary-pytest-file": {
+   "flagged": false
+  },
+  "ordinary-test-asserts": {
+   "flagged": false
+  },
+  "ordinary-node-test": {
+   "flagged": false
+  },
+  "ordinary-build-script-exit": {
+   "flagged": false
+  },
+  "ordinary-names-about-secrets": {
+   "flagged": false
+  },
+  "ordinary-bibliography-keys": {
+   "flagged": false
+  },
+  "ordinary-shell-variable": {
+   "flagged": false
+  },
+  "ordinary-docs-mention-key": {
+   "flagged": false
+  },
+  "ordinary-private-env": {
+   "flagged": false
+  },
+  "ordinary-private-env-ignore": {
+   "flagged": false
+  },
+  "ordinary-rule-definition-py": {
+   "flagged": false
+  },
+  "ordinary-rule-definition-yaml": {
+   "flagged": false
+  },
+  "ordinary-retry-jitter": {
+   "flagged": false
+  },
+  "ordinary-shuffle": {
+   "flagged": false
+  },
+  "ordinary-constant-html": {
+   "flagged": false
+  },
+  "ordinary-test-double-address": {
+   "flagged": false
+  },
+  "ordinary-links-in-data": {
+   "flagged": false
+  },
+  "ordinary-prose-about-markers": {
+   "flagged": false
+  },
   "random-reset-token": {
    "detected": true
   },
@@ -368,6 +492,33 @@
   },
   "secret-in-application-code": {
    "detected": true
+  },
+  "ordinary-api-url-template": {
+   "flagged": false
+  },
+  "ordinary-sinhala-text": {
+   "flagged": false
+  },
+  "ordinary-emoji-sequence": {
+   "flagged": false
+  },
+  "ordinary-ci-service-database": {
+   "flagged": false
+  },
+  "ordinary-ignored-vercel-env": {
+   "flagged": false
+  },
+  "zwj-between-ascii-letters": {
+   "detected": true
+  },
+  "sql-template-with-query-text": {
+   "detected": true
+  },
+  "seed-literal-password": {
+   "detected": true
+  },
+  "seed-random-password": {
+   "flagged": false
   }
  }
 }

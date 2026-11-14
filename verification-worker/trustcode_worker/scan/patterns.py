@@ -30,6 +30,9 @@ PROVIDER_TOKENS: list[tuple[str, str, re.Pattern]] = [
     ("azure-storage-key", "Azure storage account key", re.compile(r"AccountKey=[A-Za-z0-9+/]{60,}={0,2}")),
 ]
 PRIVATE_KEY = re.compile(r"-----BEGIN (?:RSA |EC |DSA |OPENSSH |PGP |ENCRYPTED )?PRIVATE KEY(?: BLOCK)?-----")
+LOOPBACK_URL = re.compile(r"@(localhost|127\.\d+\.\d+\.\d+|\[::1\]|0\.0\.0\.0)(:\d+)?(/|$)")
+HASHED_LITERAL = re.compile(r"""\b(?:(?:bcrypt|bcryptjs|argon2|bcrypt_?js)\.(?:hash|hashSync)|make_password|generate_password_hash|hashpw|"""
+                            r"""(?:Bcrypt|BCrypt)\.(?:hashpw|HashPassword))\(\s*(?:b?(['"])([^'"\n]{4,128})\1)""")
 URL_CREDS = re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s/:@'\"]+:([^\s/@'\"{}$<>%]{3,})@[^\s'\"]+")
 PLACEHOLDER = re.compile(r"(?i)(example|placeholder|changeme|change[-_]me|your[-_ ]?\w*|x{4,}|\*{3,}|<[^>]+>|\$\{[^}]*\}|\{\{[^}]*\}\}|dummy|redacted|todo|"
                          r"user:pass(word)?@|insert[-_ ]|replace[-_ ]|sample|fake|test[-_]?key|not[-_]?set|none|null|undefined|generate[-_ ]with|generated?[-_ ]by)")
@@ -54,6 +57,25 @@ GH_UNTRUSTED = re.compile(r"\$\{\{\s*(github\.event\.(issue|pull_request|comment
 
 SERVICE_ACCOUNT_KEY = re.compile(r'''"private_key"\s*:\s*"-----BEGIN [A-Z ]*PRIVATE KEY-----(?:\\n|\s)*[A-Za-z0-9+/=\\]{40,}''')
 DEDICATED_SECRET = re.compile(r"(?i)(smtp|mail|email)[\w.-]*pass|client[-_]?secret|oauth[\w.-]*secret")
+
+
+JOINERS = "\u200c\u200d"   # zero-width non-joiner / joiner
+
+
+def _word_char(c: str) -> bool:
+    import unicodedata
+    return bool(c) and ord(c) > 0x7f and (unicodedata.category(c)[0] in "LM" or unicodedata.category(c) == "So" or 0xFE00 <= ord(c) <= 0xFE0F or 0x1F3FB <= ord(c) <= 0x1F3FF)
+
+
+def hidden_characters(line: str):
+    """Invisible characters that can hide or reorder text. A zero-width (non-)joiner between two letters of a script
+    that needs it (Sinhala, Devanagari, Arabic, Persian, …) or inside an emoji sequence is ordinary spelling and is
+    not reported; between ASCII characters, at a word edge, or any bidirectional control always is."""
+    for m in HIDDEN_UNICODE.finditer(line):
+        c, i = m.group(0)[0], m.start()
+        if c in JOINERS and i > 0 and _word_char(line[i - 1]) and i + 1 < len(line) and _word_char(line[i + 1]):
+            continue
+        yield m
 
 
 def entropy(s: str) -> float:
@@ -133,8 +155,16 @@ def secrets(path: str, text: str) -> Iterator[Raw]:
             yield ("TC-SEC-002", i, 1, i, len(line) + 1, '"private_key": …[masked]', "Service-account key material.", {"detector": "service-account"})
             continue
         m = URL_CREDS.search(line)
+        if m and LOOPBACK_URL.search(m.group(0)):
+            m = None   # a password for a database on this machine (CI service, local development) protects nothing remote
         if m and not _is_placeholder(m.group(1)) and not _is_placeholder(m.group(0)):
             yield ("TC-SEC-005", i, m.start(1) + 1, i, m.end(1) + 1, mask(line, m.start(1), m.end(1)), "A password is embedded in a connection URL.", {"detector": "url-credentials"})
+            continue
+        m = HASHED_LITERAL.search(line)
+        if m and not _is_placeholder(m.group(2)):
+            yield ("TC-SEC-004", i, m.start(2) + 1, i, m.end(2) + 1, mask(line, m.start(2), m.end(2)),
+                   "A literal password is hashed and stored: anyone who can read this file knows the password of that account.",
+                   {"detector": "hashed-literal-password", "confidence": "strongly_suspected"})
             continue
         if is_env:
             continue  # env files are judged as a whole by env_file()
@@ -196,7 +226,7 @@ def text_rules(path: str, text: str) -> Iterator[Raw]:
         if len(line) > 4000:
             continue
         defines_rule = bool(RULE_DEFINITION.search(line))
-        m = HIDDEN_UNICODE.search(line)
+        m = next(hidden_characters(line), None)
         if m:
             yield ("TC-AGT-004", i, m.start() + 1, i, m.end() + 1, f"U+{ord(m.group(0)[0]):04X} at column {m.start() + 1}",
                    "An invisible Unicode character is present" + (" in an agent instruction file." if agent_file else "."),

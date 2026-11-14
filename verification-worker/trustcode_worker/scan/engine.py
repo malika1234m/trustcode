@@ -23,7 +23,7 @@ from ..tools import run, semgrep_cmd, tool_version
 from . import patterns
 from .catalogue import (CONFIDENCES, LEGACY_SEMGREP, REMEDIATION, RULES, SEMGREP_BLOCK, SEMGREP_CONFIDENCE, SEVERITIES)
 
-ENGINE = "trustcode-scan 1.1"
+ENGINE = "trustcode-scan 1.2"
 RULES_DIR = Path(__file__).resolve().parent.parent / "rules"
 STATE_DIR = ".trustcode"
 SEMGREP_LANGS = {".py": "Python", ".js": "JavaScript", ".jsx": "JavaScript", ".mjs": "JavaScript", ".cjs": "JavaScript",
@@ -227,15 +227,23 @@ def analyse_text(path: str, text: str, git_state: str) -> list[dict]:
 # can falsify a test result. In a project, `import pytest` and `process.exit()` are ordinary code.
 NOT_FOR_PROJECTS = {"runtime-or-test-tampering", "js-runtime-or-test-tampering"}
 CONSTANT_HTML = re.compile(r"""\.(?:inner|outer)HTML\s*=\s*(?:'[^'\\]*'|"[^"\\]*"|`[^`$\\]*`)\s*;?\s*(?://.*)?$""")
-TEST_CONTEXT_RULES = {"TC-SEC-004", "TC-SEC-005", "TC-ENV-006", "hardcoded-secret", "js-hardcoded-secret"}
+TEST_CONTEXT_RULES = {"TC-SEC-004", "TC-SEC-005", "TC-ENV-004", "TC-ENV-006", "hardcoded-secret", "js-hardcoded-secret"}
+SQL_TEXT = re.compile(r"(?i)\b(select\b[\s\S]{0,200}?\bfrom|insert\s+into|update\s+[\w.\"`\[\]]+\s+set|delete\s+from|create\s+(table|index)|drop\s+table|"
+                      r"alter\s+table|where\s+[\w.]+\s*(=|<|>|like|in\b)|order\s+by|group\s+by|union\s+select)\b")
+SQL_RULES = {"js-sql-concat", "js-sql-concat-any-position", "sql-string-formatting", "sql-concat"}
+# Secret-format rules whose matches in an environment file that Git ignores are expected: that is where secrets belong.
+PRIVATE_ENV_RULES = {"TC-SEC-001", "TC-SEC-004", "TC-SEC-005"}
 
 
-def keep_match(sid: str, path: str, src: list[str], line: int) -> bool:
+def keep_match(sid: str, path: str, src: list[str], line: int, end_line: int | None = None) -> bool:
     """Second look at a Semgrep match with what the rule itself cannot see: the kind of file and the text around the
     match. Returns False when the match is not what the rule is meant to find (precision, not suppression)."""
     text_line = src[line - 1] if 0 < line <= len(src) else ""
     if sid in NOT_FOR_PROJECTS:
         return False
+    if sid in SQL_RULES:
+        # the pattern matches any `x.get(`...${y}`)`; it is only SQL injection when the text is SQL (not a URL or a path)
+        return bool(SQL_TEXT.search("\n".join(src[max(0, line - 1):max(line, end_line or line)])))
     if sid == "assert-for-validation":
         return not patterns.is_test_file(path)          # assert is how tests state what they expect
     if sid in ("hardcoded-secret", "js-hardcoded-secret"):
@@ -314,7 +322,7 @@ def run_semgrep(root: Path, files: list[str]) -> tuple[dict[str, list[dict]], di
                         "block": RULES.get(rule_id, {}).get("block") or SEMGREP_BLOCK.get(category, "WARN"), "priority": RULES.get(rule_id, {}).get("priority", "P1")}
             except (KeyError, TypeError, ValueError):
                 continue  # malformed scanner output is dropped, never trusted
-            if not keep_match(sid, path, line_cache.setdefault(path, _lines(root / path)), item["line"]):
+            if not keep_match(sid, path, line_cache.setdefault(path, _lines(root / path)), item["line"], item["end_line"]):
                 continue
             if path in by_path:
                 by_path[path].append(item)
@@ -772,6 +780,8 @@ def scan(root: str | Path, mode: str = "full", *, paths: list[str] | None = None
                 from_cache += 1
                 continue
             file_findings[p] = analyse_text(p, texts[p], git_state(p))
+            if patterns.ENV_FILE.search(p) and git_state(p) == "ignored":
+                file_findings[p] = [f for f in file_findings[p] if f["rule_id"] not in PRIVATE_ENV_RULES]
             if os.path.splitext(p)[1].lower() in SEMGREP_LANGS:
                 need_semgrep.append(p)
         scanned = [p for p in targets if p in shas]

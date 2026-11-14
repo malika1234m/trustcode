@@ -1,13 +1,13 @@
 {
  "engine": "trustcode-scan 1.1",
  "status": "complete",
- "duration_ms": 5903,
- "files_scanned": 160,
+ "duration_ms": 3250,
+ "files_scanned": 169,
  "overall": {
-  "cases": 160,
-  "tp": 98,
+  "cases": 169,
+  "tp": 101,
   "fp": 0,
-  "tn": 62,
+  "tn": 68,
   "fn": 0,
   "precision": 1.0,
   "recall": 1.0,
@@ -17,10 +17,10 @@
  },
  "by_category": {
   "agent-config": {
-   "cases": 9,
-   "tp": 5,
+   "cases": 12,
+   "tp": 6,
    "fp": 0,
-   "tn": 4,
+   "tn": 6,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -221,10 +221,10 @@
    "false_negative_rate": 0.0
   },
   "secrets": {
-   "cases": 21,
-   "tp": 11,
+   "cases": 25,
+   "tp": 12,
    "fp": 0,
-   "tn": 10,
+   "tn": 13,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -233,10 +233,10 @@
    "false_negative_rate": 0.0
   },
   "sql-injection": {
-   "cases": 12,
-   "tp": 7,
+   "cases": 14,
+   "tp": 8,
    "fp": 0,
-   "tn": 5,
+   "tn": 6,
    "fn": 0,
    "precision": 1.0,
    "recall": 1.0,
@@ -306,7 +306,7 @@
   }
  },
  "rules_total": 106,
- "rules_with_a_case": 93,
+ "rules_with_a_case": 94,
  "rules_without_a_case": [
   "TC-DEP-004",
   "TC-REG-001",
@@ -319,7 +319,6 @@
   "java-trust-all-certificates",
   "js-hardcoded-secret",
   "js-runtime-or-test-tampering",
-  "js-sql-concat",
   "runtime-or-test-tampering"
  ],
  "missed": [],
@@ -1909,6 +1908,87 @@
    "rule": "TC-SEC-004",
    "severity": "high",
    "confidence": "potential",
+   "other": []
+  },
+  {
+   "id": "ordinary-api-url-template",
+   "category": "sql-injection",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-sinhala-text",
+   "category": "agent-config",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-emoji-sequence",
+   "category": "agent-config",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-ci-service-database",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "ordinary-ignored-vercel-env",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
+   "other": []
+  },
+  {
+   "id": "zwj-between-ascii-letters",
+   "category": "agent-config",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-AGT-004",
+   "severity": "medium",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "sql-template-with-query-text",
+   "category": "sql-injection",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "js-sql-concat",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "seed-literal-password",
+   "category": "secrets",
+   "vulnerable": true,
+   "detected": true,
+   "wrong_line": false,
+   "rule": "TC-SEC-004",
+   "severity": "high",
+   "confidence": "strongly_suspected",
+   "other": []
+  },
+  {
+   "id": "seed-random-password",
+   "category": "secrets",
+   "vulnerable": false,
+   "flagged": false,
+   "rules": [],
    "other": []
   }
  ]

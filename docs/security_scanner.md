@@ -88,7 +88,7 @@ generated and binary file types, files over `max_file_kb`, symbolic links (never
 Language coverage: **language-aware rules** for Python, JavaScript, TypeScript, PHP and Java. Every other text file
 gets **generic patterns only** (credentials, configuration); the report says so per language.
 
-## What is deliberately not reported (scanner 1.1)
+## What is deliberately not reported (scanner 1.1 and 1.2)
 
 A match is only useful if it is what the rule is meant to find. After every scanner has run, each match is looked at
 again with what a pattern cannot see: the kind of file and the text around the match. These are not suppressions and
@@ -107,7 +107,16 @@ cannot be switched on by the project being scanned.
 | Plain `http://` addresses in test files, in JSON data, or for single-label and reserved test hosts | No | They are test doubles or records, not endpoints the program talks to |
 | A suppression marker word in prose (`nosemgrep` in a docstring) | No | Only a marker in a comment suppresses anything |
 | `"private_key"` mentioned in documentation | No | Key material after the marker is required |
+| A SQL rule matching a call whose text is not SQL (`request.get(`${BASE}/api/…`)`) | No (1.2) | Only text with SQL keywords (`SELECT … FROM`, `INSERT INTO`, `WHERE x =`, …) can be SQL injection |
+| Zero-width joiner or non-joiner between two letters of a script that needs it (Sinhala, Devanagari, Arabic, …) or inside an emoji sequence | No (1.2) | It is part of correct spelling. Between ASCII characters, at a word edge, and every bidirectional control are still reported |
+| A password in a URL to `localhost`, `127.x`, `::1` or `0.0.0.0` | No (1.2) | A throwaway database on the same machine (CI services, local development) |
+| Credentials in an environment file that Git ignores (`.env`, `.env.vercel`, …) | No (1.2) | That is where they belong. A tracked or un-ignored environment file is still reported |
+| A secret environment variable with a literal fallback, in a test file | As **low** (1.2) | Test credentials for a test database |
 | Bandit B608 at low confidence | No | A string that contains SQL words but is not passed to a query call. Strings that reach `execute()` are covered by the data-flow rules |
+
+Added in 1.2: **a literal password passed to a password-hashing function** (`bcrypt.hash("…")`, `make_password("…")`,
+`generate_password_hash("…")`) is reported as a strongly suspected hardcoded secret. Seed scripts that create real
+accounts this way publish those accounts' passwords to everyone who can read the repository.
 
 Each row has a labelled safe case in `scripts/security_eval/dataset.py` (`ordinary-*`), next to vulnerable cases that
 prove the same rules still fire where they should. These heuristics can be evaded on purpose (for example by writing

@@ -5,7 +5,7 @@ Numbers come from `datasets/security_eval/results.json`.
 
 ## Method
 
-160 small files: 98 vulnerable and 62 safe ones. The safe files are counterparts of the vulnerable ones (parameterised SQL,
+169 small files: 101 vulnerable and 68 safe ones. The safe files are counterparts of the vulnerable ones (parameterised SQL,
 placeholder environment files, escaped output, verified JWTs and so on) and, since 2026-11-14, 18 files of ordinary
 project code that scanner version 1.0 reported when it was run on a real repository: test files that import the test
 framework and use `assert`, build scripts that call `process.exit`, rule definitions, bibliography keys, names that
@@ -16,7 +16,7 @@ finding of its category is reported in that file.
 
 ## Result
 
-Overall: 98 of 98 vulnerable cases detected at the exact line, 0 false positives on 62 safe cases
+Overall: 101 of 101 vulnerable cases detected at the exact line, 0 false positives on 68 safe cases
 (precision 1.0, recall 1.0, F1 1.0, false-positive rate 0.0, false-negative rate 0.0).
 
 | Category | Cases | Detected at exact line | Missed | False positives on safe cases | Precision | Recall |
@@ -76,6 +76,22 @@ text that mentions a private key. Of the 36 that remain, the 3 high ones are del
 demo's SQL injection and two secrets in the evaluation dataset). One finding of 1.0 was real and has been fixed: the
 webview's content-security-policy nonce was generated with `Math.random()`. This is one repository, read by the
 people who wrote the scanner; it is not a measurement of accuracy on other projects.
+
+## Check on a second real repository (scanner 1.2)
+
+A full scan of a separate web application (a Next.js booking site, 378 files, 2026-11-14), which the scanner had
+never been tuned on:
+
+| | Scanner 1.1 (release 1.2.0) | Scanner 1.2 |
+|---|---|---|
+| Findings | 391 | 12 |
+| High | 84 | 5 |
+| Medium | 304 | 2 |
+
+Scanner 1.1 reported 79 API URLs in end-to-end tests as SQL injection, 383 zero-width joiners in Sinhala translations
+as hidden characters, and the database password of a CI service on `localhost`. It **missed** the real problem:
+literal passwords for real accounts hashed in a committed seed script. Scanner 1.2 reports those five lines as its
+only high findings. Nine labelled cases for these patterns were added to the benchmark; scanner 1.1 gets 5 of them wrong.
 
 ## These numbers overstate real-world accuracy
 
